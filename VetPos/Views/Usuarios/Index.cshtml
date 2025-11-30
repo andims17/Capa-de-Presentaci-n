@@ -1,6 +1,123 @@
 ﻿@{
     ViewData["Title"] = "Gestión de Usuarios";
+    Layout = "~/Views/Compartido/LayoutPrincipal.cshtml";
 }
+
+<style>
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .user-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        transition: all 0.3s;
+    }
+
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .user-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #E0F2FE;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0EA5E9;
+        font-weight: bold;
+        font-size: 1.5rem;
+    }
+
+    .user-info h3 {
+        margin: 0;
+        color: #1E293B;
+    }
+
+    .user-info p {
+        margin: 0;
+        color: #64748B;
+        font-size: 0.9rem;
+    }
+
+    .user-details {
+        display: grid;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .detail-label {
+        color: #64748B;
+    }
+
+    .detail-value {
+        color: #1E293B;
+        font-weight: 500;
+    }
+
+    .user-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .role-badge {
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .role-admin {
+        background: #FEE2E2;
+        color: #DC2626;
+    }
+
+    .role-vet {
+        background: #FEF3C7;
+        color: #D97706;
+    }
+
+    .role-cashier {
+        background: #E0F2FE;
+        color: #0EA5E9;
+    }
+
+    .role-reception {
+        background: #E0F2FE;
+        color: #0EA5E9;
+    }
+
+    .status-active {
+        color: #10B981;
+        font-weight: 600;
+    }
+
+    .status-inactive {
+        color: #EF4444;
+        font-weight: 600;
+    }
+</style>
 
 <div class="page-header">
     <h1 class="page-title">Gestión de Usuarios</h1>
@@ -15,101 +132,130 @@
         </button>
     </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Usuario</th>
-                <th>Nombre Completo</th>
-                <th>Rol</th>
-                <th>Email</th>
-                <th>Estado</th>
-                <th>Último Acceso</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>admin</td>
-                <td>Administrador del Sistema</td>
-                <td><span class="badge badge-danger">Administrador</span></td>
-                <td>admin@vetpost.com</td>
-                <td><span class="badge badge-success">Activo</span></td>
-                <td>15/10/2024 08:30</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-key"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>carlos.vet</td>
-                <td>Dr. Carlos Rodríguez</td>
-                <td><span class="badge badge-warning">Veterinario</span></td>
-                <td>carlos.rodriguez@vetpost.com</td>
-                <td><span class="badge badge-success">Activo</span></td>
-                <td>14/10/2024 16:45</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-key"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>ana.vet</td>
-                <td>Dra. Ana García</td>
-                <td><span class="badge badge-warning">Veterinario</span></td>
-                <td>ana.garcia@vetpost.com</td>
-                <td><span class="badge badge-success">Activo</span></td>
-                <td>15/10/2024 09:15</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-key"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>maria.caja</td>
-                <td>María López</td>
-                <td><span class="badge badge-info">Cajero</span></td>
-                <td>maria.lopez@vetpost.com</td>
-                <td><span class="badge badge-success">Activo</span></td>
-                <td>15/10/2024 10:20</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-key"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>juan.recep</td>
-                <td>Juan Martínez</td>
-                <td><span class="badge badge-primary">Recepcionista</span></td>
-                <td>juan.martinez@vetpost.com</td>
-                <td><span class="badge badge-danger">Inactivo</span></td>
-                <td>01/10/2024 14:30</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-key"></i>
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="users-grid">
+        <!-- Usuario 1 -->
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <h3>Administrador</h3>
+                    <p>admin</p>
+                </div>
+            </div>
+            <div class="user-details">
+                <div class="detail-item">
+                    <span class="detail-label">Rol:</span>
+                    <span class="role-badge role-admin">Administrador</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">admin@vetpost.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8900</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Último acceso:</span>
+                    <span class="detail-value">15/10/2024 08:30</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-active">Activo</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-key"></i> Contraseña
+                </button>
+            </div>
+        </div>
+
+        <!-- Usuario 2 -->
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-avatar">C</div>
+                <div class="user-info">
+                    <h3>Dr. Carlos Rodríguez</h3>
+                    <p>carlos.vet</p>
+                </div>
+            </div>
+            <div class="user-details">
+                <div class="detail-item">
+                    <span class="detail-label">Rol:</span>
+                    <span class="role-badge role-vet">Veterinario</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">carlos.rodriguez@vetpost.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8901</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Último acceso:</span>
+                    <span class="detail-value">14/10/2024 16:45</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-active">Activo</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-key"></i> Contraseña
+                </button>
+            </div>
+        </div>
+
+        <!-- Usuario 3 -->
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <h3>Dra. Ana García</h3>
+                    <p>ana.vet</p>
+                </div>
+            </div>
+            <div class="user-details">
+                <div class="detail-item">
+                    <span class="detail-label">Rol:</span>
+                    <span class="role-badge role-vet">Veterinario</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">ana.garcia@vetpost.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8902</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Último acceso:</span>
+                    <span class="detail-value">15/10/2024 09:15</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-active">Activo</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-key"></i> Contraseña
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal para nuevo usuario -->
@@ -175,7 +321,7 @@
             </div>
 
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="btn" onclick="closeModal('nuevoUsuarioModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="button" class="btn" onclick="closeModal('nuevoUsuarioModal')" style="background: #E2E8F0;">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Registrar Usuario</button>
             </div>
         </form>

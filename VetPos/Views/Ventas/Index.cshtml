@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Punto de Venta";
+    Layout = "~/Views/Compartido/LayoutPrincipal.cshtml";
 }
 
 <style>
@@ -57,12 +58,13 @@
         font-weight: 600;
         margin-bottom: 0.5rem;
         color: #1E293B;
+        font-size: 0.9rem;
     }
 
     .product-price {
         font-weight: bold;
         color: #0EA5E9;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         margin-bottom: 0.5rem;
     }
 
@@ -73,6 +75,7 @@
 
     .stock-low {
         color: #EF4444;
+        font-weight: 600;
     }
 
     .cart-empty {
@@ -102,11 +105,12 @@
     .cart-item-name {
         font-weight: 600;
         color: #1E293B;
+        font-size: 0.9rem;
     }
 
     .cart-item-price {
         color: #64748B;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
 
     .cart-item-quantity {
@@ -125,6 +129,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 0.8rem;
     }
 
     .quantity-input {
@@ -133,6 +138,7 @@
         border: 1px solid #E2E8F0;
         border-radius: 4px;
         padding: 0.2rem;
+        font-size: 0.9rem;
     }
 
     .cart-summary {
@@ -144,6 +150,7 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: 0.5rem;
+        font-size: 0.9rem;
     }
 
     .summary-total {
@@ -220,6 +227,31 @@
         border: none;
         border-radius: 4px;
         cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    .customer-section {
+        background: #F8FAFC;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .customer-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .customer-name {
+        font-weight: 600;
+        color: #1E293B;
+    }
+
+    .change-customer {
+        color: #0EA5E9;
+        cursor: pointer;
+        font-size: 0.9rem;
     }
 </style>
 
@@ -255,6 +287,18 @@
     <div class="cart-section">
         <h3 style="margin-bottom: 1rem;">Carrito de Venta</h3>
 
+        <div class="customer-section">
+            <div class="customer-info">
+                <div>
+                    <div class="customer-name">Cliente: Venta General</div>
+                    <div style="font-size: 0.8rem; color: #64748B;">Sin cliente asignado</div>
+                </div>
+                <span class="change-customer" onclick="openModal('seleccionarClienteModal')">
+                    <i class="fas fa-edit"></i> Cambiar
+                </span>
+            </div>
+        </div>
+
         <div class="cart-items" id="cartItems">
             <div class="cart-empty" id="cartEmpty">
                 <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 1rem;"></i>
@@ -286,9 +330,45 @@
                     </select>
                 </div>
 
-                <button class="btn btn-success" style="width: 100%;" onclick="processSale()">
-                    <i class="fas fa-check"></i> Procesar Venta
+                <button class="btn btn-success" style="width: 100%; margin-top: 1rem;" onclick="processSale()">
+                    <i class="fas fa-check"></i> Procesar Venta ($<span id="totalBtn">0.00</span>)
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para seleccionar cliente -->
+<div id="seleccionarClienteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Seleccionar Cliente</h3>
+            <button class="close" onclick="closeModal('seleccionarClienteModal')">&times;</button>
+        </div>
+
+        <div class="search-box" style="margin-bottom: 1rem;">
+            <input type="text" class="search-input" placeholder="Buscar cliente..." id="searchCliente">
+            <button class="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <div style="max-height: 300px; overflow-y: auto;">
+            <div class="client-option" onclick="selectCustomer('Venta General', '')">
+                <strong>Venta General</strong>
+                <span style="color: #64748B; font-size: 0.9rem;">Sin cliente asignado</span>
+            </div>
+            <div class="client-option" onclick="selectCustomer('María González', 'CLI-001')">
+                <strong>María González</strong>
+                <span style="color: #64748B; font-size: 0.9rem;">CLI-001 • 2 mascotas</span>
+            </div>
+            <div class="client-option" onclick="selectCustomer('Carlos López', 'CLI-002')">
+                <strong>Carlos López</strong>
+                <span style="color: #64748B; font-size: 0.9rem;">CLI-002 • 1 mascota</span>
+            </div>
+            <div class="client-option" onclick="selectCustomer('Ana Martínez', 'CLI-003')">
+                <strong>Ana Martínez</strong>
+                <span style="color: #64748B; font-size: 0.9rem;">CLI-003 • 1 mascota</span>
             </div>
         </div>
     </div>
@@ -309,6 +389,7 @@
 
     let cart = [];
     let currentCategory = 'all';
+    let currentCustomer = { name: 'Venta General', code: '' };
 
     // Inicializar productos
     function initializeProducts() {
@@ -439,6 +520,7 @@
 
             document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
             document.getElementById('total').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('totalBtn').textContent = subtotal.toFixed(2);
         }
     }
 
@@ -467,6 +549,15 @@
         updateCart();
     }
 
+    // Seleccionar cliente
+    function selectCustomer(name, code) {
+        currentCustomer = { name, code };
+        document.querySelector('.customer-name').textContent = `Cliente: ${name}`;
+        document.querySelector('.customer-info div div:nth-child(2)').textContent =
+            code ? `Código: ${code}` : 'Sin cliente asignado';
+        closeModal('seleccionarClienteModal');
+    }
+
     // Procesar venta
     function processSale() {
         if (cart.length === 0) {
@@ -476,16 +567,39 @@
 
         const paymentMethod = document.getElementById('paymentMethod').value;
         const total = document.getElementById('total').textContent;
+        const customerInfo = currentCustomer.code ?
+            `Cliente: ${currentCustomer.name} (${currentCustomer.code})` :
+            'Cliente: Venta General';
 
         // Simular procesamiento de venta
-        alert(`✅ Venta procesada exitosamente!\n\nTotal: ${total}\nMétodo de pago: ${paymentMethod}\n\n¡Gracias por su compra!`);
+        const saleId = 'V-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+        alert(`✅ Venta procesada exitosamente!\n\nN° Venta: ${saleId}\n${customerInfo}\nTotal: ${total}\nMétodo de pago: ${paymentMethod}\n\n¡Gracias por su compra!`);
 
         // Limpiar carrito
         cart = [];
         updateCart();
         document.getElementById('paymentMethod').value = 'efectivo';
+        selectCustomer('Venta General', '');
     }
 
     // Inicializar cuando se carga la página
     document.addEventListener('DOMContentLoaded', initializeProducts);
 </script>
+
+<style>
+    .client-option {
+        padding: 1rem;
+        border-bottom: 1px solid #E2E8F0;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .client-option:hover {
+            background-color: #F8FAFC;
+        }
+
+        .client-option:last-child {
+            border-bottom: none;
+        }
+</style>

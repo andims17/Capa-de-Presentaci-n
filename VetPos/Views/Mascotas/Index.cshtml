@@ -1,6 +1,110 @@
 ﻿@{
     ViewData["Title"] = "Gestión de Mascotas";
+    Layout = "~/Views/Compartido/LayoutPrincipal.cshtml";
 }
+
+<style>
+    .pets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .pet-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        transition: all 0.3s;
+    }
+
+        .pet-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .pet-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .pet-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .avatar-dog {
+        background: #E0F2FE;
+        color: #0EA5E9;
+    }
+
+    .avatar-cat {
+        background: #FEF3C7;
+        color: #F59E0B;
+    }
+
+    .pet-info h3 {
+        margin: 0;
+        color: #1E293B;
+    }
+
+    .pet-info p {
+        margin: 0;
+        color: #64748B;
+        font-size: 0.9rem;
+    }
+
+    .pet-details {
+        display: grid;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .detail-label {
+        color: #64748B;
+    }
+
+    .detail-value {
+        color: #1E293B;
+        font-weight: 500;
+    }
+
+    .pet-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .health-badge {
+        background: #D1FAE5;
+        color: #065F46;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .vaccine-badge {
+        background: #FEF3C7;
+        color: #92400E;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+</style>
 
 <div class="page-header">
     <h1 class="page-title">Gestión de Mascotas</h1>
@@ -23,143 +127,137 @@
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
-        <!-- Tarjeta de mascota 1 -->
-        <div class="card" style="padding: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div class="avatar-mascota" style="background: var(--primary-light); color: var(--primary-dark);">
+    <div class="pets-grid">
+        <!-- Mascota 1 -->
+        <div class="pet-card">
+            <div class="pet-header">
+                <div class="pet-avatar avatar-dog">
                     <i class="fas fa-dog"></i>
                 </div>
-                <div>
-                    <h3 style="margin: 0;">Max</h3>
-                    <p style="margin: 0; color: var(--gray-dark);">Labrador Retriever</p>
+                <div class="pet-info">
+                    <h3>Max</h3>
+                    <p>Labrador Retriever • 3 años</p>
                 </div>
             </div>
-
-            <div style="margin-bottom: 1rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Dueño:</span>
-                    <span style="font-weight: 600;">María González</span>
+            <div class="pet-details">
+                <div class="detail-item">
+                    <span class="detail-label">Dueño:</span>
+                    <span class="detail-value">María González</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Edad:</span>
-                    <span>3 años</span>
+                <div class="detail-item">
+                    <span class="detail-label">Peso:</span>
+                    <span class="detail-value">28 kg</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Peso:</span>
-                    <span>28 kg</span>
+                <div class="detail-item">
+                    <span class="detail-label">Sexo:</span>
+                    <span class="detail-value">Macho</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Última visita:</span>
-                    <span>10/10/2024</span>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">10/10/2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="health-badge">Saludable</span>
                 </div>
             </div>
-
-            <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-primary" style="flex: 1; padding: 0.5rem;">
+            <div class="pet-actions">
+                <button class="btn btn-primary btn-sm">
                     <i class="fas fa-eye"></i> Ver
                 </button>
-                <button class="btn" style="padding: 0.5rem; background: var(--gray-medium);">
-                    <i class="fas fa-edit"></i>
+                <button class="btn btn-sm" style="background: #E2E8F0;">
+                    <i class="fas fa-edit"></i> Editar
                 </button>
             </div>
         </div>
 
-        <!-- Tarjeta de mascota 2 -->
-        <div class="card" style="padding: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div class="avatar-mascota" style="background: #FEF3C7; color: var(--warning);">
+        <!-- Mascota 2 -->
+        <div class="pet-card">
+            <div class="pet-header">
+                <div class="pet-avatar avatar-cat">
                     <i class="fas fa-cat"></i>
                 </div>
-                <div>
-                    <h3 style="margin: 0;">Luna</h3>
-                    <p style="margin: 0; color: var(--gray-dark);">Gato Persa</p>
+                <div class="pet-info">
+                    <h3>Luna</h3>
+                    <p>Gato Persa • 2 años</p>
                 </div>
             </div>
-
-            <div style="margin-bottom: 1rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Dueño:</span>
-                    <span style="font-weight: 600;">Carlos López</span>
+            <div class="pet-details">
+                <div class="detail-item">
+                    <span class="detail-label">Dueño:</span>
+                    <span class="detail-value">Carlos López</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Edad:</span>
-                    <span>2 años</span>
+                <div class="detail-item">
+                    <span class="detail-label">Peso:</span>
+                    <span class="detail-value">4.5 kg</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Peso:</span>
-                    <span>4.5 kg</span>
+                <div class="detail-item">
+                    <span class="detail-label">Sexo:</span>
+                    <span class="detail-value">Hembra</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Última visita:</span>
-                    <span>08/10/2024</span>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">08/10/2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Vacunas:</span>
+                    <span class="vaccine-badge">Al día</span>
                 </div>
             </div>
-
-            <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-primary" style="flex: 1; padding: 0.5rem;">
+            <div class="pet-actions">
+                <button class="btn btn-primary btn-sm">
                     <i class="fas fa-eye"></i> Ver
                 </button>
-                <button class="btn" style="padding: 0.5rem; background: var(--gray-medium);">
-                    <i class="fas fa-edit"></i>
+                <button class="btn btn-sm" style="background: #E2E8F0;">
+                    <i class="fas fa-edit"></i> Editar
                 </button>
             </div>
         </div>
 
-        <!-- Tarjeta de mascota 3 -->
-        <div class="card" style="padding: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div class="avatar-mascota" style="background: var(--primary-light); color: var(--primary-dark);">
+        <!-- Mascota 3 -->
+        <div class="pet-card">
+            <div class="pet-header">
+                <div class="pet-avatar avatar-dog">
                     <i class="fas fa-dog"></i>
                 </div>
-                <div>
-                    <h3 style="margin: 0;">Rocky</h3>
-                    <p style="margin: 0; color: var(--gray-dark);">Pastor Alemán</p>
+                <div class="pet-info">
+                    <h3>Rocky</h3>
+                    <p>Pastor Alemán • 5 años</p>
                 </div>
             </div>
-
-            <div style="margin-bottom: 1rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Dueño:</span>
-                    <span style="font-weight: 600;">Ana Martínez</span>
+            <div class="pet-details">
+                <div class="detail-item">
+                    <span class="detail-label">Dueño:</span>
+                    <span class="detail-value">Ana Martínez</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Edad:</span>
-                    <span>5 años</span>
+                <div class="detail-item">
+                    <span class="detail-label">Peso:</span>
+                    <span class="detail-value">32 kg</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Peso:</span>
-                    <span>32 kg</span>
+                <div class="detail-item">
+                    <span class="detail-label">Sexo:</span>
+                    <span class="detail-value">Macho</span>
                 </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Última visita:</span>
-                    <span>05/10/2024</span>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">05/10/2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="health-badge">En tratamiento</span>
                 </div>
             </div>
-
-            <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-primary" style="flex: 1; padding: 0.5rem;">
+            <div class="pet-actions">
+                <button class="btn btn-primary btn-sm">
                     <i class="fas fa-eye"></i> Ver
                 </button>
-                <button class="btn" style="padding: 0.5rem; background: var(--gray-medium);">
-                    <i class="fas fa-edit"></i>
+                <button class="btn btn-sm" style="background: #E2E8F0;">
+                    <i class="fas fa-edit"></i> Editar
                 </button>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    .avatar-mascota {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-    }
-</style>
 
 <!-- Modal para nueva mascota -->
 <div id="nuevaMascotaModal" class="modal">
@@ -177,7 +275,6 @@
                     <option>María González</option>
                     <option>Carlos López</option>
                     <option>Ana Martínez</option>
-                    <option>Roberto Sánchez</option>
                 </select>
             </div>
 
@@ -238,7 +335,7 @@
             </div>
 
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="btn" onclick="closeModal('nuevaMascotaModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="button" class="btn" onclick="closeModal('nuevaMascotaModal')" style="background: #E2E8F0;">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Registrar Mascota</button>
             </div>
         </form>

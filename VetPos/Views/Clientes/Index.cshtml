@@ -1,6 +1,100 @@
 ﻿@{
     ViewData["Title"] = "Gestión de Clientes";
+    Layout = "~/Views/Compartido/LayoutPrincipal.cshtml";
 }
+
+<style>
+    .clients-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .client-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        transition: all 0.3s;
+    }
+
+        .client-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .client-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .client-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #E0F2FE;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0EA5E9;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .client-info h3 {
+        margin: 0;
+        color: #1E293B;
+    }
+
+    .client-info p {
+        margin: 0;
+        color: #64748B;
+        font-size: 0.9rem;
+    }
+
+    .client-details {
+        display: grid;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+    }
+
+    .detail-label {
+        color: #64748B;
+    }
+
+    .detail-value {
+        color: #1E293B;
+        font-weight: 500;
+    }
+
+    .client-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .pets-badge {
+        background: #E0F2FE;
+        color: #0EA5E9;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+</style>
 
 <div class="page-header">
     <h1 class="page-title">Gestión de Clientes</h1>
@@ -23,85 +117,118 @@
         </div>
     </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Teléfono</th>
-                <th>Email</th>
-                <th>Dirección</th>
-                <th>Mascotas</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>CLI-001</td>
-                <td>María González</td>
-                <td>+1 234-567-8901</td>
-                <td>maria.gonzalez@email.com</td>
-                <td>Calle Principal #123</td>
-                <td>2 mascotas</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>CLI-002</td>
-                <td>Carlos López</td>
-                <td>+1 234-567-8902</td>
-                <td>carlos.lopez@email.com</td>
-                <td>Avenida Central #456</td>
-                <td>1 mascota</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>CLI-003</td>
-                <td>Ana Martínez</td>
-                <td>+1 234-567-8903</td>
-                <td>ana.martinez@email.com</td>
-                <td>Boulevard Norte #789</td>
-                <td>1 mascota</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td>CLI-004</td>
-                <td>Roberto Sánchez</td>
-                <td>+1 234-567-8904</td>
-                <td>roberto.sanchez@email.com</td>
-                <td>Plaza Sur #101</td>
-                <td>1 mascota</td>
-                <td>
-                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="clients-grid">
+        <!-- Cliente 1 -->
+        <div class="client-card">
+            <div class="client-header">
+                <div class="client-avatar">MG</div>
+                <div class="client-info">
+                    <h3>María González</h3>
+                    <p>CLI-001</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8901</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">maria.gonzalez@email.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Mascotas:</span>
+                    <span class="pets-badge">2 mascotas</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">10/10/2024</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+
+        <!-- Cliente 2 -->
+        <div class="client-card">
+            <div class="client-header">
+                <div class="client-avatar">CL</div>
+                <div class="client-info">
+                    <h3>Carlos López</h3>
+                    <p>CLI-002</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8902</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">carlos.lopez@email.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Mascotas:</span>
+                    <span class="pets-badge">1 mascota</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">08/10/2024</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+
+        <!-- Cliente 3 -->
+        <div class="client-card">
+            <div class="client-header">
+                <div class="client-avatar">AM</div>
+                <div class="client-info">
+                    <h3>Ana Martínez</h3>
+                    <p>CLI-003</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8903</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">ana.martinez@email.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Mascotas:</span>
+                    <span class="pets-badge">1 mascota</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">05/10/2024</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal para nuevo cliente -->
@@ -153,7 +280,7 @@
             </div>
 
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="btn" onclick="closeModal('nuevoClienteModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="button" class="btn" onclick="closeModal('nuevoClienteModal')" style="background: #E2E8F0;">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Registrar Cliente</button>
             </div>
         </form>

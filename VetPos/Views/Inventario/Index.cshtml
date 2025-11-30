@@ -1,6 +1,73 @@
 ﻿@{
     ViewData["Title"] = "Gestión de Inventario";
+    Layout = "~/Views/Compartido/LayoutPrincipal.cshtml";
 }
+
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .inventory-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .stock-low {
+        color: #EF4444;
+        font-weight: 600;
+    }
+
+    .stock-ok {
+        color: #10B981;
+        font-weight: 600;
+    }
+
+    .product-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        background: #E0F2FE;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0EA5E9;
+        font-size: 1.2rem;
+    }
+
+    .category-badge {
+        background: #E0F2FE;
+        color: #0EA5E9;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .filters-section {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-label {
+        font-size: 0.8rem;
+        color: #64748B;
+        font-weight: 600;
+    }
+</style>
 
 <div class="page-header">
     <h1 class="page-title">Gestión de Inventario</h1>
@@ -41,6 +108,37 @@
     </div>
 </div>
 
+<div class="filters-section">
+    <div class="filter-group">
+        <label class="filter-label">Categoría</label>
+        <select class="form-control" style="width: 150px;">
+            <option>Todas</option>
+            <option>Medicamento</option>
+            <option>Alimento</option>
+            <option>Accesorio</option>
+            <option>Higiene</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">Estado Stock</label>
+        <select class="form-control" style="width: 150px;">
+            <option>Todos</option>
+            <option>Stock Bajo</option>
+            <option>En Stock</option>
+            <option>Agotados</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">Proveedor</label>
+        <select class="form-control" style="width: 180px;">
+            <option>Todos</option>
+            <option>PetSupplies S.A.</option>
+            <option>VetProducts Corp</option>
+            <option>AnimalCare Ltd</option>
+        </select>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Productos en Inventario</h2>
@@ -63,7 +161,6 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Código</th>
                 <th>Producto</th>
                 <th>Categoría</th>
                 <th>Stock</th>
@@ -75,10 +172,22 @@
         </thead>
         <tbody>
             <tr>
-                <td>PROD-001</td>
-                <td>Antipulgas para perros grandes</td>
-                <td>Medicamento</td>
-                <td>15</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="product-image">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Antipulgas para perros grandes</div>
+                            <div style="font-size: 0.8rem; color: #64748B;">PROD-001</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Medicamento</span></td>
+                <td>
+                    <div>15</div>
+                    <div style="font-size: 0.8rem; color: #64748B;">Mín: 10</div>
+                </td>
                 <td>$18.00</td>
                 <td>$25.00</td>
                 <td><span class="badge badge-success">En Stock</span></td>
@@ -92,10 +201,22 @@
                 </td>
             </tr>
             <tr>
-                <td>PROD-002</td>
-                <td>Alimento para perros adulto 5kg</td>
-                <td>Alimento</td>
-                <td>22</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="product-image">
+                            <i class="fas fa-bone"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Alimento para perros adulto 5kg</div>
+                            <div style="font-size: 0.8rem; color: #64748B;">PROD-002</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Alimento</span></td>
+                <td>
+                    <div>22</div>
+                    <div style="font-size: 0.8rem; color: #64748B;">Mín: 15</div>
+                </td>
                 <td>$12.50</td>
                 <td>$18.50</td>
                 <td><span class="badge badge-success">En Stock</span></td>
@@ -109,10 +230,22 @@
                 </td>
             </tr>
             <tr>
-                <td>PROD-003</td>
-                <td>Arena para gatos absorbente 4kg</td>
-                <td>Accesorio</td>
-                <td>18</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="product-image">
+                            <i class="fas fa-cat"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Arena para gatos absorbente 4kg</div>
+                            <div style="font-size: 0.8rem; color: #64748B;">PROD-003</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Accesorio</span></td>
+                <td>
+                    <div>18</div>
+                    <div style="font-size: 0.8rem; color: #64748B;">Mín: 12</div>
+                </td>
                 <td>$8.00</td>
                 <td>$12.00</td>
                 <td><span class="badge badge-success">En Stock</span></td>
@@ -126,10 +259,22 @@
                 </td>
             </tr>
             <tr>
-                <td>PROD-004</td>
-                <td>Vacuna triple felina</td>
-                <td>Medicamento</td>
-                <td>8</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="product-image">
+                            <i class="fas fa-syringe"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Vacuna triple felina</div>
+                            <div style="font-size: 0.8rem; color: #64748B;">PROD-004</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Medicamento</span></td>
+                <td>
+                    <div>8</div>
+                    <div style="font-size: 0.8rem; color: #64748B;">Mín: 5</div>
+                </td>
                 <td>$25.00</td>
                 <td>$35.00</td>
                 <td><span class="badge badge-success">En Stock</span></td>
@@ -143,10 +288,22 @@
                 </td>
             </tr>
             <tr>
-                <td>PROD-005</td>
-                <td>Shampoo medicado para perros</td>
-                <td>Higiene</td>
-                <td>3</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="product-image">
+                            <i class="fas fa-pump-soap"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Shampoo medicado para perros</div>
+                            <div style="font-size: 0.8rem; color: #64748B;">PROD-005</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Higiene</span></td>
+                <td>
+                    <div class="stock-low">3</div>
+                    <div style="font-size: 0.8rem; color: #64748B;">Mín: 8</div>
+                </td>
                 <td>$6.50</td>
                 <td>$10.00</td>
                 <td><span class="badge badge-danger">Stock Bajo</span></td>
@@ -235,7 +392,7 @@
             </div>
 
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="btn" onclick="closeModal('nuevoProductoModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="button" class="btn" onclick="closeModal('nuevoProductoModal')" style="background: #E2E8F0;">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Registrar Producto</button>
             </div>
         </form>
@@ -301,7 +458,7 @@
             </div>
 
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="btn" onclick="closeModal('entradaInventarioModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="button" class="btn" onclick="closeModal('entradaInventarioModal')" style="background: #E2E8F0;">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Registrar Entrada</button>
             </div>
         </form>

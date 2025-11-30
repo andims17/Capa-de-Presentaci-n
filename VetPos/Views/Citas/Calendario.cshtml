@@ -1,0 +1,409 @@
+﻿@{
+    ViewData["Title"] = "Calendario de Citas";
+    Layout = "~/Views/Compartido/LayoutPrincipal.cshtml";
+}
+
+<style>
+    .calendar-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .calendar-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1E293B;
+        min-width: 200px;
+        text-align: center;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: #E2E8F0;
+        border: 1px solid #E2E8F0;
+    }
+
+    .calendar-day-header {
+        background: #F8FAFC;
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+        color: #64748B;
+        border-bottom: 2px solid #E2E8F0;
+    }
+
+    .calendar-day {
+        background: white;
+        min-height: 120px;
+        padding: 0.5rem;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .calendar-day:hover {
+            background: #F8FAFC;
+        }
+
+        .calendar-day.other-month {
+            background: #F8FAFC;
+            color: #94A3B8;
+        }
+
+    .day-number {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #1E293B;
+    }
+
+    .calendar-event {
+        background: #E0F2FE;
+        border-left: 3px solid #0EA5E9;
+        padding: 0.2rem 0.4rem;
+        margin-bottom: 0.2rem;
+        border-radius: 2px;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+
+        .calendar-event.confirmed {
+            background: #D1FAE5;
+            border-left-color: #10B981;
+        }
+
+        .calendar-event.pending {
+            background: #FEF3C7;
+            border-left-color: #F59E0B;
+        }
+
+        .calendar-event.emergency {
+            background: #FEE2E2;
+            border-left-color: #EF4444;
+        }
+
+    .event-time {
+        font-weight: 600;
+        font-size: 0.6rem;
+    }
+
+    .event-details {
+        font-size: 0.6rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .calendar-legend {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+    }
+
+    .today {
+        background: #E0F2FE !important;
+    }
+
+    .calendar-sidebar {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+
+    .calendar-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title">Calendario de Citas</h1>
+    <p class="page-subtitle">Visualización y gestión de citas programadas</p>
+</div>
+
+<div class="calendar-layout">
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <div class="calendar-nav">
+                <button class="btn" style="background: #E2E8F0;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="calendar-title">Octubre 2024</div>
+                <button class="btn" style="background: #E2E8F0;">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="openModal('nuevaCitaModal')">
+                    <i class="fas fa-plus"></i> Nueva Cita
+                </button>
+            </div>
+        </div>
+
+        <div class="calendar-grid">
+            <!-- Headers de días -->
+            <div class="calendar-day-header">Lun</div>
+            <div class="calendar-day-header">Mar</div>
+            <div class="calendar-day-header">Mié</div>
+            <div class="calendar-day-header">Jue</div>
+            <div class="calendar-day-header">Vie</div>
+            <div class="calendar-day-header">Sáb</div>
+            <div class="calendar-day-header">Dom</div>
+
+            <!-- Días del calendario -->
+            <!-- Semana 1 -->
+            <div class="calendar-day other-month">30</div>
+            <div class="calendar-day other-month">1</div>
+            <div class="calendar-day">2</div>
+            <div class="calendar-day">3</div>
+            <div class="calendar-day">4</div>
+            <div class="calendar-day">5</div>
+            <div class="calendar-day">6</div>
+
+            <!-- Semana 2 -->
+            <div class="calendar-day">7</div>
+            <div class="calendar-day">8</div>
+            <div class="calendar-day">9</div>
+            <div class="calendar-day">10</div>
+            <div class="calendar-day">11</div>
+            <div class="calendar-day">12</div>
+            <div class="calendar-day">13</div>
+
+            <!-- Semana 3 -->
+            <div class="calendar-day">14</div>
+            <div class="calendar-day today">15</div>
+            <div class="calendar-day">16</div>
+            <div class="calendar-day">17</div>
+            <div class="calendar-day">18</div>
+            <div class="calendar-day">19</div>
+            <div class="calendar-day">20</div>
+
+            <!-- Semana 4 -->
+            <div class="calendar-day">21</div>
+            <div class="calendar-day">22</div>
+            <div class="calendar-day">23</div>
+            <div class="calendar-day">24</div>
+            <div class="calendar-day">25</div>
+            <div class="calendar-day">26</div>
+            <div class="calendar-day">27</div>
+
+            <!-- Semana 5 -->
+            <div class="calendar-day">28</div>
+            <div class="calendar-day">29</div>
+            <div class="calendar-day">30</div>
+            <div class="calendar-day">31</div>
+            <div class="calendar-day other-month">1</div>
+            <div class="calendar-day other-month">2</div>
+            <div class="calendar-day other-month">3</div>
+        </div>
+
+        <div class="calendar-legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #E0F2FE; border-left: 3px solid #0EA5E9;"></div>
+                <span>Confirmadas</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FEF3C7; border-left: 3px solid #F59E0B;"></div>
+                <span>Pendientes</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FEE2E2; border-left: 3px solid #EF4444;"></div>
+                <span>Urgencias</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #E0F2FE;"></div>
+                <span>Hoy</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="calendar-sidebar">
+        <h3 style="margin-bottom: 1rem;">Citas de Hoy</h3>
+
+        <div class="citas-list">
+            <div class="cita-item">
+                <div class="cita-hora">09:00 AM</div>
+                <div class="cita-info">
+                    <div class="cita-cliente">María González</div>
+                    <div class="cita-mascota">Max (Perro)</div>
+                    <div class="cita-servicio">Consulta general</div>
+                </div>
+                <div class="cita-estado">
+                    <span class="badge badge-success">Confirmada</span>
+                </div>
+            </div>
+
+            <div class="cita-item">
+                <div class="cita-hora">10:30 AM</div>
+                <div class="cita-info">
+                    <div class="cita-cliente">Carlos López</div>
+                    <div class="cita-mascota">Luna (Gato)</div>
+                    <div class="cita-servicio">Vacunación anual</div>
+                </div>
+                <div class="cita-estado">
+                    <span class="badge badge-warning">Pendiente</span>
+                </div>
+            </div>
+
+            <div class="cita-item">
+                <div class="cita-hora">02:00 PM</div>
+                <div class="cita-info">
+                    <div class="cita-cliente">Ana Martínez</div>
+                    <div class="cita-mascota">Rocky (Perro)</div>
+                    <div class="cita-servicio">Control postoperatorio</div>
+                </div>
+                <div class="cita-estado">
+                    <span class="badge badge-success">Confirmada</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <h4 style="margin-bottom: 1rem;">Próximas Citas</h4>
+            <div class="cita-item">
+                <div class="cita-fecha">Mañana</div>
+                <div class="cita-info">
+                    <div class="cita-cliente">Roberto Sánchez</div>
+                    <div class="cita-mascota">Mimi (Gato)</div>
+                    <div class="cita-servicio">Desparasitación - 11:00 AM</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nueva cita (mismo que en Citas/Index) -->
+<div id="nuevaCitaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Agendar Nueva Cita</h3>
+            <button class="close" onclick="closeModal('nuevaCitaModal')">&times;</button>
+        </div>
+
+        <form>
+            <div class="form-group">
+                <label class="form-label">Cliente</label>
+                <select class="form-control">
+                    <option>Seleccionar cliente</option>
+                    <option>María González</option>
+                    <option>Carlos López</option>
+                    <option>Ana Martínez</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mascota</label>
+                <select class="form-control">
+                    <option>Seleccionar mascota</option>
+                    <option>Max (Perro - Labrador)</option>
+                    <option>Luna (Gato - Persa)</option>
+                    <option>Rocky (Perro - Pastor Alemán)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Fecha y Hora</label>
+                <input type="datetime-local" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Servicio</label>
+                <select class="form-control">
+                    <option>Consulta general</option>
+                    <option>Vacunación</option>
+                    <option>Desparasitación</option>
+                    <option>Control postoperatorio</option>
+                    <option>Estética</option>
+                    <option>Urgencia</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Veterinario</label>
+                <select class="form-control">
+                    <option>Dr. Carlos Rodríguez</option>
+                    <option>Dra. Ana García</option>
+                    <option>Dr. Miguel Torres</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notas</label>
+                <textarea class="form-control" rows="3" placeholder="Observaciones adicionales..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevaCitaModal')" style="background: #E2E8F0;">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Agendar Cita</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Agregar eventos al calendario
+    document.addEventListener('DOMContentLoaded', function() {
+        // Evento para el día 15 (hoy)
+        const todayCell = document.querySelector('.calendar-day.today');
+        if (todayCell) {
+            todayCell.innerHTML = `
+                <div class="day-number">15</div>
+                <div class="calendar-event confirmed">
+                    <div class="event-time">09:00</div>
+                    <div class="event-details">María González - Max</div>
+                </div>
+                <div class="calendar-event pending">
+                    <div class="event-time">10:30</div>
+                    <div class="event-details">Carlos López - Luna</div>
+                </div>
+                <div class="calendar-event confirmed">
+                    <div class="event-time">14:00</div>
+                    <div class="event-details">Ana Martínez - Rocky</div>
+                </div>
+            `;
+        }
+
+        // Evento para el día 16
+        const day16 = document.querySelectorAll('.calendar-day')[16];
+        if (day16 && day16.textContent.includes('16')) {
+            day16.innerHTML = `
+                <div class="day-number">16</div>
+                <div class="calendar-event confirmed">
+                    <div class="event-time">11:00</div>
+                    <div class="event-details">Roberto Sánchez - Mimi</div>
+                </div>
+            `;
+        }
+    });
+</script>
