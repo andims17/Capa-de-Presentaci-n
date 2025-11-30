@@ -1,0 +1,246 @@
+﻿@{
+    ViewData["Title"] = "Gestión de Mascotas";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Gestión de Mascotas</h1>
+    <p class="page-subtitle">Administra el registro de mascotas</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Expedientes de Mascotas</h2>
+        <div style="display: flex; gap: 1rem;">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Buscar mascota...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('nuevaMascotaModal')">
+                <i class="fas fa-plus"></i> Nueva Mascota
+            </button>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+        <!-- Tarjeta de mascota 1 -->
+        <div class="card" style="padding: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div class="avatar-mascota" style="background: var(--primary-light); color: var(--primary-dark);">
+                    <i class="fas fa-dog"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0;">Max</h3>
+                    <p style="margin: 0; color: var(--gray-dark);">Labrador Retriever</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Dueño:</span>
+                    <span style="font-weight: 600;">María González</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Edad:</span>
+                    <span>3 años</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Peso:</span>
+                    <span>28 kg</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Última visita:</span>
+                    <span>10/10/2024</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-primary" style="flex: 1; padding: 0.5rem;">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+                <button class="btn" style="padding: 0.5rem; background: var(--gray-medium);">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tarjeta de mascota 2 -->
+        <div class="card" style="padding: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div class="avatar-mascota" style="background: #FEF3C7; color: var(--warning);">
+                    <i class="fas fa-cat"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0;">Luna</h3>
+                    <p style="margin: 0; color: var(--gray-dark);">Gato Persa</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Dueño:</span>
+                    <span style="font-weight: 600;">Carlos López</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Edad:</span>
+                    <span>2 años</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Peso:</span>
+                    <span>4.5 kg</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Última visita:</span>
+                    <span>08/10/2024</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-primary" style="flex: 1; padding: 0.5rem;">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+                <button class="btn" style="padding: 0.5rem; background: var(--gray-medium);">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tarjeta de mascota 3 -->
+        <div class="card" style="padding: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div class="avatar-mascota" style="background: var(--primary-light); color: var(--primary-dark);">
+                    <i class="fas fa-dog"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0;">Rocky</h3>
+                    <p style="margin: 0; color: var(--gray-dark);">Pastor Alemán</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Dueño:</span>
+                    <span style="font-weight: 600;">Ana Martínez</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Edad:</span>
+                    <span>5 años</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Peso:</span>
+                    <span>32 kg</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Última visita:</span>
+                    <span>05/10/2024</span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-primary" style="flex: 1; padding: 0.5rem;">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+                <button class="btn" style="padding: 0.5rem; background: var(--gray-medium);">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-mascota {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+</style>
+
+<!-- Modal para nueva mascota -->
+<div id="nuevaMascotaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nueva Mascota</h3>
+            <button class="close" onclick="closeModal('nuevaMascotaModal')">&times;</button>
+        </div>
+
+        <form>
+            <div class="form-group">
+                <label class="form-label">Dueño</label>
+                <select class="form-control">
+                    <option>Seleccionar cliente</option>
+                    <option>María González</option>
+                    <option>Carlos López</option>
+                    <option>Ana Martínez</option>
+                    <option>Roberto Sánchez</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" placeholder="Nombre de la mascota">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Especie</label>
+                    <select class="form-control">
+                        <option>Perro</option>
+                        <option>Gato</option>
+                        <option>Ave</option>
+                        <option>Roedor</option>
+                        <option>Reptil</option>
+                        <option>Otro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Raza</label>
+                    <input type="text" class="form-control" placeholder="Raza de la mascota">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Fecha de Nacimiento</label>
+                    <input type="date" class="form-control">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Sexo</label>
+                    <select class="form-control">
+                        <option>Macho</option>
+                        <option>Hembra</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Peso (kg)</label>
+                    <input type="number" class="form-control" placeholder="Peso actual">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <input type="text" class="form-control" placeholder="Color principal">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Alergias/Notas Médicas</label>
+                <textarea class="form-control" rows="3" placeholder="Información médica importante..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevaMascotaModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Mascota</button>
+            </div>
+        </form>
+    </div>
+</div>

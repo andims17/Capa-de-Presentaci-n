@@ -1,0 +1,183 @@
+﻿@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Gestión de Usuarios</h1>
+    <p class="page-subtitle">Administra los usuarios del sistema</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Usuarios del Sistema</h2>
+        <button class="btn btn-primary" onclick="openModal('nuevoUsuarioModal')">
+            <i class="fas fa-plus"></i> Nuevo Usuario
+        </button>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre Completo</th>
+                <th>Rol</th>
+                <th>Email</th>
+                <th>Estado</th>
+                <th>Último Acceso</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>admin</td>
+                <td>Administrador del Sistema</td>
+                <td><span class="badge badge-danger">Administrador</span></td>
+                <td>admin@vetpost.com</td>
+                <td><span class="badge badge-success">Activo</span></td>
+                <td>15/10/2024 08:30</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-key"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>carlos.vet</td>
+                <td>Dr. Carlos Rodríguez</td>
+                <td><span class="badge badge-warning">Veterinario</span></td>
+                <td>carlos.rodriguez@vetpost.com</td>
+                <td><span class="badge badge-success">Activo</span></td>
+                <td>14/10/2024 16:45</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-key"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>ana.vet</td>
+                <td>Dra. Ana García</td>
+                <td><span class="badge badge-warning">Veterinario</span></td>
+                <td>ana.garcia@vetpost.com</td>
+                <td><span class="badge badge-success">Activo</span></td>
+                <td>15/10/2024 09:15</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-key"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>maria.caja</td>
+                <td>María López</td>
+                <td><span class="badge badge-info">Cajero</span></td>
+                <td>maria.lopez@vetpost.com</td>
+                <td><span class="badge badge-success">Activo</span></td>
+                <td>15/10/2024 10:20</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-key"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>juan.recep</td>
+                <td>Juan Martínez</td>
+                <td><span class="badge badge-primary">Recepcionista</span></td>
+                <td>juan.martinez@vetpost.com</td>
+                <td><span class="badge badge-danger">Inactivo</span></td>
+                <td>01/10/2024 14:30</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-key"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para nuevo usuario -->
+<div id="nuevoUsuarioModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nuevo Usuario</h3>
+            <button class="close" onclick="closeModal('nuevoUsuarioModal')">&times;</button>
+        </div>
+
+        <form>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Nombre de Usuario</label>
+                    <input type="text" class="form-control" placeholder="Nombre de usuario">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Rol</label>
+                    <select class="form-control">
+                        <option>Administrador</option>
+                        <option>Veterinario</option>
+                        <option>Cajero</option>
+                        <option>Recepcionista</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo</label>
+                    <input type="text" class="form-control" placeholder="Nombre completo">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" placeholder="Correo electrónico">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" placeholder="Contraseña">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmar Contraseña</label>
+                    <input type="password" class="form-control" placeholder="Confirmar contraseña">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" class="form-control" placeholder="Número de teléfono">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" style="margin-right: 0.5rem;">
+                    Usuario activo
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevoUsuarioModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Usuario</button>
+            </div>
+        </form>
+    </div>
+</div>

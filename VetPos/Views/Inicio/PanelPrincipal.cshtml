@@ -1,0 +1,224 @@
+﻿@{
+    ViewData["Title"] = "Panel Principal";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Panel Principal</h1>
+    <p class="page-subtitle">Bienvenido al Sistema VetPost</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon bg-cyan">
+            <i class="fas fa-cash-register"></i>
+        </div>
+        <div class="stat-value">$12,450</div>
+        <div class="stat-label">Ventas del Día</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-green">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-value">8</div>
+        <div class="stat-label">Citas Hoy</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-orange">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value">5</div>
+        <div class="stat-label">Alertas de Stock</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-red">
+            <i class="fas fa-paw"></i>
+        </div>
+        <div class="stat-value">23</div>
+        <div class="stat-label">Mascotas Registradas</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    <!-- Gráficos y actividades recientes -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Actividad Reciente</h2>
+        </div>
+
+        <div class="actividad-list">
+            <div class="actividad-item">
+                <div class="actividad-icon" style="background: var(--success);">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="actividad-content">
+                    <div class="actividad-text">Nueva venta registrada - $125.00</div>
+                    <div class="actividad-time">Hace 5 minutos</div>
+                </div>
+            </div>
+
+            <div class="actividad-item">
+                <div class="actividad-icon" style="background: var(--primary-dark);">
+                    <i class="fas fa-calendar-plus"></i>
+                </div>
+                <div class="actividad-content">
+                    <div class="actividad-text">Nueva cita agendada - Dr. Carlos Rodríguez</div>
+                    <div class="actividad-time">Hace 15 minutos</div>
+                </div>
+            </div>
+
+            <div class="actividad-item">
+                <div class="actividad-icon" style="background: var(--warning);">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="actividad-content">
+                    <div class="actividad-text">Stock bajo - Shampoo medicado para perros</div>
+                    <div class="actividad-time">Hace 1 hora</div>
+                </div>
+            </div>
+
+            <div class="actividad-item">
+                <div class="actividad-icon" style="background: var(--primary-cyan);">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="actividad-content">
+                    <div class="actividad-text">Nuevo cliente registrado - Roberto Sánchez</div>
+                    <div class="actividad-time">Hace 2 horas</div>
+                </div>
+            </div>
+
+            <div class="actividad-item">
+                <div class="actividad-icon" style="background: var(--success);">
+                    <i class="fas fa-paw"></i>
+                </div>
+                <div class="actividad-content">
+                    <div class="actividad-text">Nueva mascota registrada - Thor (Husky)</div>
+                    <div class="actividad-time">Hace 3 horas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Accesos Rápidos</h2>
+        </div>
+
+        <div class="accesos-rapidos">
+            <a href="@Url.Action("Index", "Ventas")" class="acceso-item">
+                <div class="acceso-icon" style="background: var(--success);">
+                    <i class="fas fa-cash-register"></i>
+                </div>
+                <span>Punto de Venta</span>
+            </a>
+
+            <a href="@Url.Action("Index", "Citas")" class="acceso-item">
+                <div class="acceso-icon" style="background: var(--primary-dark);">
+                    <i class="fas fa-calendar-plus"></i>
+                </div>
+                <span>Agendar Cita</span>
+            </a>
+
+            <a href="@Url.Action("Index", "Clientes")" class="acceso-item">
+                <div class="acceso-icon" style="background: var(--primary-cyan);">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <span>Nuevo Cliente</span>
+            </a>
+
+            <a href="@Url.Action("Index", "Inventario")" class="acceso-item">
+                <div class="acceso-icon" style="background: var(--warning);">
+                    <i class="fas fa-box"></i>
+                </div>
+                <span>Entrada Inventario</span>
+            </a>
+
+            <a href="@Url.Action("Index", "Reportes")" class="acceso-item">
+                <div class="acceso-icon" style="background: var(--danger);">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <span>Reportes</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .actividad-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .actividad-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--gray-light);
+        border-radius: 8px;
+    }
+
+    .actividad-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .actividad-content {
+        flex: 1;
+    }
+
+    .actividad-text {
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+    }
+
+    .actividad-time {
+        font-size: 0.8rem;
+        color: var(--gray-dark);
+    }
+
+    .accesos-rapidos {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .acceso-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem 1rem;
+        background: var(--gray-light);
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-dark);
+        transition: all 0.3s;
+        text-align: center;
+    }
+
+        .acceso-item:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+    .acceso-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+</style>

@@ -1,0 +1,309 @@
+﻿@{
+    ViewData["Title"] = "Gestión de Inventario";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Gestión de Inventario</h1>
+    <p class="page-subtitle">Control de productos y existencias</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon bg-cyan">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-value">156</div>
+        <div class="stat-label">Total de Productos</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-green">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-value">128</div>
+        <div class="stat-label">Productos en Stock</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-orange">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value">5</div>
+        <div class="stat-label">Stock Bajo</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-red">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-value">0</div>
+        <div class="stat-label">Agotados</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Productos en Inventario</h2>
+        <div style="display: flex; gap: 1rem;">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Buscar producto...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('nuevoProductoModal')">
+                <i class="fas fa-plus"></i> Nuevo Producto
+            </button>
+            <button class="btn btn-success" onclick="openModal('entradaInventarioModal')">
+                <i class="fas fa-arrow-down"></i> Entrada
+            </button>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th>Precio Compra</th>
+                <th>Precio Venta</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>PROD-001</td>
+                <td>Antipulgas para perros grandes</td>
+                <td>Medicamento</td>
+                <td>15</td>
+                <td>$18.00</td>
+                <td>$25.00</td>
+                <td><span class="badge badge-success">En Stock</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>PROD-002</td>
+                <td>Alimento para perros adulto 5kg</td>
+                <td>Alimento</td>
+                <td>22</td>
+                <td>$12.50</td>
+                <td>$18.50</td>
+                <td><span class="badge badge-success">En Stock</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>PROD-003</td>
+                <td>Arena para gatos absorbente 4kg</td>
+                <td>Accesorio</td>
+                <td>18</td>
+                <td>$8.00</td>
+                <td>$12.00</td>
+                <td><span class="badge badge-success">En Stock</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>PROD-004</td>
+                <td>Vacuna triple felina</td>
+                <td>Medicamento</td>
+                <td>8</td>
+                <td>$25.00</td>
+                <td>$35.00</td>
+                <td><span class="badge badge-success">En Stock</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>PROD-005</td>
+                <td>Shampoo medicado para perros</td>
+                <td>Higiene</td>
+                <td>3</td>
+                <td>$6.50</td>
+                <td>$10.00</td>
+                <td><span class="badge badge-danger">Stock Bajo</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para nuevo producto -->
+<div id="nuevoProductoModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nuevo Producto</h3>
+            <button class="close" onclick="closeModal('nuevoProductoModal')">&times;</button>
+        </div>
+
+        <form>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Código</label>
+                    <input type="text" class="form-control" placeholder="Código del producto">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Categoría</label>
+                    <select class="form-control">
+                        <option>Medicamento</option>
+                        <option>Alimento</option>
+                        <option>Accesorio</option>
+                        <option>Higiene</option>
+                        <option>Juguete</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nombre del Producto</label>
+                <input type="text" class="form-control" placeholder="Nombre completo del producto">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Precio de Compra</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Precio de Venta</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Stock Inicial</label>
+                    <input type="number" class="form-control" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Stock Mínimo</label>
+                    <input type="number" class="form-control" placeholder="5">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Proveedor</label>
+                <select class="form-control">
+                    <option>Seleccionar proveedor</option>
+                    <option>PetSupplies S.A.</option>
+                    <option>VetProducts Corp</option>
+                    <option>AnimalCare Ltd</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" rows="3" placeholder="Descripción del producto..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevoProductoModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para entrada de inventario -->
+<div id="entradaInventarioModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Entrada de Inventario</h3>
+            <button class="close" onclick="closeModal('entradaInventarioModal')">&times;</button>
+        </div>
+
+        <form>
+            <div class="form-group">
+                <label class="form-label">Producto</label>
+                <select class="form-control">
+                    <option>Seleccionar producto</option>
+                    <option>Antipulgas para perros grandes</option>
+                    <option>Alimento para perros adulto 5kg</option>
+                    <option>Arena para gatos absorbente 4kg</option>
+                    <option>Vacuna triple felina</option>
+                    <option>Shampoo medicado para perros</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Cantidad</label>
+                    <input type="number" class="form-control" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Costo Unitario</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Proveedor</label>
+                <select class="form-control">
+                    <option>PetSupplies S.A.</option>
+                    <option>VetProducts Corp</option>
+                    <option>AnimalCare Ltd</option>
+                    <option>Otro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Número de Factura</label>
+                <input type="text" class="form-control" placeholder="Número de factura">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Fecha de Entrada</label>
+                <input type="date" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Observaciones</label>
+                <textarea class="form-control" rows="3" placeholder="Observaciones de la entrada..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('entradaInventarioModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Entrada</button>
+            </div>
+        </form>
+    </div>
+</div>

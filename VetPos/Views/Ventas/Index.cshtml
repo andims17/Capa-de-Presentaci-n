@@ -1,0 +1,251 @@
+﻿@{
+    ViewData["Title"] = "Punto de Venta";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Punto de Venta</h1>
+    <p class="page-subtitle">Registro rápido de ventas</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    <!-- Sección de productos -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Productos</h2>
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Buscar producto...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+            <!-- Producto 1 -->
+            <div class="card" style="padding: 1rem; cursor: pointer;" onclick="agregarProducto(1)">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fas fa-paw" style="font-size: 2rem; color: var(--primary-dark);"></i>
+                </div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Antipulgas para perros</h3>
+                <p style="color: var(--gray-dark); margin-bottom: 0.5rem;">Protección por 3 meses</p>
+                <div style="font-weight: bold; color: var(--primary-dark);">$25.00</div>
+                <div style="font-size: 0.8rem; color: var(--success);">En stock: 15</div>
+            </div>
+
+            <!-- Producto 2 -->
+            <div class="card" style="padding: 1rem; cursor: pointer;" onclick="agregarProducto(2)">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fas fa-bone" style="font-size: 2rem; color: var(--primary-dark);"></i>
+                </div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Alimento para perros</h3>
+                <p style="color: var(--gray-dark); margin-bottom: 0.5rem;">Sabor pollo, 5kg</p>
+                <div style="font-weight: bold; color: var(--primary-dark);">$18.50</div>
+                <div style="font-size: 0.8rem; color: var(--success);">En stock: 22</div>
+            </div>
+
+            <!-- Producto 3 -->
+            <div class="card" style="padding: 1rem; cursor: pointer;" onclick="agregarProducto(3)">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fas fa-cat" style="font-size: 2rem; color: var(--primary-dark);"></i>
+                </div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Arena para gatos</h3>
+                <p style="color: var(--gray-dark); margin-bottom: 0.5rem;">Absorbente, 4kg</p>
+                <div style="font-weight: bold; color: var(--primary-dark);">$12.00</div>
+                <div style="font-size: 0.8rem; color: var(--success);">En stock: 18</div>
+            </div>
+
+            <!-- Producto 4 -->
+            <div class="card" style="padding: 1rem; cursor: pointer;" onclick="agregarProducto(4)">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fas fa-syringe" style="font-size: 2rem; color: var(--primary-dark);"></i>
+                </div>
+                <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Vacuna triple felina</h3>
+                <p style="color: var(--gray-dark); margin-bottom: 0.5rem;">Protección completa</p>
+                <div style="font-weight: bold; color: var(--primary-dark);">$35.00</div>
+                <div style="font-size: 0.8rem; color: var(--success);">En stock: 8</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de carrito y pago -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Carrito de Compra</h2>
+        </div>
+
+        <div id="carritoVacio" style="text-align: center; padding: 2rem; color: var(--gray-dark);">
+            <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <p>El carrito está vacío</p>
+        </div>
+
+        <table class="table" id="tablaCarrito" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cant.</th>
+                    <th>Precio</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="itemsCarrito">
+                <!-- Los items del carrito se agregarán aquí dinámicamente -->
+            </tbody>
+        </table>
+
+        <div id="resumenCompra" style="display: none;">
+            <div style="display: flex; justify-content: space-between; margin: 1rem 0;">
+                <span>Subtotal:</span>
+                <span id="subtotal">$0.00</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descuento</label>
+                <input type="number" class="form-control" id="descuento" value="0" min="0" step="0.01">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin: 1rem 0; font-weight: bold;">
+                <span>Total:</span>
+                <span id="total">$0.00</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Método de Pago</label>
+                <select class="form-control" id="metodoPago">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transferencia">Transferencia</option>
+                </select>
+            </div>
+
+            <button class="btn btn-success" style="width: 100%;" onclick="procesarVenta()">
+                <i class="fas fa-check"></i> Procesar Venta
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let carrito = [];
+
+    function agregarProducto(id) {
+        const productos = {
+            1: { id: 1, nombre: "Antipulgas para perros", precio: 25.00 },
+            2: { id: 2, nombre: "Alimento para perros", precio: 18.50 },
+            3: { id: 3, nombre: "Arena para gatos", precio: 12.00 },
+            4: { id: 4, nombre: "Vacuna triple felina", precio: 35.00 }
+        };
+
+        const producto = productos[id];
+        const itemExistente = carrito.find(item => item.id === id);
+
+        if (itemExistente) {
+            itemExistente.cantidad += 1;
+        } else {
+            carrito.push({
+                id: producto.id,
+                nombre: producto.nombre,
+                precio: producto.precio,
+                cantidad: 1
+            });
+        }
+
+        actualizarCarrito();
+    }
+
+    function eliminarProducto(id) {
+        carrito = carrito.filter(item => item.id !== id);
+        actualizarCarrito();
+    }
+
+    function actualizarCarrito() {
+        const tablaCarrito = document.getElementById('tablaCarrito');
+        const carritoVacio = document.getElementById('carritoVacio');
+        const resumenCompra = document.getElementById('resumenCompra');
+        const itemsCarrito = document.getElementById('itemsCarrito');
+
+        if (carrito.length === 0) {
+            tablaCarrito.style.display = 'none';
+            carritoVacio.style.display = 'block';
+            resumenCompra.style.display = 'none';
+        } else {
+            tablaCarrito.style.display = 'table';
+            carritoVacio.style.display = 'none';
+            resumenCompra.style.display = 'block';
+
+            // Limpiar items existentes
+            itemsCarrito.innerHTML = '';
+
+            // Agregar items al carrito
+            let subtotal = 0;
+
+            carrito.forEach(item => {
+                const totalItem = item.precio * item.cantidad;
+                subtotal += totalItem;
+
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${item.nombre}</td>
+                    <td>
+                        <input type="number" value="${item.cantidad}" min="1"
+                               style="width: 60px; padding: 0.3rem;"
+                               onchange="actualizarCantidad(${item.id}, this.value)">
+                    </td>
+                    <td>$${item.precio.toFixed(2)}</td>
+                    <td>$${totalItem.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;"
+                                onclick="eliminarProducto(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+
+                itemsCarrito.appendChild(fila);
+            });
+
+            // Actualizar subtotal y total
+            const descuento = parseFloat(document.getElementById('descuento').value) || 0;
+            const total = subtotal - descuento;
+
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+    }
+
+    function actualizarCantidad(id, cantidad) {
+        const item = carrito.find(item => item.id === id);
+        if (item) {
+            item.cantidad = parseInt(cantidad);
+            actualizarCarrito();
+        }
+    }
+
+    function procesarVenta() {
+        if (carrito.length === 0) {
+            alert('El carrito está vacío');
+            return;
+        }
+
+        const descuento = parseFloat(document.getElementById('descuento').value) || 0;
+        const metodoPago = document.getElementById('metodoPago').value;
+
+        // Calcular total
+        let subtotal = 0;
+        carrito.forEach(item => {
+            subtotal += item.precio * item.cantidad;
+        });
+        const total = subtotal - descuento;
+
+        // Simular procesamiento de venta
+        alert(`Venta procesada exitosamente!\nTotal: $${total.toFixed(2)}\nMétodo de pago: ${metodoPago}`);
+
+        // Limpiar carrito
+        carrito = [];
+        actualizarCarrito();
+        document.getElementById('descuento').value = '0';
+    }
+
+    // Actualizar total cuando cambie el descuento
+    document.getElementById('descuento').addEventListener('input', actualizarCarrito);
+</script>

@@ -1,0 +1,213 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Resumen general del sistema</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon bg-cyan">
+            <i class="fas fa-cash-register"></i>
+        </div>
+        <div class="stat-value">$12,450</div>
+        <div class="stat-label">Ventas del día</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-green">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-value">8</div>
+        <div class="stat-label">Citas hoy</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-orange">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value">5</div>
+        <div class="stat-label">Productos bajos en stock</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-red">
+            <i class="fas fa-paw"></i>
+        </div>
+        <div class="stat-value">23</div>
+        <div class="stat-label">Mascotas registradas</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Citas del Día</h2>
+        <button class="btn btn-primary" onclick="openModal('nuevaCitaModal')">
+            <i class="fas fa-plus"></i> Nueva Cita
+        </button>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Hora</th>
+                <th>Cliente</th>
+                <th>Mascota</th>
+                <th>Servicio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>09:00 AM</td>
+                <td>María González</td>
+                <td>Max (Perro)</td>
+                <td>Consulta general</td>
+                <td><span class="badge badge-success">Confirmada</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>10:30 AM</td>
+                <td>Carlos López</td>
+                <td>Luna (Gato)</td>
+                <td>Vacunación</td>
+                <td><span class="badge badge-warning">Pendiente</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>02:00 PM</td>
+                <td>Ana Martínez</td>
+                <td>Rocky (Perro)</td>
+                <td>Control postoperatorio</td>
+                <td><span class="badge badge-success">Confirmada</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Alertas de Inventario</h2>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Stock Actual</th>
+                <th>Stock Mínimo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Antipulgas para perros grandes</td>
+                <td>3</td>
+                <td>10</td>
+                <td><span class="badge badge-danger">Crítico</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-sync-alt"></i> Reabastecer
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>Alimento para gatos adultos</td>
+                <td>7</td>
+                <td>15</td>
+                <td><span class="badge badge-warning">Bajo</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-sync-alt"></i> Reabastecer
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>Shampoo medicado</td>
+                <td>5</td>
+                <td>8</td>
+                <td><span class="badge badge-warning">Bajo</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-sync-alt"></i> Reabastecer
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para nueva cita -->
+<div id="nuevaCitaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Agendar Nueva Cita</h3>
+            <button class="close" onclick="closeModal('nuevaCitaModal')">&times;</button>
+        </div>
+
+        <form>
+            <div class="form-group">
+                <label class="form-label">Cliente</label>
+                <select class="form-control">
+                    <option>Seleccionar cliente</option>
+                    <option>María González</option>
+                    <option>Carlos López</option>
+                    <option>Ana Martínez</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mascota</label>
+                <select class="form-control">
+                    <option>Seleccionar mascota</option>
+                    <option>Max (Perro)</option>
+                    <option>Luna (Gato)</option>
+                    <option>Rocky (Perro)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Fecha y Hora</label>
+                <input type="datetime-local" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Servicio</label>
+                <select class="form-control">
+                    <option>Consulta general</option>
+                    <option>Vacunación</option>
+                    <option>Control postoperatorio</option>
+                    <option>Estética</option>
+                    <option>Urgencia</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notas</label>
+                <textarea class="form-control" rows="3"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevaCitaModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Agendar Cita</button>
+            </div>
+        </form>
+    </div>
+</div>

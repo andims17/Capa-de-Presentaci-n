@@ -1,0 +1,161 @@
+﻿@{
+    ViewData["Title"] = "Gestión de Clientes";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Gestión de Clientes</h1>
+    <p class="page-subtitle">Administra la información de los clientes</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Lista de Clientes</h2>
+        <div style="display: flex; gap: 1rem;">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Buscar cliente...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('nuevoClienteModal')">
+                <i class="fas fa-plus"></i> Nuevo Cliente
+            </button>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Dirección</th>
+                <th>Mascotas</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>CLI-001</td>
+                <td>María González</td>
+                <td>+1 234-567-8901</td>
+                <td>maria.gonzalez@email.com</td>
+                <td>Calle Principal #123</td>
+                <td>2 mascotas</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>CLI-002</td>
+                <td>Carlos López</td>
+                <td>+1 234-567-8902</td>
+                <td>carlos.lopez@email.com</td>
+                <td>Avenida Central #456</td>
+                <td>1 mascota</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>CLI-003</td>
+                <td>Ana Martínez</td>
+                <td>+1 234-567-8903</td>
+                <td>ana.martinez@email.com</td>
+                <td>Boulevard Norte #789</td>
+                <td>1 mascota</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>CLI-004</td>
+                <td>Roberto Sánchez</td>
+                <td>+1 234-567-8904</td>
+                <td>roberto.sanchez@email.com</td>
+                <td>Plaza Sur #101</td>
+                <td>1 mascota</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal para nuevo cliente -->
+<div id="nuevoClienteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nuevo Cliente</h3>
+            <button class="close" onclick="closeModal('nuevoClienteModal')">&times;</button>
+        </div>
+
+        <form>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" placeholder="Nombre completo">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" class="form-control" placeholder="Número de teléfono">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" placeholder="Correo electrónico">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Dirección</label>
+                <textarea class="form-control" rows="2" placeholder="Dirección completa"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Fecha de Nacimiento</label>
+                    <input type="date" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Identificación</label>
+                    <input type="text" class="form-control" placeholder="Número de identificación">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notas</label>
+                <textarea class="form-control" rows="3" placeholder="Información adicional del cliente..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevoClienteModal')" style="background: var(--gray-medium);">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
