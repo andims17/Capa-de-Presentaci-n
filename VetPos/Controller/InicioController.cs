@@ -8,10 +8,5 @@ namespace VetPostWebApp.Controllers
         {
             return View();
         }
-
-        public IActionResult PanelPrincipal()
-        {
-            return View();
-        }
     }
 }

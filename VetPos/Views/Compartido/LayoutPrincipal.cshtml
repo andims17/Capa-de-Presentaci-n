@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - VetPost</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* TODOS LOS ESTILOS DEL LAYOUT */
         :root {
             --primary-cyan: #7DD3FC;
             --primary-dark: #0EA5E9;
@@ -93,32 +94,80 @@
         }
 
         .sidebar {
-            width: 250px;
+            width: 280px;
             background-color: white;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
             padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
         }
 
-        .nav-item {
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-header {
             padding: 0.8rem 1.5rem;
+            color: #64748B;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .nav-header i {
+                width: 16px;
+                text-align: center;
+            }
+
+        .nav-item {
+            padding: 0.8rem 1.5rem 0.8rem 2.5rem;
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            color: var(--gray-dark);
+            color: #64748B;
             text-decoration: none;
             transition: all 0.3s;
             border-left: 4px solid transparent;
+            font-size: 0.95rem;
         }
 
-            .nav-item:hover, .nav-item.active {
-                background-color: var(--primary-light);
-                color: var(--primary-dark);
-                border-left-color: var(--primary-dark);
+            .nav-item:hover {
+                background-color: #E0F2FE;
+                color: #0EA5E9;
+                border-left-color: #0EA5E9;
+            }
+
+            .nav-item.active {
+                background-color: #E0F2FE;
+                color: #0EA5E9;
+                border-left-color: #0EA5E9;
+                font-weight: 600;
             }
 
             .nav-item i {
                 width: 20px;
                 text-align: center;
+                font-size: 1rem;
+            }
+
+        .nav-footer {
+            margin-top: auto;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 1rem;
+        }
+
+        .nav-item.logout {
+            color: #EF4444;
+        }
+
+            .nav-item.logout:hover {
+                background-color: #FEE2E2;
+                color: #DC2626;
+                border-left-color: #EF4444;
             }
 
         .content-area {
@@ -144,307 +193,7 @@
             font-weight: 600;
         }
 
-        .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid var(--gray-medium);
-        }
-
-        .card-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--text-dark);
-        }
-
-        .btn {
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-dark);
-            color: white;
-        }
-
-            .btn-primary:hover {
-                background-color: var(--primary-cyan);
-            }
-
-        .btn-success {
-            background-color: var(--success);
-            color: white;
-        }
-
-        .btn-warning {
-            background-color: var(--warning);
-            color: white;
-        }
-
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-            .table th, .table td {
-                padding: 0.8rem 1rem;
-                text-align: left;
-                border-bottom: 1px solid var(--gray-medium);
-            }
-
-            .table th {
-                background-color: var(--gray-light);
-                font-weight: 600;
-                color: var(--text-dark);
-            }
-
-            .table tr:hover {
-                background-color: var(--primary-light);
-            }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 0.5rem 0;
-        }
-
-        .stat-label {
-            color: var(--gray-dark);
-            font-size: 1rem;
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .bg-cyan {
-            background-color: var(--primary-light);
-            color: var(--primary-dark);
-        }
-
-        .bg-green {
-            background-color: #D1FAE5;
-            color: var(--success);
-        }
-
-        .bg-orange {
-            background-color: #FEF3C7;
-            color: var(--warning);
-        }
-
-        .bg-red {
-            background-color: #FEE2E2;
-            color: var(--danger);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1px solid var(--gray-medium);
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border 0.3s;
-        }
-
-            .form-control:focus {
-                outline: none;
-                border-color: var(--primary-dark);
-                box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
-            }
-
-        .alert {
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1.5rem;
-        }
-
-        .alert-success {
-            background-color: #D1FAE5;
-            color: #065F46;
-            border: 1px solid #A7F3D0;
-        }
-
-        .alert-warning {
-            background-color: #FEF3C7;
-            color: #92400E;
-            border: 1px solid #FDE68A;
-        }
-
-        .alert-danger {
-            background-color: #FEE2E2;
-            color: #991B1B;
-            border: 1px solid #FECACA;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            padding: 2rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--gray-medium);
-        }
-
-        .modal-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--text-dark);
-        }
-
-        .close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--gray-dark);
-        }
-
-        .search-box {
-            display: flex;
-            margin-bottom: 1.5rem;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 0.8rem 1rem;
-            border: 1px solid var(--gray-medium);
-            border-radius: 6px 0 0 6px;
-            font-size: 1rem;
-        }
-
-        .search-btn {
-            background-color: var(--primary-dark);
-            color: white;
-            border: none;
-            padding: 0 1.5rem;
-            border-radius: 0 6px 6px 0;
-            cursor: pointer;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background-color: var(--success);
-            color: white;
-        }
-
-        .badge-warning {
-            background-color: var(--warning);
-            color: white;
-        }
-
-        .badge-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .badge-info {
-            background-color: var(--primary-dark);
-            color: white;
-        }
-
-        @@media (max-width: 768px) {
-            .app-container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                height: auto;
-            }
-
-            .content-wrapper {
-                flex-direction: column;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        /* ... resto de tus estilos ... */
     </style>
 </head>
 <body>
@@ -452,12 +201,11 @@
         <div class="main-content">
             <header class="header">
                 <div class="logo-container">
-                    <!-- Reemplaza "logo.png" con la ruta correcta de tu logo -->
                     <img src="~/img/logo.png" alt="VetPost Logo" class="logo" />
                     <h1 class="app-title">VetPost</h1>
                 </div>
                 <div class="user-info">
-                    <span>Bienvenido, Usuario</span>
+                    <span>Bienvenido, Administrador</span>
                     <div class="user-avatar">
                         <i class="fas fa-user"></i>
                     </div>
@@ -465,8 +213,107 @@
             </header>
 
             <div class="content-wrapper">
+                <!-- BARRA DE NAVEGACIÓN -->
                 <nav class="sidebar">
-                    @await Html.PartialAsync("~/Views/Compartido/Navegacion.cshtml")
+                    <div class="nav-section">
+                        <div class="nav-header">
+                            <i class="fas fa-paw"></i>
+                            <span>Principal</span>
+                        </div>
+                        <a href="/Inicio/Index" class="nav-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-header">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Ventas</span>
+                        </div>
+                        <a href="/Ventas/Index" class="nav-item">
+                            <i class="fas fa-cash-register"></i>
+                            <span>Punto de Venta</span>
+                        </a>
+                        <a href="/Ventas/Historial" class="nav-item">
+                            <i class="fas fa-history"></i>
+                            <span>Historial Ventas</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-header">
+                            <i class="fas fa-calendar"></i>
+                            <span>Citas</span>
+                        </div>
+                        <a href="/Citas/Index" class="nav-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Gestión de Citas</span>
+                        </a>
+                        <a href="/Citas/Calendario" class="nav-item">
+                            <i class="fas fa-calendar-day"></i>
+                            <span>Calendario</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-header">
+                            <i class="fas fa-users"></i>
+                            <span>Clientes</span>
+                        </div>
+                        <a href="/Clientes/Index" class="nav-item">
+                            <i class="fas fa-user-friends"></i>
+                            <span>Gestión de Clientes</span>
+                        </a>
+                        <a href="/Mascotas/Index" class="nav-item">
+                            <i class="fas fa-paw"></i>
+                            <span>Mascotas</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-header">
+                            <i class="fas fa-boxes"></i>
+                            <span>Inventario</span>
+                        </div>
+                        <a href="/Inventario/Index" class="nav-item">
+                            <i class="fas fa-box-open"></i>
+                            <span>Gestión Inventario</span>
+                        </a>
+                        <a href="/Inventario/Compras" class="nav-item">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Compras</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-header">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reportes</span>
+                        </div>
+                        <a href="/Reportes/Index" class="nav-item">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Reportes y Estadísticas</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-header">
+                            <i class="fas fa-cog"></i>
+                            <span>Administración</span>
+                        </div>
+                        <a href="/Usuarios/Index" class="nav-item">
+                            <i class="fas fa-user-cog"></i>
+                            <span>Usuarios</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section nav-footer">
+                        <a href="/Cuenta/Logout" class="nav-item logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Cerrar Sesión</span>
+                        </a>
+                    </div>
                 </nav>
 
                 <main class="content-area">
@@ -477,35 +324,35 @@
     </div>
 
     <script>
-        // Funcionalidad básica para modales
-        function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // Cerrar modal al hacer clic fuera del contenido
-        window.onclick = function(event) {
-            const modals = document.getElementsByClassName('modal');
-            for (let modal of modals) {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            }
-        }
-
         // Funcionalidad para resaltar elemento de navegación activo
         document.addEventListener('DOMContentLoaded', function() {
-            const currentPage = window.location.pathname.split('/').pop() || 'Index';
+            const currentPath = window.location.pathname;
             const navItems = document.querySelectorAll('.nav-item');
 
             navItems.forEach(item => {
-                if (item.getAttribute('href') && item.getAttribute('href').includes(currentPage)) {
+                if (item.getAttribute('href') === currentPath) {
                     item.classList.add('active');
                 }
             });
+
+            // Funcionalidad básica para modales
+            window.openModal = function(modalId) {
+                document.getElementById(modalId).style.display = 'flex';
+            }
+
+            window.closeModal = function(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+
+            // Cerrar modal al hacer clic fuera del contenido
+            window.onclick = function(event) {
+                const modals = document.getElementsByClassName('modal');
+                for (let modal of modals) {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+            }
         });
     </script>
 

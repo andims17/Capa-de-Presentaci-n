@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Historial de Ventas";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Historial de Ventas</h1>
+    <p class="page-subtitle">Registro completo de todas las ventas</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Todas las Ventas</h2>
+        <div style="display: flex; gap: 1rem;">
+            <input type="date" class="form-control" style="width: auto;">
+            <input type="date" class="form-control" style="width: auto;">
+            <button class="btn btn-primary">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th># Venta</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Productos</th>
+                <th>Total</th>
+                <th>Método Pago</th>
+                <th>Vendedor</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>V-001</td>
+                <td>15/10/2024 10:30</td>
+                <td>María González</td>
+                <td>2 productos</td>
+                <td>$43.00</td>
+                <td><span class="badge badge-success">Efectivo</span></td>
+                <td>Admin</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>V-002</td>
+                <td>15/10/2024 11:15</td>
+                <td>Carlos López</td>
+                <td>3 productos</td>
+                <td>$65.50</td>
+                <td><span class="badge badge-info">Tarjeta</span></td>
+                <td>Admin</td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
