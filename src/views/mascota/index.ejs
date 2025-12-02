@@ -1,0 +1,237 @@
+<div class="page-header">
+  <h1 class="page-title">Gestión de Mascotas</h1>
+  <p class="page-subtitle">Administra el registro de mascotas</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Expedientes de Mascotas</h2>
+    <div style="display:flex; gap:1rem;">
+      <div class="search-box">
+        <input type="text" class="search-input" placeholder="Buscar mascota...">
+        <button class="search-btn">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('nuevaMascotaModal')">
+        <i class="fas fa-plus"></i> Nueva Mascota
+      </button>
+    </div>
+  </div>
+
+  <div class="pets-grid">
+    <!-- Mascota 1 -->
+    <div class="pet-card">
+      <div class="pet-header">
+        <div class="pet-avatar avatar-dog">
+          <i class="fas fa-dog"></i>
+        </div>
+        <div class="pet-info">
+          <h3>Max</h3>
+          <p>Labrador Retriever • 3 años</p>
+        </div>
+      </div>
+      <div class="pet-details">
+        <div class="detail-item">
+          <span class="detail-label">Dueño:</span>
+          <span class="detail-value">María González</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Peso:</span>
+          <span class="detail-value">28 kg</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Sexo:</span>
+          <span class="detail-value">Macho</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Última visita:</span>
+          <span class="detail-value">10/10/2024</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Estado:</span>
+          <span class="health-badge">Saludable</span>
+        </div>
+      </div>
+      <div class="pet-actions">
+        <button class="btn btn-primary btn-xs">
+          <i class="fas fa-eye"></i> Ver
+        </button>
+        <button class="btn btn-xs btn-plain">
+          <i class="fas fa-edit"></i> Editar
+        </button>
+      </div>
+    </div>
+
+    <!-- Mascota 2 -->
+    <div class="pet-card">
+      <div class="pet-header">
+        <div class="pet-avatar avatar-cat">
+          <i class="fas fa-cat"></i>
+        </div>
+        <div class="pet-info">
+          <h3>Luna</h3>
+          <p>Gato Persa • 2 años</p>
+        </div>
+      </div>
+      <div class="pet-details">
+        <div class="detail-item">
+          <span class="detail-label">Dueño:</span>
+          <span class="detail-value">Carlos López</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Peso:</span>
+          <span class="detail-value">4.5 kg</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Sexo:</span>
+          <span class="detail-value">Hembra</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Última visita:</span>
+          <span class="detail-value">08/10/2024</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Vacunas:</span>
+          <span class="vaccine-badge">Al día</span>
+        </div>
+      </div>
+      <div class="pet-actions">
+        <button class="btn btn-primary btn-xs">
+          <i class="fas fa-eye"></i> Ver
+        </button>
+        <button class="btn btn-xs btn-plain">
+          <i class="fas fa-edit"></i> Editar
+        </button>
+      </div>
+    </div>
+
+    <!-- Mascota 3 -->
+    <div class="pet-card">
+      <div class="pet-header">
+        <div class="pet-avatar avatar-dog">
+          <i class="fas fa-dog"></i>
+        </div>
+        <div class="pet-info">
+          <h3>Rocky</h3>
+          <p>Pastor Alemán • 5 años</p>
+        </div>
+      </div>
+      <div class="pet-details">
+        <div class="detail-item">
+          <span class="detail-label">Dueño:</span>
+          <span class="detail-value">Ana Martínez</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Peso:</span>
+          <span class="detail-value">32 kg</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Sexo:</span>
+          <span class="detail-value">Macho</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Última visita:</span>
+          <span class="detail-value">05/10/2024</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Estado:</span>
+          <span class="health-badge">En tratamiento</span>
+        </div>
+      </div>
+      <div class="pet-actions">
+        <button class="btn btn-primary btn-xs">
+          <i class="fas fa-eye"></i> Ver
+        </button>
+        <button class="btn btn-xs btn-plain">
+          <i class="fas fa-edit"></i> Editar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para nueva mascota -->
+<div id="nuevaMascotaModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Registrar Nueva Mascota</h3>
+      <button class="close" onclick="closeModal('nuevaMascotaModal')">&times;</button>
+    </div>
+
+    <form>
+      <div class="form-group">
+        <label class="form-label">Dueño</label>
+        <select class="form-control">
+          <option>Seleccionar cliente</option>
+          <option>María González</option>
+          <option>Carlos López</option>
+          <option>Ana Martínez</option>
+        </select>
+      </div>
+
+      <div class="two-cols">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-control" placeholder="Nombre de la mascota">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Especie</label>
+          <select class="form-control">
+            <option>Perro</option>
+            <option>Gato</option>
+            <option>Ave</option>
+            <option>Roedor</option>
+            <option>Reptil</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="two-cols">
+        <div class="form-group">
+          <label class="form-label">Raza</label>
+          <input type="text" class="form-control" placeholder="Raza de la mascota">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha de Nacimiento</label>
+          <input type="date" class="form-control">
+        </div>
+      </div>
+
+      <div class="two-cols">
+        <div class="form-group">
+          <label class="form-label">Sexo</label>
+          <select class="form-control">
+            <option>Macho</option>
+            <option>Hembra</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Peso (kg)</label>
+          <input type="number" class="form-control" placeholder="Peso actual">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Color</label>
+        <input type="text" class="form-control" placeholder="Color principal">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Alergias/Notas Médicas</label>
+        <textarea class="form-control" rows="3" placeholder="Información médica importante..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-plain" onclick="closeModal('nuevaMascotaModal')">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">Registrar Mascota</button>
+      </div>
+    </form>
+  </div>
+</div>

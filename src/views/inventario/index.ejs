@@ -1,0 +1,412 @@
+<div class="page-header">
+    <h1 class="page-title">Gestión de Inventario</h1>
+    <p class="page-subtitle">Control de productos y existencias</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon bg-cyan">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-value">156</div>
+        <div class="stat-label">Total de Productos</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-green">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-value">128</div>
+        <div class="stat-label">Productos en Stock</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-orange">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value">5</div>
+        <div class="stat-label">Stock Bajo</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-red">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-value">0</div>
+        <div class="stat-label">Agotados</div>
+    </div>
+</div>
+
+<div class="filters-section">
+    <div class="filter-group">
+        <label class="filter-label">Categoría</label>
+        <select class="form-control" style="width: 150px;">
+            <option>Todas</option>
+            <option>Medicamento</option>
+            <option>Alimento</option>
+            <option>Accesorio</option>
+            <option>Higiene</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">Estado Stock</label>
+        <select class="form-control" style="width: 150px;">
+            <option>Todos</option>
+            <option>Stock Bajo</option>
+            <option>En Stock</option>
+            <option>Agotados</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">Proveedor</label>
+        <select class="form-control" style="width: 180px;">
+            <option>Todos</option>
+            <option>PetSupplies S.A.</option>
+            <option>VetProducts Corp</option>
+            <option>AnimalCare Ltd</option>
+        </select>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Productos en Inventario</h2>
+        <div style="display: flex; gap: 1rem;">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Buscar producto...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('nuevoProductoModal')">
+                <i class="fas fa-plus"></i> Nuevo Producto
+            </button>
+            <button class="btn btn-success" onclick="openModal('entradaInventarioModal')">
+                <i class="fas fa-arrow-down"></i> Entrada
+            </button>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th>Precio Compra</th>
+                <th>Precio Venta</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Producto 1 -->
+            <tr>
+                <td>
+                    <div class="product-cell">
+                        <div class="product-image">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div>
+                            <div class="product-name">Antipulgas para perros grandes</div>
+                            <div class="product-code">PROD-001</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Medicamento</span></td>
+                <td>
+                    <div>15</div>
+                    <div class="stock-min">Mín: 10</div>
+                </td>
+                <td>$18.00</td>
+                <td>$25.00</td>
+                <td><span class="badge badge-success">En Stock</span></td>
+                <td>
+                    <button class="btn btn-primary btn-xs">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info btn-xs">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+
+            <!-- Producto 2 -->
+            <tr>
+                <td>
+                    <div class="product-cell">
+                        <div class="product-image">
+                            <i class="fas fa-bone"></i>
+                        </div>
+                        <div>
+                            <div class="product-name">Alimento para perros adulto 5kg</div>
+                            <div class="product-code">PROD-002</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Alimento</span></td>
+                <td>
+                    <div>22</div>
+                    <div class="stock-min">Mín: 15</div>
+                </td>
+                <td>$12.50</td>
+                <td>$18.50</td>
+                <td><span class="badge badge-success">En Stock</span></td>
+                <td>
+                    <button class="btn btn-primary btn-xs">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info btn-xs">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+
+            <!-- Producto 3 -->
+            <tr>
+                <td>
+                    <div class="product-cell">
+                        <div class="product-image">
+                            <i class="fas fa-cat"></i>
+                        </div>
+                        <div>
+                            <div class="product-name">Arena para gatos absorbente 4kg</div>
+                            <div class="product-code">PROD-003</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Accesorio</span></td>
+                <td>
+                    <div>18</div>
+                    <div class="stock-min">Mín: 12</div>
+                </td>
+                <td>$8.00</td>
+                <td>$12.00</td>
+                <td><span class="badge badge-success">En Stock</span></td>
+                <td>
+                    <button class="btn btn-primary btn-xs">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info btn-xs">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+
+            <!-- Producto 4 -->
+            <tr>
+                <td>
+                    <div class="product-cell">
+                        <div class="product-image">
+                            <i class="fas fa-syringe"></i>
+                        </div>
+                        <div>
+                            <div class="product-name">Vacuna triple felina</div>
+                            <div class="product-code">PROD-004</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Medicamento</span></td>
+                <td>
+                    <div>8</div>
+                    <div class="stock-min">Mín: 5</div>
+                </td>
+                <td>$25.00</td>
+                <td>$35.00</td>
+                <td><span class="badge badge-success">En Stock</span></td>
+                <td>
+                    <button class="btn btn-primary btn-xs">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info btn-xs">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+
+            <!-- Producto 5 -->
+            <tr>
+                <td>
+                    <div class="product-cell">
+                        <div class="product-image">
+                            <i class="fas fa-pump-soap"></i>
+                        </div>
+                        <div>
+                            <div class="product-name">Shampoo medicado para perros</div>
+                            <div class="product-code">PROD-005</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="category-badge">Higiene</span></td>
+                <td>
+                    <div class="stock-low">3</div>
+                    <div class="stock-min">Mín: 8</div>
+                </td>
+                <td>$6.50</td>
+                <td>$10.00</td>
+                <td><span class="badge badge-danger">Stock Bajo</span></td>
+                <td>
+                    <button class="btn btn-primary btn-xs">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-info btn-xs">
+                        <i class="fas fa-history"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal: nuevo producto -->
+<div id="nuevoProductoModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nuevo Producto</h3>
+            <button class="close" onclick="closeModal('nuevoProductoModal')">&times;</button>
+        </div>
+
+        <form>
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Código</label>
+                    <input type="text" class="form-control" placeholder="Código del producto">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Categoría</label>
+                    <select class="form-control">
+                        <option>Medicamento</option>
+                        <option>Alimento</option>
+                        <option>Accesorio</option>
+                        <option>Higiene</option>
+                        <option>Juguete</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nombre del Producto</label>
+                <input type="text" class="form-control" placeholder="Nombre completo del producto">
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Precio de Compra</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Precio de Venta</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Stock Inicial</label>
+                    <input type="number" class="form-control" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Stock Mínimo</label>
+                    <input type="number" class="form-control" placeholder="5">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Proveedor</label>
+                <select class="form-control">
+                    <option>Seleccionar proveedor</option>
+                    <option>PetSupplies S.A.</option>
+                    <option>VetProducts Corp</option>
+                    <option>AnimalCare Ltd</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" rows="3" placeholder="Descripción del producto..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn" onclick="closeModal('nuevoProductoModal')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Registrar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: entrada inventario -->
+<div id="entradaInventarioModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Entrada de Inventario</h3>
+            <button class="close" onclick="closeModal('entradaInventarioModal')">&times;</button>
+        </div>
+
+        <form>
+            <div class="form-group">
+                <label class="form-label">Producto</label>
+                <select class="form-control">
+                    <option>Seleccionar producto</option>
+                    <option>Antipulgas para perros grandes</option>
+                    <option>Alimento para perros adulto 5kg</option>
+                    <option>Arena para gatos absorbente 4kg</option>
+                    <option>Vacuna triple felina</option>
+                    <option>Shampoo medicado para perros</option>
+                </select>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Cantidad</label>
+                    <input type="number" class="form-control" placeholder="0">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Costo Unitario</label>
+                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Proveedor</label>
+                <select class="form-control">
+                    <option>PetSupplies S.A.</option>
+                    <option>VetProducts Corp</option>
+                    <option>AnimalCare Ltd</option>
+                    <option>Otro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Número de Factura</label>
+                <input type="text" class="form-control" placeholder="Número de factura">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Fecha de Entrada</label>
+                <input type="date" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Observaciones</label>
+                <textarea class="form-control" rows="3" placeholder="Observaciones de la entrada..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn" onclick="closeModal('entradaInventarioModal')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Registrar Entrada
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

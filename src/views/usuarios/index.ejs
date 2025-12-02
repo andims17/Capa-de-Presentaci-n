@@ -1,0 +1,230 @@
+<% title = 'Gestión de Usuarios' %>
+
+<div class="page-header">
+    <h1 class="page-title">Gestión de Usuarios</h1>
+    <p class="page-subtitle">Administra los usuarios del sistema</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Usuarios del Sistema</h2>
+        <button class="btn btn-primary" onclick="openModal('nuevoUsuarioModal')">
+            <i class="fas fa-plus"></i> Nuevo Usuario
+        </button>
+    </div>
+
+    <div class="users-grid">
+        <!-- Usuario 1 -->
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <h3>Administrador</h3>
+                    <p>admin</p>
+                </div>
+            </div>
+            <div class="user-details">
+                <div class="detail-item">
+                    <span class="detail-label">Rol:</span>
+                    <span class="role-badge role-admin">Administrador</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">admin@vetpost.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8900</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Último acceso:</span>
+                    <span class="detail-value">15/10/2024 08:30</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-active">Activo</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-key"></i> Contraseña
+                </button>
+            </div>
+        </div>
+
+        <!-- Usuario 2 -->
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-avatar">C</div>
+                <div class="user-info">
+                    <h3>Dr. Carlos Rodríguez</h3>
+                    <p>carlos.vet</p>
+                </div>
+            </div>
+            <div class="user-details">
+                <div class="detail-item">
+                    <span class="detail-label">Rol:</span>
+                    <span class="role-badge role-vet">Veterinario</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">carlos.rodriguez@vetpost.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8901</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Último acceso:</span>
+                    <span class="detail-value">14/10/2024 16:45</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-active">Activo</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-key"></i> Contraseña
+                </button>
+            </div>
+        </div>
+
+        <!-- Usuario 3 -->
+        <div class="user-card">
+            <div class="user-header">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <h3>Dra. Ana García</h3>
+                    <p>ana.vet</p>
+                </div>
+            </div>
+            <div class="user-details">
+                <div class="detail-item">
+                    <span class="detail-label">Rol:</span>
+                    <span class="role-badge role-vet">Veterinario</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">ana.garcia@vetpost.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8902</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Último acceso:</span>
+                    <span class="detail-value">15/10/2024 09:15</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-active">Activo</span>
+                </div>
+            </div>
+            <div class="user-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-key"></i> Contraseña
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo usuario -->
+<div id="nuevoUsuarioModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nuevo Usuario</h3>
+            <button class="close" onclick="closeModal('nuevoUsuarioModal')">&times;</button>
+        </div>
+
+        <form onsubmit="registrarUsuario(event)">
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Nombre de Usuario</label>
+                    <input type="text" class="form-control" placeholder="Nombre de usuario">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Rol</label>
+                    <select class="form-control">
+                        <option>Administrador</option>
+                        <option>Veterinario</option>
+                        <option>Cajero</option>
+                        <option>Recepcionista</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo</label>
+                    <input type="text" class="form-control" placeholder="Nombre completo">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" placeholder="Correo electrónico">
+                </div>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" placeholder="Contraseña">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmar Contraseña</label>
+                    <input type="password" class="form-control" placeholder="Confirmar contraseña">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" class="form-control" placeholder="Número de teléfono">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" style="margin-right: 0.5rem;">
+                    Usuario activo
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-plain" onclick="closeModal('nuevoUsuarioModal')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">Registrar Usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.style.display = 'none';
+    }
+
+    function registrarUsuario(e) {
+        e.preventDefault();
+        alert('Usuario registrado (demo, sin backend todavía).');
+        closeModal('nuevoUsuarioModal');
+    }
+</script>

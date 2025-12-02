@@ -1,0 +1,192 @@
+<!-- src/views/clientes/index.ejs -->
+
+<div class="page-header">
+    <h1 class="page-title">Gestión de Clientes</h1>
+    <p class="page-subtitle">Administra la información de los clientes</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Lista de Clientes</h2>
+        <div style="display: flex; gap: 1rem;">
+            <div class="search-box">
+                <input type="text" id="buscadorClientes" class="search-input" placeholder="Buscar cliente...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('nuevoClienteModal')">
+                <i class="fas fa-plus"></i> Nuevo Cliente
+            </button>
+        </div>
+    </div>
+
+    <div class="clients-grid" id="listaClientes">
+        <!-- Cliente 1 -->
+        <div class="client-card" data-nombre="María González">
+            <div class="client-header">
+                <div class="client-avatar">MG</div>
+                <div class="client-info">
+                    <h3>María González</h3>
+                    <p>CLI-001</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8901</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">maria.gonzalez@email.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Mascotas:</span>
+                    <span class="pets-badge">2 mascotas</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">10/10/2024</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+
+        <!-- Cliente 2 -->
+        <div class="client-card" data-nombre="Carlos López">
+            <div class="client-header">
+                <div class="client-avatar">CL</div>
+                <div class="client-info">
+                    <h3>Carlos López</h3>
+                    <p>CLI-002</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8902</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">carlos.lopez@email.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Mascotas:</span>
+                    <span class="pets-badge">1 mascota</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">08/10/2024</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+
+        <!-- Cliente 3 -->
+        <div class="client-card" data-nombre="Ana Martínez">
+            <div class="client-header">
+                <div class="client-avatar">AM</div>
+                <div class="client-info">
+                    <h3>Ana Martínez</h3>
+                    <p>CLI-003</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 234-567-8903</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">ana.martinez@email.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Mascotas:</span>
+                    <span class="pets-badge">1 mascota</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última visita:</span>
+                    <span class="detail-value">05/10/2024</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo cliente -->
+<div id="nuevoClienteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nuevo Cliente</h3>
+            <button class="close" onclick="closeModal('nuevoClienteModal')">&times;</button>
+        </div>
+
+        <form id="formNuevoCliente">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" id="nombreCliente" class="form-control" placeholder="Nombre completo">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" id="telefonoCliente" class="form-control" placeholder="Número de teléfono">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="emailCliente" class="form-control" placeholder="Correo electrónico">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Dirección</label>
+                <textarea id="direccionCliente" class="form-control" rows="2" placeholder="Dirección completa"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Fecha de Nacimiento</label>
+                    <input type="date" id="fechaNacimientoCliente" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Identificación</label>
+                    <input type="text" id="identificacionCliente" class="form-control" placeholder="Número de identificación">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notas</label>
+                <textarea id="notasCliente" class="form-control" rows="3" placeholder="Información adicional del cliente..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevoClienteModal')" style="background: #E2E8F0;">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>

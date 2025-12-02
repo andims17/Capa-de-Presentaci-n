@@ -1,0 +1,306 @@
+<div class="page-header">
+    <h1 class="page-title">Registro de Compras</h1>
+    <p class="page-subtitle">Historial de entradas de inventario y compras</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Compras Realizadas</h2>
+        <button class="btn btn-primary" onclick="openModal('nuevaCompraModal')">
+            <i class="fas fa-plus"></i> Nueva Compra
+        </button>
+    </div>
+
+    <div class="purchases-grid">
+        <!-- Compra 1 -->
+        <div class="purchase-card">
+            <div class="purchase-header">
+                <div class="purchase-info">
+                    <h3>Compra #C-001</h3>
+                    <p>Factura: F-2024-001</p>
+                </div>
+                <div class="purchase-amount">
+                    <div class="purchase-total">$450.00</div>
+                    <div class="purchase-date">10/10/2024</div>
+                </div>
+            </div>
+            <div class="purchase-details">
+                <div class="detail-item">
+                    <span class="detail-label">Proveedor:</span>
+                    <span class="supplier-badge">PetSupplies S.A.</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Productos:</span>
+                    <span class="detail-value">5 productos</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-received">Recibida</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Registrado por:</span>
+                    <span class="detail-value">Admin</span>
+                </div>
+            </div>
+            <div class="purchase-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> Ver Detalles
+                </button>
+                <button class="btn btn-sm btn-gray">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+            </div>
+        </div>
+
+        <!-- Compra 2 -->
+        <div class="purchase-card">
+            <div class="purchase-header">
+                <div class="purchase-info">
+                    <h3>Compra #C-002</h3>
+                    <p>Factura: F-2024-002</p>
+                </div>
+                <div class="purchase-amount">
+                    <div class="purchase-total">$320.50</div>
+                    <div class="purchase-date">05/10/2024</div>
+                </div>
+            </div>
+            <div class="purchase-details">
+                <div class="detail-item">
+                    <span class="detail-label">Proveedor:</span>
+                    <span class="supplier-badge">VetProducts Corp</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Productos:</span>
+                    <span class="detail-value">3 productos</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-received">Recibida</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Registrado por:</span>
+                    <span class="detail-value">Admin</span>
+                </div>
+            </div>
+            <div class="purchase-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> Ver Detalles
+                </button>
+                <button class="btn btn-sm btn-gray">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+            </div>
+        </div>
+
+        <!-- Compra 3 -->
+        <div class="purchase-card">
+            <div class="purchase-header">
+                <div class="purchase-info">
+                    <h3>Compra #C-003</h3>
+                    <p>Factura: F-2024-003</p>
+                </div>
+                <div class="purchase-amount">
+                    <div class="purchase-total">$180.00</div>
+                    <div class="purchase-date">01/10/2024</div>
+                </div>
+            </div>
+            <div class="purchase-details">
+                <div class="detail-item">
+                    <span class="detail-label">Proveedor:</span>
+                    <span class="supplier-badge">AnimalCare Ltd</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Productos:</span>
+                    <span class="detail-value">4 productos</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="status-received">Recibida</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Registrado por:</span>
+                    <span class="detail-value">Admin</span>
+                </div>
+            </div>
+            <div class="purchase-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> Ver Detalles
+                </button>
+                <button class="btn btn-sm btn-gray">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Resumen de Compras - Octubre 2024</h2>
+    </div>
+
+    <div class="purchases-summary">
+        <div class="summary-card summary-count">
+            <div class="summary-value">3</div>
+            <div class="summary-label">Compras Realizadas</div>
+        </div>
+        <div class="summary-card summary-total">
+            <div class="summary-value">$950.50</div>
+            <div class="summary-label">Total Invertido</div>
+        </div>
+        <div class="summary-card summary-products">
+            <div class="summary-value">12</div>
+            <div class="summary-label">Productos Comprados</div>
+        </div>
+        <div class="summary-card summary-suppliers">
+            <div class="summary-value">3</div>
+            <div class="summary-label">Proveedores</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal nueva compra -->
+<div id="nuevaCompraModal" class="modal">
+    <div class="modal-content modal-wide">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nueva Compra</h3>
+            <button class="close" onclick="closeModal('nuevaCompraModal')">&times;</button>
+        </div>
+
+        <form>
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Proveedor</label>
+                    <select class="form-control">
+                        <option>Seleccionar proveedor</option>
+                        <option>PetSupplies S.A.</option>
+                        <option>VetProducts Corp</option>
+                        <option>AnimalCare Ltd</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Número de Factura</label>
+                    <input type="text" class="form-control" placeholder="Número de factura">
+                </div>
+            </div>
+
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Fecha de Compra</label>
+                    <input type="date" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Fecha de Recepción</label>
+                    <input type="date" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Productos de la Compra</label>
+
+                <div class="productos-compra-box">
+                    <div class="productos-compra-header">
+                        <div>Producto</div>
+                        <div>Cantidad</div>
+                        <div>Precio Unit.</div>
+                        <div>Subtotal</div>
+                        <div></div>
+                    </div>
+
+                    <div id="productosCompra"></div>
+
+                    <button type="button" class="btn btn-gray full-width" onclick="agregarProductoCompra()">
+                        <i class="fas fa-plus"></i> Agregar Producto
+                    </button>
+                </div>
+            </div>
+
+            <div class="two-cols mt-1">
+                <div class="form-group">
+                    <label class="form-label">Subtotal</label>
+                    <input type="text" id="subtotalCompra" class="form-control" value="$0.00" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Total</label>
+                    <input type="text" id="totalCompra" class="form-control" value="$0.00" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Observaciones</label>
+                <textarea class="form-control" rows="3" placeholder="Observaciones de la compra..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn" onclick="closeModal('nuevaCompraModal')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Registrar Compra
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let productoCount = 0;
+
+    function agregarProductoCompra() {
+        productoCount++;
+        const container = document.getElementById('productosCompra');
+
+        const row = document.createElement('div');
+        row.className = 'producto-compra-row';
+        row.innerHTML = `
+            <select class="form-control producto-compra-nombre">
+                <option>Seleccionar producto</option>
+                <option>Antipulgas para perros grandes</option>
+                <option>Alimento para perros adulto 5kg</option>
+                <option>Arena para gatos absorbente 4kg</option>
+                <option>Vacuna triple felina</option>
+            </select>
+            <input type="number" class="form-control producto-compra-cantidad" value="1" min="1">
+            <input type="number" class="form-control producto-compra-precio" value="0.00" step="0.01">
+            <input type="text" class="form-control producto-compra-subtotal" value="$0.00" readonly>
+            <button type="button" class="btn btn-danger btn-xs" onclick="removerProductoCompra(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        container.appendChild(row);
+
+        const cantidadInput = row.querySelector('.producto-compra-cantidad');
+        const precioInput = row.querySelector('.producto-compra-precio');
+
+        cantidadInput.addEventListener('input', actualizarTotalesCompra);
+        precioInput.addEventListener('input', actualizarTotalesCompra);
+
+        actualizarTotalesCompra();
+    }
+
+    function removerProductoCompra(button) {
+        const row = button.closest('.producto-compra-row');
+        row.remove();
+        actualizarTotalesCompra();
+    }
+
+    function actualizarTotalesCompra() {
+        let subtotal = 0;
+        const rows = document.querySelectorAll('.producto-compra-row');
+
+        rows.forEach(row => {
+            const cantidad = parseFloat(row.querySelector('.producto-compra-cantidad').value) || 0;
+            const precio = parseFloat(row.querySelector('.producto-compra-precio').value) || 0;
+            const sub = cantidad * precio;
+            row.querySelector('.producto-compra-subtotal').value = `$${sub.toFixed(2)}`;
+            subtotal += sub;
+        });
+
+        document.getElementById('subtotalCompra').value = `$${subtotal.toFixed(2)}`;
+        document.getElementById('totalCompra').value = `$${subtotal.toFixed(2)}`;
+    }
+</script>

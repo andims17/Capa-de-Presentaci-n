@@ -1,0 +1,97 @@
+<% title = 'Dashboard'; %>
+
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Resumen general del sistema</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon bg-cyan">
+            <i class="fas fa-cash-register"></i>
+        </div>
+        <div class="stat-value">$12,450</div>
+        <div class="stat-label">Ventas del día</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-green">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-value">8</div>
+        <div class="stat-label">Citas hoy</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-orange">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-value">5</div>
+        <div class="stat-label">Productos bajos en stock</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-red">
+            <i class="fas fa-paw"></i>
+        </div>
+        <div class="stat-value">23</div>
+        <div class="stat-label">Mascotas registradas</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Citas del Día</h2>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Hora</th>
+                <th>Cliente</th>
+                <th>Mascota</th>
+                <th>Servicio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>09:00 AM</td>
+                <td>María González</td>
+                <td>Max (Perro)</td>
+                <td>Consulta general</td>
+                <td><span class="badge badge-success">Confirmada</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>10:30 AM</td>
+                <td>Carlos López</td>
+                <td>Luna (Gato)</td>
+                <td>Vacunación</td>
+                <td><span class="badge badge-warning">Pendiente</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>02:00 PM</td>
+                <td>Ana Martínez</td>
+                <td>Rocky (Perro)</td>
+                <td>Control postoperatorio</td>
+                <td><span class="badge badge-success">Confirmada</span></td>
+                <td>
+                    <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
