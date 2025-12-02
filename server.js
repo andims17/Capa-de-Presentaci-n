@@ -27,6 +27,7 @@ const mascotaRouter = require('./src/routes/mascota');
 const ventasRouter = require('./src/routes/ventas');
 const reportesRouter = require('./src/routes/reportes');
 const usuariosRouter = require('./src/routes/usuarios');
+const proveedoresRouter = require('./src/routes/proveedores');
 
 
 app.get('/', (req, res) => {
@@ -43,6 +44,7 @@ app.use('/mascota', mascotaRouter);
 app.use('/ventas', ventasRouter);
 app.use('/reportes', reportesRouter);
 app.use('/usuarios', usuariosRouter);
+app.use('/proveedores', proveedoresRouter);
 
 
 

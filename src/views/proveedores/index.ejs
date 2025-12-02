@@ -1,0 +1,294 @@
+<div class="page-header">
+    <h1 class="page-title">Gestión de Proveedores</h1>
+    <p class="page-subtitle">Administra la información de los proveedores</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Lista de Proveedores</h2>
+        <div style="display: flex; gap: 1rem;">
+            <div class="search-box">
+                <input type="text" id="buscadorProveedores" class="search-input" placeholder="Buscar proveedor...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('nuevoProveedorModal')">
+                <i class="fas fa-plus"></i> Nuevo Proveedor
+            </button>
+        </div>
+    </div>
+
+    <div class="clients-grid" id="listaProveedores">
+        <!-- Proveedor 1 -->
+        <div class="client-card" data-nombre="PetSupplies S.A.">
+            <div class="client-header">
+                <div class="client-avatar">PS</div>
+                <div class="client-info">
+                    <h3>PetSupplies S.A.</h3>
+                    <p>PROV-001</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Contacto:</span>
+                    <span class="detail-value">Juan Pérez</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 555-0101</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">contacto@petsupplies.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Productos:</span>
+                    <span class="pets-badge">15 productos</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última compra:</span>
+                    <span class="detail-value">10/10/2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="badge badge-success">Activo</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+
+        <!-- Proveedor 2 -->
+        <div class="client-card" data-nombre="VetProducts Corp">
+            <div class="client-header">
+                <div class="client-avatar">VC</div>
+                <div class="client-info">
+                    <h3>VetProducts Corp</h3>
+                    <p>PROV-002</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Contacto:</span>
+                    <span class="detail-value">María Rodríguez</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 555-0102</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">ventas@vetproducts.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Productos:</span>
+                    <span class="pets-badge">8 productos</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última compra:</span>
+                    <span class="detail-value">05/10/2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="badge badge-success">Activo</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+
+        <!-- Proveedor 3 -->
+        <div class="client-card" data-nombre="AnimalCare Ltd">
+            <div class="client-header">
+                <div class="client-avatar">AC</div>
+                <div class="client-info">
+                    <h3>AnimalCare Ltd</h3>
+                    <p>PROV-003</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Contacto:</span>
+                    <span class="detail-value">Carlos Sánchez</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 555-0103</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">info@animalcare.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Productos:</span>
+                    <span class="pets-badge">12 productos</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última compra:</span>
+                    <span class="detail-value">01/10/2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="badge badge-success">Activo</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+
+        <!-- Proveedor 4 -->
+        <div class="client-card" data-nombre="MediVet Supplies">
+            <div class="client-header">
+                <div class="client-avatar">MS</div>
+                <div class="client-info">
+                    <h3>MediVet Supplies</h3>
+                    <p>PROV-004</p>
+                </div>
+            </div>
+            <div class="client-details">
+                <div class="detail-item">
+                    <span class="detail-label">Contacto:</span>
+                    <span class="detail-value">Ana Martínez</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">+1 555-0104</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">pedidos@medivetsupplies.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Productos:</span>
+                    <span class="pets-badge">20 productos</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Última compra:</span>
+                    <span class="detail-value">12/10/2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Estado:</span>
+                    <span class="badge badge-success">Activo</span>
+                </div>
+            </div>
+            <div class="client-actions">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-info btn-sm">
+                    <i class="fas fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para nuevo proveedor -->
+<div id="nuevoProveedorModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nuevo Proveedor</h3>
+            <button class="close" onclick="closeModal('nuevoProveedorModal')">&times;</button>
+        </div>
+
+        <form id="formNuevoProveedor">
+            <div class="form-group">
+                <label class="form-label">Nombre de la Empresa</label>
+                <input type="text" id="nombreProveedor" class="form-control" placeholder="Nombre de la empresa">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Persona de Contacto</label>
+                    <input type="text" id="contactoProveedor" class="form-control" placeholder="Nombre del contacto">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" id="telefonoProveedor" class="form-control" placeholder="Número de teléfono">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="emailProveedor" class="form-control" placeholder="Correo electrónico">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Dirección</label>
+                <textarea id="direccionProveedor" class="form-control" rows="2" placeholder="Dirección completa"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">RUC / NIT</label>
+                    <input type="text" id="rucProveedor" class="form-control" placeholder="Número de identificación fiscal">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select id="estadoProveedor" class="form-control">
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notas</label>
+                <textarea id="notasProveedor" class="form-control" rows="3" placeholder="Información adicional del proveedor..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevoProveedorModal')" style="background: #E2E8F0;">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Proveedor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('buscadorProveedores');
+    const cards = document.querySelectorAll('#listaProveedores .client-card');
+
+    if (input && cards.length > 0) {
+        input.addEventListener('input', () => {
+            const texto = input.value.toLowerCase();
+            cards.forEach(card => {
+                const nombre = card.getAttribute('data-nombre').toLowerCase();
+                card.style.display = nombre.includes(texto) ? '' : 'none';
+            });
+        });
+    }
+
+    const formNuevoProveedor = document.getElementById('formNuevoProveedor');
+    if (formNuevoProveedor) {
+        formNuevoProveedor.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Proveedor registrado (demo, sin guardar en BD)');
+            closeModal('nuevoProveedorModal');
+        });
+    }
+});
+</script>
+
