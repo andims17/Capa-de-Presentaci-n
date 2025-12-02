@@ -1,0 +1,105 @@
+<div class="page-header">
+    <h1 class="page-title"><i class="fas fa-truck"></i> Gestión de Transporte</h1>
+    <p class="page-subtitle">Administra las rutas y vehículos</p>
+</div>
+
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><i class="fas fa-route"></i> Rutas Disponibles</h2>
+        <div style="display:flex; gap:1rem;">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Buscar ruta...">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <button class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Ruta</button>
+        </div>
+    </div>
+
+
+    <div class="pets-grid">
+
+
+        <div class="pet-card">
+            <div class="pet-header">
+                <div class="pet-avatar"><i class="fas fa-truck-fast"></i></div>
+                <div>
+                    <h3>Ruta 1</h3>
+                    <p>Santamaría → San José</p>
+                </div>
+            </div>
+            <div class="pet-details">
+                <div class="detail-item"><span>Horario:</span><span>6:00 AM</span></div>
+                <div class="detail-item"><span>Chofer:</span><span>Mario Cruz</span></div>
+                <div class="detail-item"><span>Estado:</span><span class="health-badge">Activa</span></div>
+            </div>
+            <div class="pet-actions">
+                <button class="btn btn-primary btn-xs"><i class="fas fa-eye"></i> Ver</button>
+                <button class="btn btn-plain btn-xs"><i class="fas fa-edit"></i> Editar</button>
+            </div>
+        </div>
+
+
+        <div class="pet-card">
+            <div class="pet-header">
+                <div class="pet-avatar"><i class="fas fa-bus"></i></div>
+                <div>
+                    <h3>Ruta 2</h3>
+                    <p>Heredia → Limón</p>
+                </div>
+            </div>
+            <div class="pet-details">
+                <div class="detail-item"><span>Horario:</span><span>8:30 AM</span></div>
+                <div class="detail-item"><span>Chofer:</span><span>Laura Méndez</span></div>
+                <div class="detail-item"><span>Estado:</span><span class="vaccine-badge">Programada</span></div>
+            </div>
+            <div class="pet-actions">
+                <button class="btn btn-primary btn-xs"><i class="fas fa-eye"></i> Ver</button>
+                <button class="btn btn-plain btn-xs"><i class="fas fa-edit"></i> Editar</button>
+            </div>
+        </div>
+
+
+        <div class="pet-card">
+            <div class="pet-header">
+                <div class="pet-avatar"><i class="fas fa-truck"></i></div>
+                <div>
+                    <h3>Ruta 3</h3>
+                    <p>Cartago → Alajuela</p>
+                </div>
+            </div>
+            <div class="pet-details">
+                <div class="detail-item"><span>Horario:</span><span>10:15 AM</span></div>
+                <div class="detail-item"><span>Chofer:</span><span>José Vargas</span></div>
+                <div class="detail-item"><span>Estado:</span><span class="health-badge">Activa</span></div>
+            </div>
+            <div class="pet-actions">
+                <button class="btn btn-primary btn-xs verRutaBtn"><i class="fas fa-eye"></i> Ver</button>
+                <button class="btn btn-plain btn-xs"><i class="fas fa-edit"></i> Editar</button>
+            </div>
+            
+        </div>
+
+
+    </div>
+</div>
+<script>
+    document.querySelectorAll(".verRutaBtn").forEach(btn => {
+        btn.addEventListener("click", function () {
+
+            const origen = this.dataset.origen;
+            const destino = this.dataset.destino;
+
+            const iframe = document.getElementById("mapFrame");
+            const mapa = document.getElementById("mapContainer");
+
+            const url = `https://www.google.com/maps/embed/v1/directions?key=AIzaSyAW7DT04SVHhOqwUrRhidV5HEr1BwW9-qM
+                         &origin=${encodeURIComponent(origen)}
+                         &destination=${encodeURIComponent(destino)}`;
+
+            iframe.src = url;
+            mapa.style.display = "block";
+            mapa.scrollIntoView({ behavior: "smooth" });
+        });
+    });
+</script>
