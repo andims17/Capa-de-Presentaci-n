@@ -10,18 +10,83 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/styles.css">
 
+    <!-- Script crítico: aplicar tema ANTES de renderizar para evitar flash -->
+    <script>
+        (function() {
+            try {
+                // Aplicar tema inmediatamente, sin esperar DOMContentLoaded
+                // Esto previene el "flash of light content" cuando cambias de página
+                const savedTheme = localStorage.getItem('theme');
+                const html = document.documentElement;
+                
+                // Si hay tema guardado, aplicarlo inmediatamente
+                if (savedTheme === 'dark') {
+                    html.setAttribute('data-theme', 'dark');
+                } else if (!savedTheme) {
+                    // Si no hay tema guardado, detectar preferencia del sistema
+                    // Solo si matchMedia está disponible (navegadores modernos)
+                    if (window.matchMedia) {
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        if (prefersDark) {
+                            html.setAttribute('data-theme', 'dark');
+                            localStorage.setItem('theme', 'dark');
+                        }
+                    }
+                }
+            } catch (e) {
+                // Si hay error (por ejemplo, localStorage bloqueado), continuar sin tema
+                console.warn('No se pudo aplicar el tema:', e);
+            }
+        })();
+    </script>
+
     <style>
         :root {
+            /* Colores primarios */
             --primary-cyan: #7DD3FC;
             --primary-dark: #0EA5E9;
             --primary-light: #E0F2FE;
             --success: #10B981;
             --warning: #F59E0B;
             --danger: #EF4444;
+            
+            /* Colores de fondo y texto (tema claro) */
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #F8FAFC;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --border-color: #E2E8F0;
+            
+            /* Colores legacy (para compatibilidad) */
             --gray-light: #F8FAFC;
             --gray-medium: #E2E8F0;
             --gray-dark: #64748B;
             --text-dark: #1E293B;
+        }
+
+        /* Tema oscuro */
+        [data-theme="dark"] {
+            --primary-cyan: #7DD3FC;
+            --primary-dark: #0EA5E9;
+            --primary-light: #1E3A5F;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            
+            /* Colores invertidos para dark mode */
+            --bg-primary: #0F172A;
+            --bg-secondary: #1E293B;
+            --bg-tertiary: #334155;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border-color: #334155;
+            
+            /* Colores legacy actualizados */
+            --gray-light: #1E293B;
+            --gray-medium: #334155;
+            --gray-dark: #94A3B8;
+            --text-dark: #F1F5F9;
         }
 
         * {
@@ -29,11 +94,12 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         body {
-            background-color: #f5f7fa;
-            color: var(--text-dark);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             line-height: 1.6;
         }
 
@@ -93,6 +159,41 @@
             font-weight: bold;
         }
 
+        [data-theme="dark"] .user-avatar {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: var(--primary-cyan);
+        }
+
+        /* Botón de toggle dark mode */
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: rotate(15deg) scale(1.1);
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="dark"] .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
         .content-wrapper {
             display: flex;
             flex: 1;
@@ -100,11 +201,15 @@
 
         .sidebar {
             width: 280px;
-            background-color: white;
+            background-color: var(--bg-secondary);
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
             padding: 1.5rem 0;
             display: flex;
             flex-direction: column;
+        }
+
+        [data-theme="dark"] .sidebar {
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
         }
 
         .nav-section {
@@ -113,7 +218,7 @@
 
         .nav-header {
             padding: 0.8rem 1.5rem;
-            color: #64748B;
+            color: var(--text-secondary);
             font-weight: 600;
             font-size: 0.9rem;
             text-transform: uppercase;
@@ -133,7 +238,7 @@
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            color: #64748B;
+            color: var(--text-secondary);
             text-decoration: none;
             transition: all 0.3s;
             border-left: 4px solid transparent;
@@ -141,16 +246,24 @@
         }
 
         .nav-item:hover {
-            background-color: #E0F2FE;
-            color: #0EA5E9;
-            border-left-color: #0EA5E9;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            border-left-color: var(--primary-dark);
+        }
+
+        [data-theme="dark"] .nav-item:hover {
+            background-color: rgba(14, 165, 233, 0.1);
         }
 
         .nav-item.active {
-            background-color: #E0F2FE;
-            color: #0EA5E9;
-            border-left-color: #0EA5E9;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            border-left-color: var(--primary-dark);
             font-weight: 600;
+        }
+
+        [data-theme="dark"] .nav-item.active {
+            background-color: rgba(14, 165, 233, 0.15);
         }
 
         .nav-item i {
@@ -161,24 +274,29 @@
 
         .nav-footer {
             margin-top: auto;
-            border-top: 1px solid #E2E8F0;
+            border-top: 1px solid var(--border-color);
             padding-top: 1rem;
         }
 
         .nav-item.logout {
-            color: #EF4444;
+            color: var(--danger, #EF4444);
         }
 
         .nav-item.logout:hover {
-            background-color: #FEE2E2;
+            background-color: rgba(239, 68, 68, 0.1);
             color: #DC2626;
-            border-left-color: #EF4444;
+            border-left-color: var(--danger, #EF4444);
+        }
+
+        [data-theme="dark"] .nav-item.logout:hover {
+            background-color: rgba(239, 68, 68, 0.2);
         }
 
         .content-area {
             flex: 1;
             padding: 2rem;
             overflow-y: auto;
+            background-color: var(--bg-primary);
         }
 
         .page-header {
@@ -188,13 +306,13 @@
         .page-title {
             font-size: 2.5rem;
             font-weight: bold;
-            color: var(--text-dark);
+            color: var(--text-primary);
             margin-bottom: 0.5rem;
         }
 
         .page-subtitle {
             font-size: 1.5rem;
-            color: var(--gray-dark);
+            color: var(--text-secondary);
             font-weight: 600;
         }
     </style>
@@ -210,6 +328,12 @@
                 </div>
                 <div class="user-info">
                     <span>Bienvenido, Administrador</span>
+                    
+                    <!-- Botón de toggle dark mode -->
+                    <button id="themeToggle" class="theme-toggle" title="Cambiar tema">
+                        <i class="fas fa-sun" id="themeIcon"></i>
+                    </button>
+                    
                     <div class="user-avatar">
                         <i class="fas fa-user"></i>
                     </div>
@@ -329,6 +453,7 @@
     </div>
 
     <script src="/js/main.js"></script>
+    <script src="/js/theme-toggle.js"></script>
 
     <script>
         // Resaltar elemento activo

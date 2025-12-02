@@ -6,11 +6,15 @@
 }
 
 .client-card {
-    background: white;
+    background: var(--bg-secondary, white);
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     padding: 1.5rem;
     transition: all 0.3s;
+}
+
+[data-theme="dark"] .client-card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .client-card:hover {
@@ -29,23 +33,28 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: #E0F2FE;
+    background: var(--primary-light, #E0F2FE);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #0EA5E9;
+    color: var(--primary-dark, #0EA5E9);
     font-weight: bold;
     font-size: 1.2rem;
 }
 
+[data-theme="dark"] .client-avatar {
+    background: rgba(14, 165, 233, 0.2);
+    color: var(--primary-cyan, #7DD3FC);
+}
+
 .client-info h3 {
     margin: 0;
-    color: #1E293B;
+    color: var(--text-primary, #1E293B);
 }
 
 .client-info p {
     margin: 0;
-    color: #64748B;
+    color: var(--text-secondary, #64748B);
     font-size: 0.9rem;
 }
 
@@ -62,11 +71,11 @@
 }
 
 .detail-label {
-    color: #64748B;
+    color: var(--text-secondary, #64748B);
 }
 
 .detail-value {
-    color: #1E293B;
+    color: var(--text-primary, #1E293B);
     font-weight: 500;
 }
 
@@ -81,10 +90,15 @@
 }
 
 .pets-badge {
-    background: #E0F2FE;
-    color: #0EA5E9;
+    background: var(--primary-light, #E0F2FE);
+    color: var(--primary-dark, #0EA5E9);
     padding: 0.2rem 0.6rem;
     border-radius: 12px;
     font-size: 0.8rem;
     font-weight: 600;
+}
+
+[data-theme="dark"] .pets-badge {
+    background: rgba(14, 165, 233, 0.2);
+    color: var(--primary-cyan, #7DD3FC);
 }

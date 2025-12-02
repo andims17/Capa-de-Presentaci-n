@@ -5,6 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title || 'Iniciar Sesión - VetPost' %></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Script crítico: aplicar tema ANTES de renderizar para evitar flash -->
+    <script>
+        (function() {
+            try {
+                // Aplicar tema inmediatamente, sin esperar DOMContentLoaded
+                // Esto previene el "flash of light content" cuando cambias de página
+                const savedTheme = localStorage.getItem('theme');
+                const html = document.documentElement;
+                
+                // Si hay tema guardado, aplicarlo inmediatamente
+                if (savedTheme === 'dark') {
+                    html.setAttribute('data-theme', 'dark');
+                } else if (!savedTheme) {
+                    // Si no hay tema guardado, detectar preferencia del sistema
+                    // Solo si matchMedia está disponible (navegadores modernos)
+                    if (window.matchMedia) {
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        if (prefersDark) {
+                            html.setAttribute('data-theme', 'dark');
+                            localStorage.setItem('theme', 'dark');
+                        }
+                    }
+                }
+            } catch (e) {
+                // Si hay error (por ejemplo, localStorage bloqueado), continuar sin tema
+                console.warn('No se pudo aplicar el tema:', e);
+            }
+        })();
+    </script>
+    
     <style>
         :root {
             --primary-cyan: #7DD3FC;
@@ -17,6 +48,22 @@
             --gray-medium: #E2E8F0;
             --gray-dark: #64748B;
             --text-dark: #1E293B;
+            --bg-secondary: #ffffff;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+        }
+
+        [data-theme="dark"] {
+            --primary-cyan: #7DD3FC;
+            --primary-dark: #0EA5E9;
+            --primary-light: #1E3A5F;
+            --bg-secondary: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --gray-light: #1E293B;
+            --gray-medium: #334155;
+            --gray-dark: #94A3B8;
+            --text-dark: #F1F5F9;
         }
 
         * {
@@ -24,6 +71,7 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         body {
@@ -34,13 +82,21 @@
             justify-content: center;
         }
 
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #0C4A6E, #075985);
+        }
+
         .login-container {
-            background: white;
+            background: var(--bg-secondary, white);
             border-radius: 15px;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
             width: 90%;
             max-width: 450px;
             padding: 2.5rem;
+        }
+
+        [data-theme="dark"] .login-container {
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
         }
 
         .login-header {
@@ -57,12 +113,12 @@
         .login-title {
             font-size: 2.5rem;
             font-weight: bold;
-            color: var(--text-dark);
+            color: var(--text-primary, var(--text-dark));
             margin-bottom: 0.5rem;
         }
 
         .login-subtitle {
-            color: var(--gray-dark);
+            color: var(--text-secondary, var(--gray-dark));
             font-size: 1.2rem;
         }
 
@@ -74,7 +130,7 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: var(--text-dark);
+            color: var(--text-primary, var(--text-dark));
         }
 
         .input-with-icon {
@@ -86,7 +142,7 @@
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--gray-dark);
+            color: var(--text-secondary, var(--gray-dark));
         }
 
         .form-control {
@@ -96,6 +152,8 @@
             border-radius: 6px;
             font-size: 1rem;
             transition: border 0.3s;
+            background-color: var(--bg-secondary, white);
+            color: var(--text-primary, var(--text-dark));
         }
 
         .form-control:focus {
@@ -127,7 +185,7 @@
         .login-footer {
             text-align: center;
             margin-top: 1.5rem;
-            color: var(--gray-dark);
+            color: var(--text-secondary, var(--gray-dark));
         }
 
         .alert {
@@ -137,9 +195,15 @@
         }
 
         .alert-danger {
-            background-color: #FEE2E2;
+            background-color: rgba(239, 68, 68, 0.1);
             color: #991B1B;
-            border: 1px solid #FECACA;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        [data-theme="dark"] .alert-danger {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #FCA5A5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
         }
     </style>
 </head>
