@@ -12,8 +12,12 @@
                 <input type="text" class="search-input" placeholder="Buscar ruta...">
                 <button class="search-btn"><i class="fas fa-search"></i></button>
             </div>
-            <button class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Ruta</button>
+
+            <button class="btn btn-primary" onclick="openModal('nuevaRutaModal')">
+                <i class="fas fa-plus"></i> Nueva Ruta
+            </button>
         </div>
+
     </div>
 
 
@@ -77,12 +81,88 @@
                 <button class="btn btn-primary btn-xs verRutaBtn"><i class="fas fa-eye"></i> Ver</button>
                 <button class="btn btn-plain btn-xs"><i class="fas fa-edit"></i> Editar</button>
             </div>
-            
+
         </div>
 
 
     </div>
 </div>
+
+<div id="nuevaRutaModal" class="modal">
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h3 class="modal-title">Registrar Nueva Ruta</h3>
+            <button class="close" onclick="closeModal('nuevaRutaModal')">&times;</button>
+        </div>
+
+        <form id="formNuevaRuta">
+
+            <div class="form-group">
+                <label class="form-label">Nombre de la Ruta</label>
+                <input type="text" class="form-control" id="nombreRuta" placeholder="Ej: Ruta San José - Heredia">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Origen</label>
+                    <input type="text" class="form-control" id="origenRuta" placeholder="Dirección de origen">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Destino</label>
+                    <input type="text" class="form-control" id="destinoRuta" placeholder="Dirección de destino">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+                <div class="form-group">
+                    <label class="form-label">Hora de Salida</label>
+                    <input type="time" class="form-control" id="horaSalida">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Hora Estimada de Llegada</label>
+                    <input type="time" class="form-control" id="horaLlegada">
+                </div>
+
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Chofer Asignado</label>
+                <input type="text" class="form-control" id="choferRuta" placeholder="Nombre del chofer">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Estado</label>
+                <select id="estadoRuta" class="form-control">
+                    <option value="activa">Activa</option>
+                    <option value="programada">Programada</option>
+                    <option value="inactiva">Inactiva</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notas</label>
+                <textarea id="notasRuta" class="form-control" rows="3"
+                    placeholder="Información adicional..."></textarea>
+            </div>
+
+            <div style="display:flex; gap:1rem; justify-content:flex-end;">
+                <button type="button" class="btn" onclick="closeModal('nuevaRutaModal')" style="background:#E2E8F0;">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    Registrar Ruta
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
 <script>
     document.querySelectorAll(".verRutaBtn").forEach(btn => {
         btn.addEventListener("click", function () {
