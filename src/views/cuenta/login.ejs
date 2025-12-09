@@ -6,21 +6,15 @@
     <title><%= title || 'Iniciar Sesión - VetPost' %></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Script crítico: aplicar tema ANTES de renderizar para evitar flash -->
     <script>
         (function() {
             try {
-                // Aplicar tema inmediatamente, sin esperar DOMContentLoaded
-                // Esto previene el "flash of light content" cuando cambias de página
                 const savedTheme = localStorage.getItem('theme');
                 const html = document.documentElement;
                 
-                // Si hay tema guardado, aplicarlo inmediatamente
                 if (savedTheme === 'dark') {
                     html.setAttribute('data-theme', 'dark');
                 } else if (!savedTheme) {
-                    // Si no hay tema guardado, detectar preferencia del sistema
-                    // Solo si matchMedia está disponible (navegadores modernos)
                     if (window.matchMedia) {
                         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                         if (prefersDark) {
@@ -30,7 +24,6 @@
                     }
                 }
             } catch (e) {
-                // Si hay error (por ejemplo, localStorage bloqueado), continuar sin tema
                 console.warn('No se pudo aplicar el tema:', e);
             }
         })();
@@ -210,7 +203,6 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <!-- Asegúrate de tener /img/logo.png en public/img -->
             <img src="/img/animales-logo.jpeg" alt="Animales Fantásticos" class="logo" />
             <h1 class="login-title">VetPost</h1>
             <p class="login-subtitle">Sistema de Gestión Veterinaria</p>

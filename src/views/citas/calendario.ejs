@@ -23,7 +23,6 @@
     </div>
 
     <div class="calendar-grid">
-      <!-- Encabezados -->
       <div class="calendar-day-header">Lun</div>
       <div class="calendar-day-header">Mar</div>
       <div class="calendar-day-header">Mié</div>
@@ -32,7 +31,6 @@
       <div class="calendar-day-header">Sáb</div>
       <div class="calendar-day-header">Dom</div>
 
-      <!-- Semana 1 -->
       <div class="calendar-day other-month"><span class="day-number">30</span></div>
       <div class="calendar-day other-month"><span class="day-number">1</span></div>
       <div class="calendar-day"><span class="day-number">2</span></div>
@@ -41,7 +39,6 @@
       <div class="calendar-day"><span class="day-number">5</span></div>
       <div class="calendar-day"><span class="day-number">6</span></div>
 
-      <!-- Semana 2 -->
       <div class="calendar-day"><span class="day-number">7</span></div>
       <div class="calendar-day"><span class="day-number">8</span></div>
       <div class="calendar-day"><span class="day-number">9</span></div>
@@ -50,7 +47,6 @@
       <div class="calendar-day"><span class="day-number">12</span></div>
       <div class="calendar-day"><span class="day-number">13</span></div>
 
-      <!-- Semana 3 -->
       <div class="calendar-day"><span class="day-number">14</span></div>
       <div class="calendar-day today"><span class="day-number">15</span></div>
       <div class="calendar-day"><span class="day-number">16</span></div>
@@ -59,7 +55,6 @@
       <div class="calendar-day"><span class="day-number">19</span></div>
       <div class="calendar-day"><span class="day-number">20</span></div>
 
-      <!-- Semana 4 -->
       <div class="calendar-day"><span class="day-number">21</span></div>
       <div class="calendar-day"><span class="day-number">22</span></div>
       <div class="calendar-day"><span class="day-number">23</span></div>
@@ -68,7 +63,6 @@
       <div class="calendar-day"><span class="day-number">26</span></div>
       <div class="calendar-day"><span class="day-number">27</span></div>
 
-      <!-- Semana 5 -->
       <div class="calendar-day"><span class="day-number">28</span></div>
       <div class="calendar-day"><span class="day-number">29</span></div>
       <div class="calendar-day"><span class="day-number">30</span></div>
@@ -153,7 +147,6 @@
   </div>
 </div>
 
-<!-- Modal para nueva cita -->
 <div id="nuevaCitaModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -224,7 +217,6 @@
 </div>
 
 <script>
-  // Script para “inyectar” los eventos demo en el día 15 y 16
   document.addEventListener('DOMContentLoaded', () => {
     const todayCell = document.querySelector('.calendar-day.today');
     if (todayCell) {
