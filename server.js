@@ -1,19 +1,35 @@
+require('dotenv').config(); // 👈 IMPORTANTE
+
 const express = require('express');
 const path = require('path');
+const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ===== CONFIG =====
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
 app.use(expressLayouts);
 app.set('layout', 'layout');
 
+// ===== MIDDLEWARES =====
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// SESIONES
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'vetpost_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 6 // 6 horas
+  }
+}));
+
 
 const inicioRouter  = require('./src/routes/inicio');
 const citasRouter   = require('./src/routes/citas');
@@ -32,9 +48,10 @@ app.get('/', (req, res) => {
   res.redirect('/cuenta/login');
 });
 
-app.use('/inicio', inicioRouter); 
+
+app.use('/inicio', inicioRouter);
 app.use('/citas', citasRouter);
-app.use('/clientes', clientesRouter);  
+app.use('/clientes', clientesRouter);
 app.use('/cuenta', cuentaRouter);
 app.use('/', inventarioRouter);
 app.use('/mascota', mascotaRouter);
@@ -46,5 +63,5 @@ app.use('/transporte', transporteRouter);
 
 
 app.listen(PORT, () => {
-  console.log(`VetPost JS corriendo en http://localhost:${PORT}`);
+  console.log(`✅ VetPost corriendo en http://localhost:${PORT}`);
 });

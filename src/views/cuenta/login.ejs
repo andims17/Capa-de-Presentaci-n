@@ -198,6 +198,34 @@
             color: #FCA5A5;
             border: 1px solid rgba(239, 68, 68, 0.4);
         }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 1.2rem 0;
+            color: var(--text-secondary, var(--gray-dark));
+            font-size: 0.95rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--gray-medium);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary-dark);
+            color: var(--primary-dark);
+        }
+
+        .btn-outline:hover {
+        background: rgba(14, 165, 233, 0.12);
+        }
+
     </style>
 </head>
 <body>
@@ -234,6 +262,10 @@
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
             </button>
+            <div class="divider">o</div>
+            <a href="/cuenta/registro" class="btn btn-outline" style="text-decoration:none; display:inline-block; text-align:center;">
+                <i class="fas fa-user-plus"></i> Crear cuenta
+            </a>
         </form>
 
         <div class="login-footer">

@@ -1,11 +1,3 @@
-/* ============================================================
-   BASE DE DATOS VETPOST
-   SQL SERVER MANAGEMENT STUDIO (SSMS)
-   SIN INSERTS
-   NORMALIZADA
-   INCLUYE PROVEEDORES Y TRANSPORTE
-   ============================================================ */
-
 ------------------------------------------------------------
 -- Crear Base de Datos
 ------------------------------------------------------------
@@ -177,7 +169,7 @@ CREATE TABLE VentasDetalle (
 );
 
 ------------------------------------------------------------
--- TABLA: TRANSPORTE (Para delivery, envíos o logística)
+-- TABLA: TRANSPORTE (Para delivery, envï¿½os o logï¿½stica)
 ------------------------------------------------------------
 CREATE TABLE Transporte (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -191,7 +183,7 @@ CREATE TABLE Transporte (
 );
 
 ------------------------------------------------------------
--- TABLA: ENVÍOS (si deseas asociar ventas con transporte)
+-- TABLA: ENVï¿½OS (si deseas asociar ventas con transporte)
 ------------------------------------------------------------
 CREATE TABLE Envios (
     Id INT IDENTITY(1,1) PRIMARY KEY,
