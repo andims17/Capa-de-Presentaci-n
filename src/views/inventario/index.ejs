@@ -100,156 +100,60 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>
-                    <div class="product-cell">
-                        <div class="product-image">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <div>
-                            <div class="product-name">Antipulgas para perros grandes</div>
-                            <div class="product-code">PROD-001</div>
-                        </div>
-                    </div>
-                </td>
-                <td><span class="category-badge">Medicamento</span></td>
-                <td>
-                    <div>15</div>
-                    <div class="stock-min">Mín: 10</div>
-                </td>
-                <td>$18.00</td>
-                <td>$25.00</td>
-                <td><span class="badge badge-success">En Stock</span></td>
-                <td>
-                    <button class="btn btn-primary btn-xs">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info btn-xs">
-                        <i class="fas fa-history"></i>
-                    </button>
-                </td>
-            </tr>
+            <% if (productos.length===0) { %>
+                <tr>
+                    <td colspan="7" style="text-align:center;">No hay productos registrados</td>
+                </tr>
+                <% } %>
 
-            <tr>
-                <td>
-                    <div class="product-cell">
-                        <div class="product-image">
-                            <i class="fas fa-bone"></i>
-                        </div>
-                        <div>
-                            <div class="product-name">Alimento para perros adulto 5kg</div>
-                            <div class="product-code">PROD-002</div>
-                        </div>
-                    </div>
-                </td>
-                <td><span class="category-badge">Alimento</span></td>
-                <td>
-                    <div>22</div>
-                    <div class="stock-min">Mín: 15</div>
-                </td>
-                <td>$12.50</td>
-                <td>$18.50</td>
-                <td><span class="badge badge-success">En Stock</span></td>
-                <td>
-                    <button class="btn btn-primary btn-xs">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info btn-xs">
-                        <i class="fas fa-history"></i>
-                    </button>
-                </td>
-            </tr>
-
-            <tr>
-                <td>
-                    <div class="product-cell">
-                        <div class="product-image">
-                            <i class="fas fa-cat"></i>
-                        </div>
-                        <div>
-                            <div class="product-name">Arena para gatos absorbente 4kg</div>
-                            <div class="product-code">PROD-003</div>
-                        </div>
-                    </div>
-                </td>
-                <td><span class="category-badge">Accesorio</span></td>
-                <td>
-                    <div>18</div>
-                    <div class="stock-min">Mín: 12</div>
-                </td>
-                <td>$8.00</td>
-                <td>$12.00</td>
-                <td><span class="badge badge-success">En Stock</span></td>
-                <td>
-                    <button class="btn btn-primary btn-xs">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info btn-xs">
-                        <i class="fas fa-history"></i>
-                    </button>
-                </td>
-            </tr>
-
-            <tr>
-                <td>
-                    <div class="product-cell">
-                        <div class="product-image">
-                            <i class="fas fa-syringe"></i>
-                        </div>
-                        <div>
-                            <div class="product-name">Vacuna triple felina</div>
-                            <div class="product-code">PROD-004</div>
-                        </div>
-                    </div>
-                </td>
-                <td><span class="category-badge">Medicamento</span></td>
-                <td>
-                    <div>8</div>
-                    <div class="stock-min">Mín: 5</div>
-                </td>
-                <td>$25.00</td>
-                <td>$35.00</td>
-                <td><span class="badge badge-success">En Stock</span></td>
-                <td>
-                    <button class="btn btn-primary btn-xs">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info btn-xs">
-                        <i class="fas fa-history"></i>
-                    </button>
-                </td>
-            </tr>
-
-            <tr>
-                <td>
-                    <div class="product-cell">
-                        <div class="product-image">
-                            <i class="fas fa-pump-soap"></i>
-                        </div>
-                        <div>
-                            <div class="product-name">Shampoo medicado para perros</div>
-                            <div class="product-code">PROD-005</div>
-                        </div>
-                    </div>
-                </td>
-                <td><span class="category-badge">Higiene</span></td>
-                <td>
-                    <div class="stock-low">3</div>
-                    <div class="stock-min">Mín: 8</div>
-                </td>
-                <td>$6.50</td>
-                <td>$10.00</td>
-                <td><span class="badge badge-danger">Stock Bajo</span></td>
-                <td>
-                    <button class="btn btn-primary btn-xs">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-info btn-xs">
-                        <i class="fas fa-history"></i>
-                    </button>
-                </td>
-            </tr>
+                    <% productos.forEach(p=> { %>
+                        <tr>
+                            <td>
+                                <div class="product-cell">
+                                    <div class="product-image">
+                                        <i class="fas fa-box"></i>
+                                    </div>
+                                    <div>
+                                        <div class="product-name">
+                                            <%= p.Nombre %>
+                                        </div>
+                                        <div class="product-code">
+                                            <%= p.Codigo %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="category-badge">
+                                    <%= p.Categoria %>
+                                </span></td>
+                            <td>
+                                <div class="<%= p.Stock <= p.StockMinimo ? 'stock-low' : '' %>">
+                                    <%= p.Stock %>
+                                </div>
+                                <div class="stock-min">Mín: <%= p.StockMinimo %>
+                                </div>
+                            </td>
+                            <td>$<%= p.Precio %>
+                            </td>
+                            <td>$<%= (p.Precio * 1.30).toFixed(2) %>
+                            </td>
+                            <td>
+                                <% if (p.Stock===0) { %>
+                                    <span class="badge badge-danger">Agotado</span>
+                                    <% } else if (p.Stock <=p.StockMinimo) { %>
+                                        <span class="badge badge-warning">Stock Bajo</span>
+                                        <% } else { %>
+                                            <span class="badge badge-success">En Stock</span>
+                                            <% } %>
+                            </td>
+                            <td>
+                                <button class="btn btn-primary btn-xs"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-info btn-xs"><i class="fas fa-history"></i></button>
+                            </td>
+                        </tr>
+                    <% }) %>
         </tbody>
+
     </table>
 </div>
 
