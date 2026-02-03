@@ -30,6 +30,11 @@ app.use(session({
   }
 }));
 
+app.use((req, res, next) => {
+    res.locals.categorias = [];
+    next();
+});
+
 
 const inicioRouter  = require('./src/routes/inicio');
 const citasRouter   = require('./src/routes/citas');

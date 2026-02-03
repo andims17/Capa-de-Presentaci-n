@@ -1,90 +1,59 @@
+<!-- ================= HEADER ================= -->
 <div class="page-header">
     <h1 class="page-title">Gestión de Inventario</h1>
     <p class="page-subtitle">Control de productos y existencias</p>
 </div>
 
+<!-- ======= MENSAJES DE ERROR / ÉXITO ======= -->
+<% if (typeof error !== 'undefined') { %>
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <%= error %>
+    </div>
+<% } %>
+
+<% if (typeof success !== 'undefined') { %>
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <%= success %>
+    </div>
+<% } %>
+
+
+<!-- ================= WIDGETS ================= -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon bg-cyan">
-            <i class="fas fa-boxes"></i>
-        </div>
-        <div class="stat-value">156</div>
-        <div class="stat-label">Total de Productos</div>
+        <div class="stat-icon bg-cyan"><i class="fas fa-boxes"></i></div>
+        <div class="stat-value"><%= resumen.TotalProductos || 0 %></div>
+        <div class="stat-label">Total</div>
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon bg-green">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="stat-value">128</div>
-        <div class="stat-label">Productos en Stock</div>
+        <div class="stat-icon bg-green"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-value"><%= resumen.EnStock || 0 %></div>
+        <div class="stat-label">En Stock</div>
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon bg-orange">
-            <i class="fas fa-exclamation-triangle"></i>
-        </div>
-        <div class="stat-value">5</div>
+        <div class="stat-icon bg-orange"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-value"><%= resumen.StockBajo || 0 %></div>
         <div class="stat-label">Stock Bajo</div>
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon bg-red">
-            <i class="fas fa-times-circle"></i>
-        </div>
-        <div class="stat-value">0</div>
+        <div class="stat-icon bg-red"><i class="fas fa-times-circle"></i></div>
+        <div class="stat-value"><%= resumen.Agotados || 0 %></div>
         <div class="stat-label">Agotados</div>
     </div>
 </div>
 
-<div class="filters-section">
-    <div class="filter-group">
-        <label class="filter-label">Categoría</label>
-        <select class="form-control" style="width: 150px;">
-            <option>Todas</option>
-            <option>Medicamento</option>
-            <option>Alimento</option>
-            <option>Accesorio</option>
-            <option>Higiene</option>
-        </select>
-    </div>
-    <div class="filter-group">
-        <label class="filter-label">Estado Stock</label>
-        <select class="form-control" style="width: 150px;">
-            <option>Todos</option>
-            <option>Stock Bajo</option>
-            <option>En Stock</option>
-            <option>Agotados</option>
-        </select>
-    </div>
-    <div class="filter-group">
-        <label class="filter-label">Proveedor</label>
-        <select class="form-control" style="width: 180px;">
-            <option>Todos</option>
-            <option>PetSupplies S.A.</option>
-            <option>VetProducts Corp</option>
-            <option>AnimalCare Ltd</option>
-        </select>
-    </div>
-</div>
-
+<!-- ================= TABLA ================= -->
 <div class="card">
     <div class="card-header">
-        <h2 class="card-title">Productos en Inventario</h2>
-        <div style="display: flex; gap: 1rem;">
-            <div class="search-box">
-                <input type="text" class="search-input" placeholder="Buscar producto...">
-                <button class="search-btn">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-            <button class="btn btn-primary" onclick="openModal('nuevoProductoModal')">
-                <i class="fas fa-plus"></i> Nuevo Producto
-            </button>
-            <button class="btn btn-success" onclick="openModal('entradaInventarioModal')">
-                <i class="fas fa-arrow-down"></i> Entrada
-            </button>
-        </div>
+        <h2>Productos</h2>
+        <button class="btn btn-primary" onclick="openModal('nuevoProductoModal')">
+            <i class="fas fa-plus"></i> Nuevo
+        </button>
     </div>
 
     <table class="table">
@@ -93,217 +62,216 @@
                 <th>Producto</th>
                 <th>Categoría</th>
                 <th>Stock</th>
-                <th>Precio Compra</th>
-                <th>Precio Venta</th>
+                <th>Precio</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            <% if (productos.length===0) { %>
+        <% if (!productos || productos.length === 0) { %>
+            <tr>
+                <td colspan="6" style="text-align:center;">
+                    No hay productos registrados
+                </td>
+            </tr>
+        <% } else { %>
+            <% productos.forEach(p => { %>
                 <tr>
-                    <td colspan="7" style="text-align:center;">No hay productos registrados</td>
+                    <td>
+                        <strong><%= p.Nombre %></strong><br>
+                        <small><%= p.Codigo %></small>
+                    </td>
+                    <td><%= p.Categoria %></td>
+                    <td><%= p.Stock %> (Min <%= p.StockMinimo %>)</td>
+                    <td>$<%= p.Precio %></td>
+                    <td>
+                        <% if (p.Stock === 0) { %>
+                            <span class="badge badge-danger">Agotado</span>
+                        <% } else if (p.Stock <= p.StockMinimo) { %>
+                            <span class="badge badge-warning">Stock Bajo</span>
+                        <% } else { %>
+                            <span class="badge badge-success">OK</span>
+                        <% } %>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-xs" onclick="verProducto(<%= p.Id %>)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-xs" onclick="confirmarEliminar(<%= p.Id %>)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
-                <% } %>
-
-                    <% productos.forEach(p=> { %>
-                        <tr>
-                            <td>
-                                <div class="product-cell">
-                                    <div class="product-image">
-                                        <i class="fas fa-box"></i>
-                                    </div>
-                                    <div>
-                                        <div class="product-name">
-                                            <%= p.Nombre %>
-                                        </div>
-                                        <div class="product-code">
-                                            <%= p.Codigo %>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><span class="category-badge">
-                                    <%= p.Categoria %>
-                                </span></td>
-                            <td>
-                                <div class="<%= p.Stock <= p.StockMinimo ? 'stock-low' : '' %>">
-                                    <%= p.Stock %>
-                                </div>
-                                <div class="stock-min">Mín: <%= p.StockMinimo %>
-                                </div>
-                            </td>
-                            <td>$<%= p.Precio %>
-                            </td>
-                            <td>$<%= (p.Precio * 1.30).toFixed(2) %>
-                            </td>
-                            <td>
-                                <% if (p.Stock===0) { %>
-                                    <span class="badge badge-danger">Agotado</span>
-                                    <% } else if (p.Stock <=p.StockMinimo) { %>
-                                        <span class="badge badge-warning">Stock Bajo</span>
-                                        <% } else { %>
-                                            <span class="badge badge-success">En Stock</span>
-                                            <% } %>
-                            </td>
-                            <td>
-                                <button class="btn btn-primary btn-xs"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-info btn-xs"><i class="fas fa-history"></i></button>
-                            </td>
-                        </tr>
-                    <% }) %>
+            <% }) %>
+        <% } %>
         </tbody>
-
     </table>
 </div>
-
-<div id="nuevoProductoModal" class="modal">
+<!-- ================= MODAL VER / EDITAR ================= -->
+<div id="productoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Registrar Nuevo Producto</h3>
-            <button class="close" onclick="closeModal('nuevoProductoModal')">&times;</button>
+            <h3 class="modal-title">
+                <i class="fas fa-edit"></i> Editar Producto
+            </h3>
+            <button class="close" onclick="closeModal('productoModal')">&times;</button>
         </div>
 
-        <form>
+        <form method="POST" action="/inventario/actualizar" class="modal-form">
+            <input type="hidden" name="Id" id="prodId">
+
+            <!-- Código y Categoría -->
             <div class="two-cols">
                 <div class="form-group">
                     <label class="form-label">Código</label>
-                    <input type="text" class="form-control" placeholder="Código del producto">
+                    <input type="text" name="Codigo" id="prodCodigo" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Categoría</label>
-                    <select class="form-control">
-                        <option>Medicamento</option>
-                        <option>Alimento</option>
-                        <option>Accesorio</option>
-                        <option>Higiene</option>
-                        <option>Juguete</option>
+                    <select name="CategoriaId" id="prodCategoriaId" class="form-control" required>
+                        <% categorias.forEach(c => { %>
+                            <option value="<%= c.Id %>"><%= c.Nombre %></option>
+                        <% }) %>
                     </select>
                 </div>
             </div>
 
+            <!-- Nombre -->
             <div class="form-group">
                 <label class="form-label">Nombre del Producto</label>
-                <input type="text" class="form-control" placeholder="Nombre completo del producto">
+                <input type="text" name="Nombre" id="prodNombre" class="form-control" required>
             </div>
 
+            <!-- Precio y Stock -->
             <div class="two-cols">
                 <div class="form-group">
-                    <label class="form-label">Precio de Compra</label>
-                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                    <label class="form-label">Precio</label>
+                    <input type="number" name="Precio" id="prodPrecio"
+                           step="0.01" class="form-control" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Precio de Venta</label>
-                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                    <label class="form-label">Stock</label>
+                    <input type="number" name="Stock" id="prodStock"
+                           class="form-control" required>
                 </div>
             </div>
 
-            <div class="two-cols">
-                <div class="form-group">
-                    <label class="form-label">Stock Inicial</label>
-                    <input type="number" class="form-control" placeholder="0">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Stock Mínimo</label>
-                    <input type="number" class="form-control" placeholder="5">
-                </div>
-            </div>
-
+            <!-- Stock mínimo -->
             <div class="form-group">
-                <label class="form-label">Proveedor</label>
-                <select class="form-control">
-                    <option>Seleccionar proveedor</option>
-                    <option>PetSupplies S.A.</option>
-                    <option>VetProducts Corp</option>
-                    <option>AnimalCare Ltd</option>
-                </select>
+                <label class="form-label">Stock Mínimo</label>
+                <input type="number" name="StockMinimo" id="prodStockMinimo"
+                       class="form-control" required>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Descripción</label>
-                <textarea class="form-control" rows="3" placeholder="Descripción del producto..."></textarea>
-            </div>
-
+            <!-- Acciones -->
             <div class="modal-actions">
-                <button type="button" class="btn" onclick="closeModal('nuevoProductoModal')">
+                <button type="button" class="btn" onclick="closeModal('productoModal')">
                     Cancelar
                 </button>
                 <button type="submit" class="btn btn-primary">
-                    Registrar Producto
+                    Guardar Cambios
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="entradaInventarioModal" class="modal">
+
+<!-- ================= MODAL NUEVO PRODUCTO ================= -->
+<div id="nuevoProductoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Entrada de Inventario</h3>
-            <button class="close" onclick="closeModal('entradaInventarioModal')">&times;</button>
+            <h3 class="modal-title">
+                <i class="fas fa-plus"></i> Nuevo Producto
+            </h3>
+            <button class="close" onclick="closeModal('nuevoProductoModal')">&times;</button>
         </div>
 
-        <form>
-            <div class="form-group">
-                <label class="form-label">Producto</label>
-                <select class="form-control">
-                    <option>Seleccionar producto</option>
-                    <option>Antipulgas para perros grandes</option>
-                    <option>Alimento para perros adulto 5kg</option>
-                    <option>Arena para gatos absorbente 4kg</option>
-                    <option>Vacuna triple felina</option>
-                    <option>Shampoo medicado para perros</option>
-                </select>
-            </div>
+        <form method="POST" action="/inventario/crear" class="modal-form">
 
+            <!-- Código y Categoría -->
             <div class="two-cols">
                 <div class="form-group">
-                    <label class="form-label">Cantidad</label>
-                    <input type="number" class="form-control" placeholder="0">
+                    <label class="form-label">Código</label>
+                    <input type="text" name="Codigo" class="form-control" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Costo Unitario</label>
-                    <input type="number" class="form-control" placeholder="0.00" step="0.01">
+                    <label class="form-label">Categoría</label>
+                    <select name="CategoriaId" class="form-control" required>
+                        <option value="">Seleccione</option>
+                        <% categorias.forEach(c => { %>
+                            <option value="<%= c.Id %>"><%= c.Nombre %></option>
+                        <% }) %>
+                    </select>
                 </div>
             </div>
 
+            <!-- Nombre -->
             <div class="form-group">
-                <label class="form-label">Proveedor</label>
-                <select class="form-control">
-                    <option>PetSupplies S.A.</option>
-                    <option>VetProducts Corp</option>
-                    <option>AnimalCare Ltd</option>
-                    <option>Otro</option>
-                </select>
+                <label class="form-label">Nombre del Producto</label>
+                <input type="text" name="Nombre" class="form-control" required>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Número de Factura</label>
-                <input type="text" class="form-control" placeholder="Número de factura">
+            <!-- Precio y Stock -->
+            <div class="two-cols">
+                <div class="form-group">
+                    <label class="form-label">Precio</label>
+                    <input type="number" name="Precio" step="0.01"
+                           class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Stock Inicial</label>
+                    <input type="number" name="Stock"
+                           class="form-control" required>
+                </div>
             </div>
 
+            <!-- Stock mínimo -->
             <div class="form-group">
-                <label class="form-label">Fecha de Entrada</label>
-                <input type="date" class="form-control">
+                <label class="form-label">Stock Mínimo</label>
+                <input type="number" name="StockMinimo"
+                       class="form-control" required>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Observaciones</label>
-                <textarea class="form-control" rows="3" placeholder="Observaciones de la entrada..."></textarea>
-            </div>
-
+            <!-- Acciones -->
             <div class="modal-actions">
-                <button type="button" class="btn" onclick="closeModal('entradaInventarioModal')">
+                <button type="button" class="btn"
+                        onclick="closeModal('nuevoProductoModal')">
                     Cancelar
                 </button>
                 <button type="submit" class="btn btn-primary">
-                    Registrar Entrada
+                    Guardar Producto
                 </button>
             </div>
+
         </form>
     </div>
 </div>
+
+
+<script>
+async function verProducto(id) {
+    const res = await fetch(`/inventario/${id}`);
+    const p = await res.json();
+
+    document.getElementById('prodId').value = p.Id;
+    document.getElementById('prodCodigo').value = p.Codigo;
+    document.getElementById('prodCategoriaId').value = p.CategoriaId;
+    document.getElementById('prodNombre').value = p.Nombre;
+    document.getElementById('prodPrecio').value = p.Precio;
+    document.getElementById('prodStock').value = p.Stock;
+    document.getElementById('prodStockMinimo').value = p.StockMinimo;
+
+    openModal('productoModal');
+}
+
+function confirmarEliminar(id) {
+    if (confirm('¿Seguro que deseas eliminar este producto?')) {
+        window.location.href = `/inventario/eliminar/${id}`;
+    }
+}
+</script>
