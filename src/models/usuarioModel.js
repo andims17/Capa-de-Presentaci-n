@@ -1,59 +1,114 @@
 const { getPool, sql } = require('../config/db');
 
+// ===== LOGIN =====
 async function findByUsername(username) {
   const pool = await getPool();
 
   const result = await pool.request()
-    .input('username', sql.VarChar(50), username)
-    .query(`
-      SELECT u.Id, u.Username, u.NombreCompleto, u.Email, u.PasswordHash, u.RolId, u.Activo
-      FROM Usuarios u
-      WHERE u.Username = @username
-    `);
+    .input('Username', sql.NVarChar(50), username)
+    .execute('dbo.sp_Usuarios_ObtenerPorUsername');
 
   return result.recordset[0];
 }
 
+// ===== REGISTRO / ADMIN CREATE =====
 async function createUser({ username, nombreCompleto, email, passwordHash, rolId }) {
   const pool = await getPool();
 
   const result = await pool.request()
-    .input('username', sql.VarChar(50), username)
-    .input('nombreCompleto', sql.VarChar(120), nombreCompleto)
-    .input('email', sql.VarChar(120), email)
-    .input('passwordHash', sql.VarChar(255), passwordHash)
-    .input('rolId', sql.Int, rolId)
-    .query(`
-      INSERT INTO Usuarios (Username, NombreCompleto, Email, PasswordHash, RolId, Activo)
-      OUTPUT INSERTED.Id
-      VALUES (@username, @nombreCompleto, @email, @passwordHash, @rolId, 1)
-    `);
+    .input('Username', sql.NVarChar(50), username)
+    .input('NombreCompleto', sql.NVarChar(120), nombreCompleto)
+    .input('Email', sql.NVarChar(120), email)
+    .input('PasswordHash', sql.NVarChar(255), passwordHash)
+    .input('RolId', sql.Int, rolId)
+    .execute('dbo.sp_Usuarios_Insertar');
 
   return result.recordset[0]?.Id;
 }
 
+// ===== VALIDACIONES =====
 async function existsUsername(username) {
   const pool = await getPool();
+
   const r = await pool.request()
-    .input('username', sql.VarChar(50), username)
-    .query(`SELECT 1 AS ok FROM Usuarios WHERE Username = @username`);
-  return r.recordset.length > 0;
+    .input('Username', sql.NVarChar(50), username)
+    .execute('dbo.sp_Usuarios_ExisteUsername');
+
+  return (r.recordset[0]?.Existe ?? 0) === 1;
 }
 
 async function existsEmail(email) {
   const pool = await getPool();
+
   const r = await pool.request()
-    .input('email', sql.VarChar(120), email)
-    .query(`SELECT 1 AS ok FROM Usuarios WHERE Email = @email`);
-  return r.recordset.length > 0;
+    .input('Email', sql.NVarChar(120), email)
+    .execute('dbo.sp_Usuarios_ExisteEmail');
+
+  return (r.recordset[0]?.Existe ?? 0) === 1;
 }
 
+// ===== ROLES =====
 async function getRoleIdByName(nombreRol) {
   const pool = await getPool();
+
   const r = await pool.request()
-    .input('nombre', sql.VarChar(50), nombreRol)
-    .query(`SELECT TOP 1 Id FROM Roles WHERE Nombre = @nombre`);
+    .input('Nombre', sql.NVarChar(50), nombreRol)
+    .execute('dbo.sp_Roles_ObtenerIdPorNombre');
+
   return r.recordset[0]?.Id || null;
+}
+
+async function getRoles() {
+  const pool = await getPool();
+  const r = await pool.request().execute('dbo.sp_Roles_Listar');
+  return r.recordset;
+}
+
+// ===== CRUD ADMIN =====
+async function getAllUsers() {
+  const pool = await getPool();
+  const r = await pool.request().execute('dbo.sp_Usuarios_Listar');
+  return r.recordset;
+}
+
+async function getUserById(id) {
+  const pool = await getPool();
+  const r = await pool.request()
+    .input('Id', sql.Int, id)
+    .execute('dbo.sp_Usuarios_ObtenerPorId');
+
+  return r.recordset[0];
+}
+
+async function updateUser({ id, username, nombreCompleto, email, rolId, activo }) {
+  const pool = await getPool();
+
+  await pool.request()
+    .input('Id', sql.Int, id)
+    .input('Username', sql.NVarChar(50), username)
+    .input('NombreCompleto', sql.NVarChar(120), nombreCompleto)
+    .input('Email', sql.NVarChar(120), email)
+    .input('RolId', sql.Int, rolId)
+    .input('Activo', sql.Bit, activo ? 1 : 0)
+    .execute('dbo.sp_Usuarios_Actualizar');
+}
+
+async function resetPassword({ id, passwordHash }) {
+  const pool = await getPool();
+
+  await pool.request()
+    .input('Id', sql.Int, id)
+    .input('PasswordHash', sql.NVarChar(255), passwordHash)
+    .execute('dbo.sp_Usuarios_ResetPassword');
+}
+
+async function setUserActive(id, activo) {
+  const pool = await getPool();
+
+  await pool.request()
+    .input('Id', sql.Int, id)
+    .input('Activo', sql.Bit, activo ? 1 : 0)
+    .execute('dbo.sp_Usuarios_SetActivo');
 }
 
 module.exports = {
@@ -61,5 +116,12 @@ module.exports = {
   createUser,
   existsUsername,
   existsEmail,
-  getRoleIdByName
+  getRoleIdByName,
+  // admin
+  getRoles,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  resetPassword,
+  setUserActive
 };

@@ -1,0 +1,43 @@
+<div class="page-header">
+  <h1 class="page-title">Crear Usuario</h1>
+  <p class="page-subtitle">Se crea con contraseña inicial</p>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<form method="POST" action="/usuarios/nuevo" class="card" style="padding:1rem;">
+  <div class="form-group">
+    <label>Username</label>
+    <input class="form-control" name="username" value="<%= form.username || '' %>" required />
+  </div>
+
+  <div class="form-group">
+    <label>Nombre completo</label>
+    <input class="form-control" name="nombreCompleto" value="<%= form.nombreCompleto || '' %>" required />
+  </div>
+
+  <div class="form-group">
+    <label>Email</label>
+    <input class="form-control" type="email" name="email" value="<%= form.email || '' %>" required />
+  </div>
+
+  <div class="form-group">
+    <label>Contraseña inicial</label>
+    <input class="form-control" type="password" name="password" required />
+  </div>
+
+  <div class="form-group">
+    <label>Rol</label>
+    <select class="form-control" name="rolId" required>
+      <option value="">-- Seleccionar --</option>
+      <% roles.forEach(r => { %>
+        <option value="<%= r.Id %>" <%= (form.rolId == r.Id ? 'selected' : '') %>><%= r.Nombre %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <button class="btn btn-primary" type="submit">Crear</button>
+  <a class="btn" href="/usuarios" style="margin-left:.5rem;">Cancelar</a>
+</form>

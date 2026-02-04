@@ -420,3 +420,161 @@ INNER JOIN dbo.Categorias c
 
 
 
+
+
+---------------------------------------------
+---------------------------------------------
+-- Procedimientos almacenados para usuarios
+---------------------------------------------
+---------------------------------------------
+
+-- Listas usuario
+
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_Listar
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  SELECT u.Id, u.Username, u.NombreCompleto, u.Email, u.RolId, u.Activo,
+         r.Nombre AS RolNombre
+  FROM dbo.Usuarios u
+  INNER JOIN dbo.Roles r ON r.Id = u.RolId
+  ORDER BY u.Id DESC;
+END
+GO
+
+-- Obtener usuario por ID
+
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_ObtenerPorId
+  @Id INT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  SELECT u.Id, u.Username, u.NombreCompleto, u.Email, u.RolId, u.Activo,
+         r.Nombre AS RolNombre
+  FROM dbo.Usuarios u
+  INNER JOIN dbo.Roles r ON r.Id = u.RolId
+  WHERE u.Id = @Id;
+END
+GO
+
+-- obtener usuario por username
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_ObtenerPorUsername
+  @Username NVARCHAR(50)
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  SELECT u.Id, u.Username, u.NombreCompleto, u.Email, u.PasswordHash, u.RolId, u.Activo,
+         r.Nombre AS RolNombre
+  FROM dbo.Usuarios u
+  INNER JOIN dbo.Roles r ON r.Id = u.RolId
+  WHERE u.Username = @Username;
+END
+GO
+
+-- Insertar usuario
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_Insertar
+  @Username NVARCHAR(50),
+  @NombreCompleto NVARCHAR(120),
+  @Email NVARCHAR(120),
+  @PasswordHash NVARCHAR(255),
+  @RolId INT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  INSERT INTO dbo.Usuarios (Username, NombreCompleto, Email, PasswordHash, RolId, Activo)
+  VALUES (@Username, @NombreCompleto, @Email, @PasswordHash, @RolId, 1);
+
+  SELECT SCOPE_IDENTITY() AS Id;
+END
+GO
+
+-- Actualizar usuario sin tocar password
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_Actualizar
+  @Id INT,
+  @Username NVARCHAR(50),
+  @NombreCompleto NVARCHAR(120),
+  @Email NVARCHAR(120),
+  @RolId INT,
+  @Activo BIT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  UPDATE dbo.Usuarios
+  SET Username = @Username,
+      NombreCompleto = @NombreCompleto,
+      Email = @Email,
+      RolId = @RolId,
+      Activo = @Activo
+  WHERE Id = @Id;
+END
+GO
+
+-- Reset de contrasena
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_ResetPassword
+  @Id INT,
+  @PasswordHash NVARCHAR(255)
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  UPDATE dbo.Usuarios
+  SET PasswordHash = @PasswordHash
+  WHERE Id = @Id;
+END
+GO
+
+-- Borrado logico, activar o desactivar usuario
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_SetActivo
+  @Id INT,
+  @Activo BIT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  UPDATE dbo.Usuarios
+  SET Activo = @Activo
+  WHERE Id = @Id;
+END
+GO
+
+-- Roles, buscar y listar por nombre
+CREATE OR ALTER PROCEDURE dbo.sp_Roles_Listar
+AS
+BEGIN
+  SET NOCOUNT ON;
+  SELECT Id, Nombre FROM dbo.Roles ORDER BY Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Roles_ObtenerIdPorNombre
+  @Nombre NVARCHAR(50)
+AS
+BEGIN
+  SET NOCOUNT ON;
+  SELECT TOP 1 Id FROM dbo.Roles WHERE Nombre = @Nombre;
+END
+GO
+
+-- Validaciones de username e email existente
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_ExisteUsername
+  @Username NVARCHAR(50)
+AS
+BEGIN
+  SET NOCOUNT ON;
+  SELECT CASE WHEN EXISTS(SELECT 1 FROM dbo.Usuarios WHERE Username=@Username) THEN 1 ELSE 0 END AS Existe;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_ExisteEmail
+  @Email NVARCHAR(120)
+AS
+BEGIN
+  SET NOCOUNT ON;
+  SELECT CASE WHEN EXISTS(SELECT 1 FROM dbo.Usuarios WHERE Email=@Email) THEN 1 ELSE 0 END AS Existe;
+END
+GO

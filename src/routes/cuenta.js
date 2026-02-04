@@ -43,11 +43,13 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    req.session.user = {
-      id: user.Id,
-      username: user.Username,
-      rol: user.RolId
-    };
+      req.session.user = {
+    id: user.Id,
+    username: user.Username,
+    rolId: user.RolId,
+    rolNombre: user.RolNombre
+  };
+
 
     return res.redirect('/inicio');
   } catch (error) {
@@ -134,10 +136,13 @@ router.post('/registro', async (req, res) => {
 
     // Auto-login al registrarse
     req.session.user = {
-      id: newId,
-      username,
-      rol: rolEmpleadoId
-    };
+  id: newId,
+  username,
+  rolId: rolEmpleadoId,
+  rolNombre: 'Empleado'
+};
+
+
 
     return res.redirect('/inicio');
   } catch (err) {

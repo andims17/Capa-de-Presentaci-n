@@ -1,0 +1,53 @@
+<div class="page-header">
+  <h1 class="page-title">Editar Usuario</h1>
+  <p class="page-subtitle">Datos básicos + reset de contraseña opcional</p>
+</div>
+
+<% if (error) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<form method="POST" action="/usuarios/<%= user.Id %>/editar" class="card" style="padding:1rem;">
+  <div class="form-group">
+    <label>Username</label>
+    <input class="form-control" name="username" value="<%= user.Username %>" required />
+  </div>
+
+  <div class="form-group">
+    <label>Nombre completo</label>
+    <input class="form-control" name="nombreCompleto" value="<%= user.NombreCompleto %>" required />
+  </div>
+
+  <div class="form-group">
+    <label>Email</label>
+    <input class="form-control" type="email" name="email" value="<%= user.Email %>" required />
+  </div>
+
+  <div class="form-group">
+    <label>Rol</label>
+    <select class="form-control" name="rolId" required>
+      <% roles.forEach(r => { %>
+        <option value="<%= r.Id %>" <%= (user.RolId == r.Id ? 'selected' : '') %>><%= r.Nombre %></option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Activo</label>
+    <select class="form-control" name="activo">
+      <option value="1" <%= user.Activo ? 'selected' : '' %>>Sí</option>
+      <option value="0" <%= !user.Activo ? 'selected' : '' %>>No</option>
+    </select>
+  </div>
+
+  <hr style="margin:1rem 0;" />
+
+  <div class="form-group">
+    <label>Reset de contraseña (opcional)</label>
+    <input class="form-control" type="password" name="newPassword" placeholder="Dejar vacío para no cambiar" />
+    <small style="color:var(--text-secondary);">Si escribís una nueva contraseña (mínimo 6), se actualizará.</small>
+  </div>
+
+  <button class="btn btn-primary" type="submit">Guardar</button>
+  <a class="btn" href="/usuarios" style="margin-left:.5rem;">Volver</a>
+</form>

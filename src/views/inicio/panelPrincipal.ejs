@@ -1,3 +1,5 @@
+<% const isAdmin = currentUser && currentUser.rolNombre === 'Administrador'; %>
+
 <div class="page-header">
   <h1 class="page-title">Panel Principal</h1>
   <p class="page-subtitle">Bienvenido al Sistema VetPost</p>
@@ -92,40 +94,38 @@
     </div>
 
     <div class="accesos-rapidos">
-      <a href="/ventas" class="acceso-item">
-        <div class="acceso-icon" style="background:#10B981;">
-          <i class="fas fa-cash-register"></i>
-        </div>
-        <span>Punto de Venta</span>
-      </a>
-
-      <a href="/citas" class="acceso-item">
-        <div class="acceso-icon" style="background:#1D4ED8;">
-          <i class="fas fa-calendar-plus"></i>
-        </div>
-        <span>Agendar Cita</span>
-      </a>
-
-      <a href="/clientes" class="acceso-item">
-        <div class="acceso-icon" style="background:#0EA5E9;">
-          <i class="fas fa-user-plus"></i>
-        </div>
-        <span>Nuevo Cliente</span>
-      </a>
-
-      <a href="/inventario" class="acceso-item">
-        <div class="acceso-icon" style="background:#F59E0B;">
-          <i class="fas fa-box"></i>
-        </div>
-        <span>Entrada Inventario</span>
-      </a>
-
-      <a href="/reportes" class="acceso-item">
-        <div class="acceso-icon" style="background:#EF4444;">
-          <i class="fas fa-chart-bar"></i>
-        </div>
-        <span>Reportes</span>
-      </a>
+  <a href="/ventas" class="acceso-item">
+    <div class="acceso-icon" style="background:#10B981;">
+      <i class="fas fa-cash-register"></i>
     </div>
-  </div>
+    <span>Punto de Venta</span>
+  </a>
+
+  <a href="/citas" class="acceso-item">
+    <div class="acceso-icon" style="background:#1D4ED8;">
+      <i class="fas fa-calendar-plus"></i>
+    </div>
+    <span>Agendar Cita</span>
+  </a>
+
+  <a href="/clientes" class="acceso-item">
+    <div class="acceso-icon" style="background:#0EA5E9;">
+      <i class="fas fa-user-plus"></i>
+    </div>
+    <span>Nuevo Cliente</span>
+  </a>
+    <a href="/inventario" class="acceso-item">
+      <div class="acceso-icon" style="background:#F59E0B;">
+        <i class="fas fa-box"></i>
+      </div>
+      <span>Entrada Inventario</span>
+    </a>
+
+    <a href="/reportes" class="acceso-item">
+      <div class="acceso-icon" style="background:#EF4444;">
+        <i class="fas fa-chart-bar"></i>
+      </div>
+      <span>Reportes</span>
+    </a>
+</div>
 </div>

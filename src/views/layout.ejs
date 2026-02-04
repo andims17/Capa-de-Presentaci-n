@@ -327,16 +327,29 @@
                     <h1 class="app-title">VetPost</h1>
                 </div>
                 <div class="user-info">
-                    <span>Bienvenido, Administrador</span>
+                    <% if (currentUser) { %>
+                        <span>
+                            Bienvenido, <%= currentUser.username %>
+                            <small style="opacity:.85;">(<%= currentUser.rolNombre %>)</small>
+                        </span>
+                    <% } else { %>
+                        <span>Bienvenido</span>
+                    <% } %>
+
                     
                     <!-- Botón de toggle dark mode -->
                     <button id="themeToggle" class="theme-toggle" title="Cambiar tema">
                         <i class="fas fa-sun" id="themeIcon"></i>
                     </button>
                     
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
+                    <div class="user-avatar" title="<%= currentUser ? currentUser.username : '' %>">
+                        <% if (currentUser && currentUser.username) { %>
+                            <%= currentUser.username.charAt(0).toUpperCase() %>
+                        <% } else { %>
+                            <i class="fas fa-user"></i>
+                        <% } %>
                     </div>
+
                 </div>
             </header>
 
