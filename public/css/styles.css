@@ -2274,3 +2274,30 @@ a:hover {
 
 
 
+/* Dark mode: textos gris claro */
+[data-theme="dark"] {
+  color: #CBD5E1; /* texto general */
+}
+
+[data-theme="dark"] .page-title,
+[data-theme="dark"] .page-subtitle,
+[data-theme="dark"] .card-title,
+[data-theme="dark"] .client-info h3,
+[data-theme="dark"] .modal-title {
+  color: #CBD5E1; /* títulos y subtítulos */
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td,
+[data-theme="dark"] .detail-item .detail-label,
+[data-theme="dark"] .detail-item .detail-value {
+  color: #CBD5E1; /* textos de tablas y valores */
+}
+
+[data-theme="dark"] .btn,
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-info,
+[data-theme="dark"] .btn-danger {
+  color: #CBD5E1; /* textos de botones */
+}

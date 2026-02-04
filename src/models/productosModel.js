@@ -31,7 +31,7 @@ async function actualizarProducto(p) {
     const pool = await getPool();
     await pool.request()
         .input('Id', sql.Int, p.Id)
-        .input('CategoriaId', sql.Int, p.CategoriaId) // ✅ YA CORRECTO
+        .input('CategoriaId', sql.Int, p.CategoriaId)
         .input('Nombre', sql.NVarChar, p.Nombre)
         .input('Codigo', sql.NVarChar, p.Codigo)
         .input('Precio', sql.Decimal(10, 2), p.Precio)
