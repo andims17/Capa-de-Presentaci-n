@@ -18,28 +18,48 @@
     </div>
 
     <div class="clients-grid" id="listaClientes">
-        <% if (clientes && clientes.length > 0) { %>
-            <% clientes.forEach(cliente => { %>
+        <% if (clientes && clientes.length> 0) { %>
+            <% clientes.forEach(cliente=> { %>
                 <div class="client-card">
                     <div class="client-header">
-                        <div class="client-avatar"><%= cliente.NombreCompleto.split(' ').map(n => n[0]).join('') %></div>
+                        <div class="client-avatar">
+                            <%= cliente.NombreCompleto.split(' ').map(n => n[0]).join('') %></div>
                         <div class="client-info">
                             <h3><%= cliente.NombreCompleto %></h3>
-                            <p>CLI-<%= cliente.Id.toString().padStart(3, '0') %></p>
+                            <p>CLI-<%= cliente.Id.toString().padStart(3, ' 0') %>
+                                </p>
                         </div>
                     </div>
                     <div class="client-details">
                         <div class="detail-item">
                             <span class="detail-label">Teléfono:</span>
-                            <span class="detail-value"><%= cliente.Telefono || '-' %></span>
+                            <span class="detail-value">
+                                <%= cliente.Telefono || '-' %>
+                            </span>
                         </div>
+
                         <div class="detail-item">
                             <span class="detail-label">Email:</span>
-                            <span class="detail-value"><%= cliente.Email || '-' %></span>
+                            <span class="detail-value">
+                                <%= cliente.Email || '-' %>
+                            </span>
                         </div>
+
                         <div class="detail-item">
                             <span class="detail-label">Dirección:</span>
-                            <span class="detail-value"><%= cliente.Direccion || '-' %></span>
+                            <span class="detail-value">
+                                <%= cliente.Direccion || '-' %>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Mascotas:</span>
+                            <span class="detail-value">
+                                <% if (cliente.CantMascotas> 0) { %>
+                                    🐾 <%= cliente.CantMascotas %> registradas
+                                        <% } else { %>
+                                            <span style="color:#EF4444;">Sin mascotas</span>
+                                            <% } %>
+                            </span>
                         </div>
                     </div>
                     <div class="client-actions">
@@ -52,10 +72,10 @@
                         </a>
                     </div>
                 </div>
-            <% }) %>
-        <% } else { %>
-            <p>No hay clientes registrados.</p>
-        <% } %>
+                <% }) %>
+                    <% } else { %>
+                        <p>No hay clientes registrados.</p>
+                        <% } %>
     </div>
 </div>
 
@@ -84,7 +104,8 @@
                 <textarea name="Direccion" class="form-control" rows="2" placeholder="Dirección completa"></textarea>
             </div>
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('nuevoClienteModal')">Cancelar</button>
+                <button type="button" class="btn btn-secondary"
+                    onclick="closeModal('nuevoClienteModal')">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Registrar Cliente</button>
             </div>
         </form>
@@ -117,7 +138,8 @@
                 <textarea name="Direccion" id="editarDireccionCliente" class="form-control" rows="2"></textarea>
             </div>
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('editarClienteModal')">Cancelar</button>
+                <button type="button" class="btn btn-secondary"
+                    onclick="closeModal('editarClienteModal')">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Actualizar Cliente</button>
             </div>
         </form>
@@ -125,17 +147,17 @@
 </div>
 
 <script>
-function openModal(id) { document.getElementById(id).style.display = 'block'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-function openEditModal(id, nombre, telefono, email, direccion) {
-    document.getElementById('editarIdCliente').value = id;
-    document.getElementById('editarNombreCliente').value = decodeURIComponent(nombre);
-    document.getElementById('editarTelefonoCliente').value = decodeURIComponent(telefono);
-    document.getElementById('editarEmailCliente').value = decodeURIComponent(email);
-    document.getElementById('editarDireccionCliente').value = decodeURIComponent(direccion);
-    document.getElementById('formEditarCliente').action = '/clientes/editar/' + id;
-    openModal('editarClienteModal');
-}
+    function openEditModal(id, nombre, telefono, email, direccion) {
+        document.getElementById('editarIdCliente').value = id;
+        document.getElementById('editarNombreCliente').value = decodeURIComponent(nombre);
+        document.getElementById('editarTelefonoCliente').value = decodeURIComponent(telefono);
+        document.getElementById('editarEmailCliente').value = decodeURIComponent(email);
+        document.getElementById('editarDireccionCliente').value = decodeURIComponent(direccion);
+        document.getElementById('formEditarCliente').action = '/clientes/editar/' + id;
+        openModal('editarClienteModal');
+    }
 
 </script>

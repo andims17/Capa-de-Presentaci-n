@@ -585,7 +585,7 @@ GO
 ---------------------------------------------
 ---------------------------------------------
 
--- Listar clientes
+-- Listar clientes y mostrar cantidad mascota por cliente
 GO
 CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Listar
 AS
@@ -593,13 +593,16 @@ BEGIN
     SET NOCOUNT ON;
 
     SELECT 
-        Id,
-        NombreCompleto,
-        Email,
-        Telefono,
-        Direccion
-    FROM dbo.Clientes
-    ORDER BY Id DESC;
+        c.Id,
+        c.NombreCompleto,
+        c.Email,
+        c.Telefono,
+        c.Direccion,
+        COUNT(m.Id) AS CantMascotas
+    FROM Clientes c
+    LEFT JOIN Mascotas m ON m.ClienteId = c.Id
+    GROUP BY c.Id, c.NombreCompleto, c.Email, c.Telefono, c.Direccion
+    ORDER BY c.Id DESC;
 END
 GO
 
@@ -668,3 +671,23 @@ BEGIN
 END
 GO
 
+-- Mascotas por cliente
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_ListarConMascotas
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        c.Id,
+        c.NombreCompleto,
+        c.Email,
+        c.Telefono,
+        c.Direccion,
+        COUNT(m.Id) AS CantMascotas
+    FROM Clientes c
+    LEFT JOIN Mascotas m ON m.ClienteId = c.Id
+    GROUP BY c.Id, c.NombreCompleto, c.Email, c.Telefono, c.Direccion
+    ORDER BY c.Id DESC;
+END
+GO
