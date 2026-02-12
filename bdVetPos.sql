@@ -169,7 +169,7 @@ CREATE TABLE VentasDetalle (
 );
 
 ------------------------------------------------------------
--- TABLA: TRANSPORTE (Para delivery, env�os o log�stica)
+-- TABLA: TRANSPORTE (Para delivery, env os o log stica)
 ------------------------------------------------------------
 CREATE TABLE Transporte (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -183,7 +183,7 @@ CREATE TABLE Transporte (
 );
 
 ------------------------------------------------------------
--- TABLA: ENV�OS (si deseas asociar ventas con transporte)
+-- TABLA: ENV OS (si deseas asociar ventas con transporte)
 ------------------------------------------------------------
 CREATE TABLE Envios (
     Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -237,7 +237,7 @@ VALUES
     'Administrador VetPost',
     'admin@vetpost.local',
     NULL,
-    '$2b$10$GH7f2wUP6OBdV3IpLLaFsOOUs1fZEG43iIO.7zl.PF.3TN6SyvxWy',
+    '$2b$10$hQ.6o9YpYyelbnYqCQz4bea8lbSSiz0wvA6sxa7CY1LuvTEY5pgKm',
     @RolAdminId,
     1
 );
@@ -576,118 +576,5 @@ AS
 BEGIN
   SET NOCOUNT ON;
   SELECT CASE WHEN EXISTS(SELECT 1 FROM dbo.Usuarios WHERE Email=@Email) THEN 1 ELSE 0 END AS Existe;
-END
-GO
-
----------------------------------------------
----------------------------------------------
--- Procedimientos almacenados para clientes
----------------------------------------------
----------------------------------------------
-
--- Listar clientes y mostrar cantidad mascota por cliente
-GO
-CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Listar
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT 
-        c.Id,
-        c.NombreCompleto,
-        c.Email,
-        c.Telefono,
-        c.Direccion,
-        COUNT(m.Id) AS CantMascotas
-    FROM Clientes c
-    LEFT JOIN Mascotas m ON m.ClienteId = c.Id
-    GROUP BY c.Id, c.NombreCompleto, c.Email, c.Telefono, c.Direccion
-    ORDER BY c.Id DESC;
-END
-GO
-
--- Insertar Cliente
-GO
-CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Insertar
-    @NombreCompleto NVARCHAR(150),
-    @Email NVARCHAR(150),
-    @Telefono NVARCHAR(30),
-    @Direccion NVARCHAR(200)
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    INSERT INTO dbo.Clientes
-    (NombreCompleto, Email, Telefono, Direccion)
-    VALUES
-    (@NombreCompleto, @Email, @Telefono, @Direccion);
-END
-GO
-
--- Eliminar Cliente
-GO
-CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Eliminar
-    @Id INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DELETE FROM dbo.Clientes WHERE Id = @Id;
-END
-GO
-
--- Obtener Cliente
-GO
-CREATE OR ALTER PROCEDURE dbo.sp_Clientes_ObtenerPorId
-    @Id INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT Id, NombreCompleto, Email, Telefono, Direccion
-    FROM dbo.Clientes
-    WHERE Id = @Id;
-END
-GO
-
--- Actualizar Cliente
-GO
-CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Actualizar
-    @Id INT,
-    @NombreCompleto NVARCHAR(150),
-    @Email NVARCHAR(150),
-    @Telefono NVARCHAR(30),
-    @Direccion NVARCHAR(200)
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    UPDATE dbo.Clientes
-    SET NombreCompleto = @NombreCompleto,
-        Email = @Email,
-        Telefono = @Telefono,
-        Direccion = @Direccion
-    WHERE Id = @Id;
-END
-GO
-
--- Mascotas por cliente
-GO
-CREATE OR ALTER PROCEDURE dbo.sp_Clientes_ListarConMascotas
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT 
-        c.Id,
-        c.NombreCompleto,
-        c.Email,
-        c.Telefono,
-        c.Direccion,
-        COUNT(m.Id) AS CantMascotas
-    FROM Clientes c
-    LEFT JOIN Mascotas m ON m.ClienteId = c.Id
-    GROUP BY c.Id, c.NombreCompleto, c.Email, c.Telefono, c.Direccion
-    ORDER BY c.Id DESC;
 END
 GO
