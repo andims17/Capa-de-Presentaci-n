@@ -578,3 +578,225 @@ BEGIN
   SELECT CASE WHEN EXISTS(SELECT 1 FROM dbo.Usuarios WHERE Email=@Email) THEN 1 ELSE 0 END AS Existe;
 END
 GO
+
+
+GO
+
+---------------------------------------------
+---------------------------------------------
+-- Procedimientos almacenados para clientes
+---------------------------------------------
+---------------------------------------------
+
+-- Listar clientes y mostrar cantidad mascota por cliente
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        c.Id,
+        c.NombreCompleto,
+        c.Email,
+        c.Telefono,
+        c.Direccion,
+        COUNT(m.Id) AS CantMascotas
+    FROM Clientes c
+    LEFT JOIN Mascotas m ON m.ClienteId = c.Id
+    GROUP BY c.Id, c.NombreCompleto, c.Email, c.Telefono, c.Direccion
+    ORDER BY c.Id DESC;
+END
+GO
+
+-- Insertar Cliente
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Insertar
+    @NombreCompleto NVARCHAR(150),
+    @Email NVARCHAR(150),
+    @Telefono NVARCHAR(30),
+    @Direccion NVARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.Clientes
+    (NombreCompleto, Email, Telefono, Direccion)
+    VALUES
+    (@NombreCompleto, @Email, @Telefono, @Direccion);
+END
+GO
+
+-- Eliminar Cliente
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Eliminar
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM dbo.Clientes WHERE Id = @Id;
+END
+GO
+
+-- Obtener Cliente
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT Id, NombreCompleto, Email, Telefono, Direccion
+    FROM dbo.Clientes
+    WHERE Id = @Id;
+END
+GO
+
+-- Actualizar Cliente
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Actualizar
+    @Id INT,
+    @NombreCompleto NVARCHAR(150),
+    @Email NVARCHAR(150),
+    @Telefono NVARCHAR(30),
+    @Direccion NVARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Clientes
+    SET NombreCompleto = @NombreCompleto,
+        Email = @Email,
+        Telefono = @Telefono,
+        Direccion = @Direccion
+    WHERE Id = @Id;
+END
+GO
+
+-- Mascotas por cliente
+GO
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_ListarConMascotas
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        c.Id,
+        c.NombreCompleto,
+        c.Email,
+        c.Telefono,
+        c.Direccion,
+        COUNT(m.Id) AS CantMascotas
+    FROM Clientes c
+    LEFT JOIN Mascotas m ON m.ClienteId = c.Id
+    GROUP BY c.Id, c.NombreCompleto, c.Email, c.Telefono, c.Direccion
+    ORDER BY c.Id DESC;
+END
+GO
+
+
+---------------------------------------------
+---------------------------------------------
+-- Procedimientos almacenados para mascotas
+---------------------------------------------
+---------------------------------------------
+
+
+
+-- Insertar Mascotas
+
+CREATE OR ALTER PROCEDURE dbo.sp_Mascota_Insertar
+    @ClienteId INT,
+    @Nombre NVARCHAR(100),
+    @Especie NVARCHAR(50),
+    @Raza NVARCHAR(50),
+    @Sexo NVARCHAR(10),
+    @FechaNacimiento DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.Mascotas
+    (
+        ClienteId,
+        Nombre,
+        Especie,
+        Raza,
+        Sexo,
+        FechaNacimiento
+    )
+    VALUES
+    (
+        @ClienteId,
+        @Nombre,
+        @Especie,
+        @Raza,
+        @Sexo,
+        @FechaNacimiento
+    );
+END
+GO
+
+
+-- Obtener por id
+
+CREATE OR ALTER PROCEDURE dbo.sp_Mascota_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        Id,
+        ClienteId,
+        Nombre,
+        Especie,
+        Raza,
+        Sexo,
+        FechaNacimiento
+    FROM dbo.Mascotas
+    WHERE Id = @Id;
+END
+GO
+
+
+-- Actualizar Mascotas
+
+CREATE OR ALTER PROCEDURE dbo.sp_Mascota_Actualizar
+    @Id INT,
+    @ClienteId INT,
+    @Nombre NVARCHAR(100),
+    @Especie NVARCHAR(50),
+    @Raza NVARCHAR(50),
+    @Sexo NVARCHAR(10),
+    @FechaNacimiento DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Mascotas
+    SET ClienteId = @ClienteId,
+        Nombre = @Nombre,
+        Especie = @Especie,
+        Raza = @Raza,
+        Sexo = @Sexo,
+        FechaNacimiento = @FechaNacimiento
+    WHERE Id = @Id;
+END
+GO
+
+
+-- Eliminar Mascotas
+
+CREATE OR ALTER PROCEDURE dbo.sp_Mascota_Eliminar
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM dbo.Mascotas
+    WHERE Id = @Id;
+END
+GO
+
