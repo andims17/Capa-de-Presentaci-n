@@ -800,3 +800,122 @@ BEGIN
 END
 GO
 
+
+
+
+
+
+
+------------------------------------------------------------
+-- 1. Modificación de la Tabla
+------------------------------------------------------------
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Mascotas') AND name = 'TieneAlergias')
+BEGIN
+    ALTER TABLE Mascotas 
+    ADD TieneAlergias BIT CONSTRAINT DF_Mascotas_TieneAlergias DEFAULT 0;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Mascotas') AND name = 'NotasAlergias')
+BEGIN
+    ALTER TABLE Mascotas 
+    ADD NotasAlergias NVARCHAR(MAX);
+END
+GO
+
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Mascotas') AND name = 'Peso')
+BEGIN
+    ALTER TABLE Mascotas 
+    ADD Peso DECIMAL(5,2);
+END
+GO
+
+
+
+
+USE VetPostDB;
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Mascota_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        Id, 
+        ClienteId, 
+        Nombre, 
+        Especie, 
+        Raza, 
+        Sexo, 
+        FechaNacimiento,
+        TieneAlergias, 
+        NotasAlergias, 
+        Peso           -
+    FROM dbo.Mascotas
+    ORDER BY Id DESC; 
+END
+GO
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_Mascota_Insertar
+    @ClienteId INT,
+    @Nombre NVARCHAR(100),
+    @Especie NVARCHAR(50),
+    @Raza NVARCHAR(50),
+    @Sexo NVARCHAR(10),
+    @FechaNacimiento DATE,
+    @TieneAlergias BIT,
+    @NotasAlergias NVARCHAR(MAX),
+    @Peso DECIMAL(5,2) 
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @TieneAlergias = 1 AND (NULLIF(LTRIM(RTRIM(@NotasAlergias)), '') IS NULL)
+    BEGIN
+        RAISERROR('Debe especificar el alérgeno si marca que tiene alergias.', 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO dbo.Mascotas (
+        ClienteId, Nombre, Especie, Raza, Sexo, 
+        FechaNacimiento, TieneAlergias, NotasAlergias, Peso
+    )
+    VALUES (
+        @ClienteId, @Nombre, @Especie, @Raza, @Sexo, 
+        @FechaNacimiento, @TieneAlergias, @NotasAlergias, @Peso
+    );
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Mascota_Actualizar
+    @Id INT,
+    @ClienteId INT,
+    @Nombre NVARCHAR(100),
+    @Especie NVARCHAR(50),
+    @Raza NVARCHAR(50),
+    @Sexo NVARCHAR(10),
+    @FechaNacimiento DATE,
+    @TieneAlergias BIT,
+    @NotasAlergias NVARCHAR(MAX),
+    @Peso DECIMAL(5,2) 
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Mascotas
+    SET ClienteId = @ClienteId,
+        Nombre = @Nombre,
+        Especie = @Especie,
+        Raza = @Raza,
+        Sexo = @Sexo,
+        FechaNacimiento = @FechaNacimiento,
+        TieneAlergias = @TieneAlergias,
+        NotasAlergias = @NotasAlergias,
+        Peso = @Peso
+    WHERE Id = @Id;
+END
+GO
