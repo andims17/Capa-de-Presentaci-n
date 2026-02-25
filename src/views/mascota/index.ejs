@@ -8,7 +8,8 @@
     <h2 class="card-title">Expedientes de Mascotas</h2>
     <div style="display:flex; gap:1rem;">
       <div class="search-box">
-        <input type="text" class="search-input" placeholder="Buscar mascota...">
+        <input type="text" id="inputBuscador" class="search-input" placeholder="Escribe para buscar..."
+          onkeyup="filtrarMascotas()">
         <button class="search-btn">
           <i class="fas fa-search"></i>
         </button>
@@ -20,22 +21,24 @@
   </div>
 
   <div class="pets-grid">
-    <% if (mascotas.length > 0) { %>
-      <% mascotas.forEach(m => { %>
+    <% if (mascotas.length> 0) { %>
+      <% mascotas.forEach(m=> { %>
         <div class="pet-card">
           <div class="pet-header">
             <div class="pet-avatar <%= (m.Especie || '').toLowerCase() === 'perro' ? 'avatar-dog' : 'avatar-cat' %>">
               <i class="fas <%= (m.Especie || '').toLowerCase() === 'perro' ? 'fa-dog' : 'fa-cat' %>"></i>
             </div>
             <div class="pet-info">
-              <h3><%= m.Nombre %></h3>
+              <h3>
+                <%= m.Nombre %>
+              </h3>
               <p>
-                <%= m.Raza || 'Raza desconocida' %> • 
-                <% if (m.FechaNacimiento) { %>
-                  <%= new Date().getFullYear() - new Date(m.FechaNacimiento).getFullYear() %> años
-                <% } else { %>
-                  Edad desconocida
-                <% } %>
+                <%= m.Raza || 'Raza desconocida' %> •
+                  <% if (m.FechaNacimiento) { %>
+                    <%= new Date().getFullYear() - new Date(m.FechaNacimiento).getFullYear() %> años
+                      <% } else { %>
+                        Edad desconocida
+                        <% } %>
               </p>
             </div>
           </div>
@@ -43,18 +46,30 @@
           <div class="pet-details">
             <div class="detail-item">
               <span class="detail-label">Dueño:</span>
-              <span class="detail-value"><%= m.Dueno || m.ClienteId %></span>
+              <span class="detail-value">
+                <%= m.Dueno || m.ClienteId %>
+              </span>
             </div>
 
             <div class="detail-item">
               <span class="detail-label">Sexo:</span>
-              <span class="detail-value"><%= m.Sexo || 'N/A' %></span>
+              <span class="detail-value">
+                <%= m.Sexo || 'N/A' %>
+              </span>
             </div>
 
             <div class="detail-item">
-              <span class="detail-label">Fecha Nac.:</span>
+              <span class="detail-label">Peso:</span>
               <span class="detail-value">
-                <%= m.FechaNacimiento ? new Date(m.FechaNacimiento).toLocaleDateString() : 'N/A' %>
+                <%= m.Peso ? m.Peso + ' kg' : 'N/A' %>
+              </span>
+            </div>
+
+            <div class="detail-item" style="grid-column: span 2;">
+              <span class="detail-label">Notas/Alergias:</span>
+              <span
+                class="detail-value <%= (m.NotasAlergias && m.NotasAlergias.toUpperCase().includes('ALERGIA')) ? 'alerta-critica' : '' %>">
+                <%= m.NotasAlergias || 'Ninguna' %>
               </span>
             </div>
           </div>
@@ -63,21 +78,21 @@
             <button class="btn btn-primary btn-xs">
               <i class="fas fa-eye"></i> Ver
             </button>
-            <button class="btn btn-xs btn-plain">
+            <button class="btn btn-xs btn-plain"
+              onclick="abrirModalEditar('<%= m.Id %>', '<%= m.ClienteId %>', '<%= m.Nombre %>', '<%= m.Especie %>', '<%= m.Raza %>', '<%= m.Sexo %>', '<%= m.FechaNacimiento ? new Date(m.FechaNacimiento).toISOString().split('T')[0] : '' %>', '<%= m.Peso %>', '<%= m.TieneAlergias %>', '<%= m.NotasAlergias %>')">
               <i class="fas fa-edit"></i> Editar
             </button>
           </div>
         </div>
-      <% }) %>
-    <% } else { %>
-      <div style="padding: 2rem; text-align: center; color: #666;">
-        No hay mascotas para mostrar.
-      </div>
-    <% } %>
+        <% }) %>
+          <% } else { %>
+            <div style="padding: 2rem; text-align: center; color: #666;">
+              No hay mascotas para mostrar.
+            </div>
+            <% } %>
   </div>
 </div>
 
-<!-- Modal de nueva mascota -->
 <div id="nuevaMascotaModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -86,7 +101,6 @@
     </div>
 
     <form method="POST" action="/mascota/crear">
-
       <div class="form-group">
         <label class="form-label">Cliente ID</label>
         <input name="ClienteId" type="number" class="form-control" placeholder="Id del cliente" required>
@@ -97,7 +111,6 @@
           <label class="form-label">Nombre</label>
           <input name="Nombre" type="text" class="form-control" placeholder="Nombre de la mascota" required>
         </div>
-
         <div class="form-group">
           <label class="form-label">Especie</label>
           <select name="Especie" class="form-control">
@@ -116,7 +129,6 @@
           <label class="form-label">Raza</label>
           <input name="Raza" type="text" class="form-control" placeholder="Raza de la mascota">
         </div>
-
         <div class="form-group">
           <label class="form-label">Fecha de Nacimiento</label>
           <input name="FechaNacimiento" type="date" class="form-control">
@@ -131,30 +143,170 @@
             <option>Hembra</option>
           </select>
         </div>
-
         <div class="form-group">
           <label class="form-label">Peso (kg)</label>
-          <input type="number" class="form-control" placeholder="Peso actual">
+          <input name="Peso" type="number" step="0.01" class="form-control" placeholder="0.00">
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Color</label>
-        <input type="text" class="form-control" placeholder="Color principal">
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label>
+          <input type="checkbox" name="TieneAlergias" id="new_TieneAlergias" onchange="validarAlergias('new')">
+          ¿Tiene Alergias?
+        </label>
       </div>
 
       <div class="form-group">
         <label class="form-label">Alergias/Notas Médicas</label>
-        <textarea class="form-control" rows="3" placeholder="Información médica importante..."></textarea>
+        <textarea name="NotasAlergias" id="new_NotasAlergias" class="form-control" rows="3"
+          placeholder="Si tiene alergias, descríbalas aquí..."></textarea>
       </div>
 
       <div class="modal-actions">
-        <button type="button" class="btn btn-plain" onclick="closeModal('nuevaMascotaModal')">
-          Cancelar
-        </button>
+        <button type="button" class="btn btn-plain" onclick="closeModal('nuevaMascotaModal')">Cancelar</button>
         <button type="submit" class="btn btn-primary">Registrar Mascota</button>
       </div>
-
     </form>
   </div>
 </div>
+
+<div id="editarMascotaModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Editar Mascota</h3>
+      <button class="close" onclick="closeModal('editarMascotaModal')">&times;</button>
+    </div>
+
+    <form method="POST" action="/mascota/actualizar">
+      <input type="hidden" name="Id" id="edit_Id">
+
+      <div class="form-group">
+        <label class="form-label">Cliente ID</label>
+        <input name="ClienteId" id="edit_ClienteId" type="number" class="form-control" required>
+      </div>
+
+      <div class="two-cols">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input name="Nombre" id="edit_Nombre" type="text" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Especie</label>
+          <select name="Especie" id="edit_Especie" class="form-control">
+            <option>Perro</option>
+            <option>Gato</option>
+            <option>Ave</option>
+            <option>Roedor</option>
+            <option>Reptil</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="two-cols">
+        <div class="form-group">
+          <label class="form-label">Raza</label>
+          <input name="Raza" id="edit_Raza" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de Nacimiento</label>
+          <input name="FechaNacimiento" id="edit_FechaNacimiento" type="date" class="form-control">
+        </div>
+      </div>
+
+      <div class="two-cols">
+        <div class="form-group">
+          <label class="form-label">Sexo</label>
+          <select name="Sexo" id="edit_Sexo" class="form-control">
+            <option>Macho</option>
+            <option>Hembra</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Peso (kg)</label>
+          <input name="Peso" id="edit_Peso" type="number" step="0.01" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label>
+          <input type="checkbox" name="TieneAlergias" id="edit_TieneAlergias" onchange="validarAlergias('edit')">
+          ¿Tiene Alergias?
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Alergias/Notas Médicas</label>
+        <textarea name="NotasAlergias" id="edit_NotasAlergias" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-plain" onclick="closeModal('editarMascotaModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .alerta-critica {
+    color: white !important;
+    background-color: #d9534f !important;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+  }
+</style>
+
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  function validarAlergias(prefijo) {
+    const check = document.getElementById(prefijo + '_TieneAlergias');
+    const notas = document.getElementById(prefijo + '_NotasAlergias');
+    if (check.checked) {
+      notas.required = true;
+      notas.placeholder = "¡DETALLE EL ALÉRGENO AQUÍ! (Obligatorio)";
+    } else {
+      notas.required = false;
+      notas.placeholder = "Si tiene alergias, descríbalas aquí...";
+    }
+  }
+
+  function filtrarMascotas() {
+    const texto = document.getElementById('inputBuscador').value.toLowerCase();
+    const tarjetas = document.querySelectorAll('.pet-card');
+    tarjetas.forEach(tarjeta => {
+        const contenido = tarjeta.innerText.toLowerCase();
+        if (contenido.includes(texto)) {
+            tarjeta.style.display = ""; 
+        } else {
+            tarjeta.style.display = "none"; 
+        }
+    });
+  }
+
+  function abrirModalEditar(id, clienteId, nombre, especie, raza, sexo, fecha, peso, tieneAlergias, notas) {
+    document.getElementById('edit_Id').value = id;
+    document.getElementById('edit_ClienteId').value = clienteId;
+    document.getElementById('edit_Nombre').value = nombre;
+    document.getElementById('edit_Especie').value = especie;
+    document.getElementById('edit_Raza').value = raza;
+    document.getElementById('edit_Sexo').value = sexo;
+    document.getElementById('edit_FechaNacimiento').value = fecha;
+    document.getElementById('edit_Peso').value = peso;
+    const hasAllergies = (tieneAlergias === 'true' || tieneAlergias === '1');
+    document.getElementById('edit_TieneAlergias').checked = hasAllergies;
+    document.getElementById('edit_NotasAlergias').value = notas;
+
+    validarAlergias('edit');
+    openModal('editarMascotaModal');
+  }
+</script>

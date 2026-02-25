@@ -8,7 +8,8 @@
         <h2 class="card-title">Lista de Clientes</h2>
         <div style="display: flex; gap: 1rem;">
             <div class="search-box">
-                <input type="text" id="buscadorClientes" class="search-input" placeholder="Buscar cliente...">
+                <input type="text" id="buscadorClientes" class="search-input"
+                    placeholder="Buscar cliente por nombre, tel o email..." onkeyup="filtrarClientes()">
                 <button class="search-btn"><i class="fas fa-search"></i></button>
             </div>
             <button class="btn btn-primary" onclick="openModal('nuevoClienteModal')">
@@ -147,6 +148,19 @@
 </div>
 
 <script>
+    function filtrarClientes() {
+        const texto = document.getElementById('buscadorClientes').value.toLowerCase();
+        const tarjetas = document.querySelectorAll('.client-card');
+        tarjetas.forEach(tarjeta => {
+            const contenidoTarjeta = tarjeta.innerText.toLowerCase();
+            if (contenidoTarjeta.includes(texto)) {
+                tarjeta.style.display = ""; 
+            } else {
+                tarjeta.style.display = "none"; 
+            }
+        });
+    }
+
     function openModal(id) { document.getElementById(id).style.display = 'block'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 

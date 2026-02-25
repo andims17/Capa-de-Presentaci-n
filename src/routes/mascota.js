@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const MascotasModel = require('../models/mascotasModel');
-const ClientesModel = require('../models/clientesModel'); // para combo dueño
+const ClientesModel = require('../models/clientesModel');
 
 router.get('/', async (req, res) => {
     try {
@@ -32,6 +32,16 @@ router.post('/crear', async (req, res) => {
         res.redirect('/mascota');
     } catch (error) {
         console.error('Error al crear mascota:', error);
+        res.redirect('/mascota');
+    }
+});
+
+router.post('/actualizar', async (req, res) => {
+    try {
+        await MascotasModel.actualizarMascota(req.body);
+        res.redirect('/mascota');
+    } catch (error) {
+        console.error('Error al actualizar mascota:', error);
         res.redirect('/mascota');
     }
 });

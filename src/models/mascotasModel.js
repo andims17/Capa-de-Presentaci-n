@@ -8,18 +8,37 @@ async function listarMascotas() {
 
 async function insertarMascota(m) {
     const pool = await getPool();
-
     await pool.request()
         .input('ClienteId', sql.Int, m.ClienteId)
         .input('Nombre', sql.NVarChar(100), m.Nombre)
         .input('Especie', sql.NVarChar(50), m.Especie)
         .input('Raza', sql.NVarChar(50), m.Raza)
         .input('Sexo', sql.NVarChar(10), m.Sexo)
-        .input('FechaNacimiento', sql.Date, m.FechaNacimiento)
+        .input('FechaNacimiento', sql.Date, m.FechaNacimiento || null)
+        .input('TieneAlergias', sql.Bit, m.TieneAlergias === 'on' ? 1 : 0) 
+        .input('NotasAlergias', sql.NVarChar(sql.MAX), m.NotasAlergias)
+        .input('Peso', sql.Decimal(5, 2), m.Peso || null)
         .execute('sp_Mascota_Insertar');
 }
 
-module.exports = {
-    listarMascotas,
-    insertarMascota
+async function actualizarMascota(m) {
+    const pool = await getPool();
+    await pool.request()
+        .input('Id', sql.Int, m.Id)
+        .input('ClienteId', sql.Int, m.ClienteId)
+        .input('Nombre', sql.NVarChar(100), m.Nombre)
+        .input('Especie', sql.NVarChar(50), m.Especie)
+        .input('Raza', sql.NVarChar(50), m.Raza)
+        .input('Sexo', sql.NVarChar(10), m.Sexo)
+        .input('FechaNacimiento', sql.Date, m.FechaNacimiento || null)
+        .input('TieneAlergias', sql.Bit, m.TieneAlergias === 'on' ? 1 : 0)
+        .input('NotasAlergias', sql.NVarChar(sql.MAX), m.NotasAlergias)
+        .input('Peso', sql.Decimal(5, 2), m.Peso || null)
+        .execute('sp_Mascota_Actualizar');
+}
+
+module.exports = { 
+    listarMascotas, 
+    insertarMascota, 
+    actualizarMascota 
 };
