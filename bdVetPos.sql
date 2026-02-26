@@ -852,7 +852,7 @@ BEGIN
         FechaNacimiento,
         TieneAlergias, 
         NotasAlergias, 
-        Peso           -
+        Peso         
     FROM dbo.Mascotas
     ORDER BY Id DESC; 
 END

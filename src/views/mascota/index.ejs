@@ -82,6 +82,12 @@
               onclick="abrirModalEditar('<%= m.Id %>', '<%= m.ClienteId %>', '<%= m.Nombre %>', '<%= m.Especie %>', '<%= m.Raza %>', '<%= m.Sexo %>', '<%= m.FechaNacimiento ? new Date(m.FechaNacimiento).toISOString().split('T')[0] : '' %>', '<%= m.Peso %>', '<%= m.TieneAlergias %>', '<%= m.NotasAlergias %>')">
               <i class="fas fa-edit"></i> Editar
             </button>
+            
+            <form action="/mascota/eliminar/<%= m.Id %>" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar a <%= m.Nombre %>?')">
+              <button type="submit" class="btn btn-xs btn-plain" style="color: #d9534f;">
+                <i class="fas fa-trash-alt"></i> Eliminar
+              </button>
+            </form>
           </div>
         </div>
         <% }) %>

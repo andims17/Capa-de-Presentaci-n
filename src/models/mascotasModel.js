@@ -37,8 +37,15 @@ async function actualizarMascota(m) {
         .execute('sp_Mascota_Actualizar');
 }
 
+async function eliminarMascota(id) {
+    const pool = await getPool();
+    await pool.request()
+        .input('Id', sql.Int, id)
+        .execute('dbo.sp_Mascota_Eliminar'); 
+}
 module.exports = { 
     listarMascotas, 
     insertarMascota, 
-    actualizarMascota 
+    actualizarMascota,
+    eliminarMascota
 };

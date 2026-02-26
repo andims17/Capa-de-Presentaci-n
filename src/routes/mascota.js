@@ -46,4 +46,14 @@ router.post('/actualizar', async (req, res) => {
     }
 });
 
+router.post('/eliminar/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await MascotasModel.eliminarMascota(id);
+        res.redirect('/mascota');
+    } catch (error) {
+        console.error('Error al eliminar mascota:', error);
+        res.redirect('/mascota');
+    }
+});
 module.exports = router;
