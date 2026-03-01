@@ -23,15 +23,38 @@
 
             <div class="form-group col-4">
                 <label>Producto</label>
-                <select name="producto" class="form-control">
-                    <option value="">-- Seleccionar Producto --</option>
-                    <% if (productos && productos.length) { %>
-                        <% productos.forEach(p => { %>
-                            <option value="<%= p.Id %>" <%= filtros && filtros.producto && String(filtros.producto) === String(p.Id) ? 'selected' : '' %>><%= p.Nombre %> (Stock: <%= p.Stock %>)</option>
-                        <% }) %>
-                    <% } %>
-                </select>
+                <div style="position: relative; z-index: 100;">
+                    <select id="producto-select" name="producto" class="form-control">
+                        <option value="">-- Seleccionar Producto --</option>
+                        <% if (productos && productos.length > 0) { %>
+                            <% productos.forEach(p => { %>
+                                <option value="<%= p.Id %>" data-stock="<%= p.Stock %>" <%= filtros && filtros.producto && String(filtros.producto) === String(p.Id) ? 'selected' : '' %>><%= p.Nombre %> (Stock: <%= p.Stock %>)</option>
+                            <% }) %>
+                        <% } else { %>
+                            <option disabled>No hay productos disponibles</option>
+                        <% } %>
+                    </select>
+                </div>
+                <small id="stock-info" style="color: #666; display: block; margin-top: 5px;"></small>
             </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const selectElement = document.getElementById('producto-select');
+                    const stockInfo = document.getElementById('stock-info');
+
+                    selectElement.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        if (this.value) {
+                            const stock = selectedOption.getAttribute('data-stock');
+                            const nombre = selectedOption.text.split('(')[0].trim();
+                            stockInfo.innerHTML = `<strong style="color: ${stock > 0 ? '#4CAF50' : '#f44336'};">✓ ${nombre} - Stock disponible: ${stock} unidades</strong>`;
+                        } else {
+                            stockInfo.innerHTML = '';
+                        }
+                    });
+                });
+            </script>
 
             <div class="form-group col-2" style="display:flex;align-items:flex-end;">
                 <button class="btn btn-primary" type="submit">Buscar</button>

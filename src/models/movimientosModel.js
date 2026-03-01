@@ -6,9 +6,10 @@ async function listarMovimientos(filters = {}) {
 
     const { desde, hasta, productoId } = filters;
 
-    if (productoId) request.input('ProductoId', sql.Int, productoId);
-    if (desde) request.input('FechaDesde', sql.Date, desde);
-    if (hasta) request.input('FechaHasta', sql.Date, hasta);
+    // Declarar TODOS los parámetros, incluso si son null
+    request.input('ProductoId', sql.Int, productoId || null);
+    request.input('FechaDesde', sql.Date, desde || null);
+    request.input('FechaHasta', sql.Date, hasta || null);
 
     const query = `
     SELECT c.Fecha AS Fecha, 'Entrada' AS Accion, pd.Cantidad, p.Id AS ProductoId, p.Nombre AS Producto, u.NombreCompleto AS Usuario, 'Compra' AS Referencia
