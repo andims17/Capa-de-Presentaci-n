@@ -6,33 +6,27 @@ async function listarMovimientos(filters = {}) {
 
     const { desde, hasta, productoId } = filters;
 
-    // Declarar TODOS los parámetros, incluso si son null
+    // Declarar parámetros
     request.input('ProductoId', sql.Int, productoId || null);
     request.input('FechaDesde', sql.Date, desde || null);
     request.input('FechaHasta', sql.Date, hasta || null);
 
     const query = `
-    SELECT c.Fecha AS Fecha, 'Entrada' AS Accion, pd.Cantidad, p.Id AS ProductoId, p.Nombre AS Producto, u.NombreCompleto AS Usuario, 'Compra' AS Referencia
-    FROM ComprasDetalle pd
-    INNER JOIN Compras c ON pd.CompraId = c.Id
-    INNER JOIN Productos p ON pd.ProductoId = p.Id
-    LEFT JOIN Usuarios u ON c.UsuarioId = u.Id
-    WHERE ( @ProductoId IS NULL OR pd.ProductoId = @ProductoId )
-      AND ( @FechaDesde IS NULL OR CONVERT(date, c.Fecha) >= @FechaDesde )
-      AND ( @FechaHasta IS NULL OR CONVERT(date, c.Fecha) <= @FechaHasta )
-
-    UNION ALL
-
-    SELECT v.Fecha AS Fecha, 'Salida' AS Accion, vd.Cantidad, p.Id AS ProductoId, p.Nombre AS Producto, u.NombreCompleto AS Usuario, 'Venta' AS Referencia
-    FROM VentasDetalle vd
-    INNER JOIN Ventas v ON vd.VentaId = v.Id
-    INNER JOIN Productos p ON vd.ProductoId = p.Id
-    LEFT JOIN Usuarios u ON v.UsuarioId = u.Id
-    WHERE ( @ProductoId IS NULL OR vd.ProductoId = @ProductoId )
-      AND ( @FechaDesde IS NULL OR CONVERT(date, v.Fecha) >= @FechaDesde )
-      AND ( @FechaHasta IS NULL OR CONVERT(date, v.Fecha) <= @FechaHasta )
-
-    ORDER BY Fecha DESC`;
+    SELECT 
+        m.Fecha AS Fecha,
+        m.Tipo AS Accion,
+        m.Cantidad,
+        p.Id AS ProductoId,
+        p.Nombre AS Producto,
+        u.NombreCompleto AS Usuario,
+        m.Detalle AS Referencia
+    FROM Movimientos m
+    INNER JOIN Productos p ON m.ProductoId = p.Id
+    LEFT JOIN Usuarios u ON m.UsuarioId = u.Id
+    WHERE ( @ProductoId IS NULL OR m.ProductoId = @ProductoId )
+      AND ( @FechaDesde IS NULL OR CONVERT(date, m.Fecha) >= @FechaDesde )
+      AND ( @FechaHasta IS NULL OR CONVERT(date, m.Fecha) <= @FechaHasta )
+    ORDER BY m.Fecha DESC`;
 
     const result = await request.query(query);
     return result.recordset;
