@@ -248,113 +248,6 @@ VALUES
 ------------------------------------------------------------
 
 
-
-
--- PROCEDIMIENTO ALMACENADO PARA LISTAR PRODUCTOS
-
-CREATE PROCEDURE dbo.sp_Productos_Listar
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT 
-        p.Id,
-        p.Nombre,
-        p.Codigo,
-        c.Nombre AS Categoria,
-        p.Precio,
-        p.Stock,
-        p.StockMinimo
-    FROM dbo.Productos p
-    INNER JOIN dbo.Categorias c
-        ON p.CategoriaId = c.Id;
-END
-GO
-
-
--- PROCEDIMIENTO ALMACENADO PARA OBTENER PRODUCTOS
-
-CREATE PROCEDURE dbo.sp_Productos_ObtenerPorId
-    @Id INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT 
-        Id,
-        CategoriaId,
-        Nombre,
-        Codigo,
-        Precio,
-        Stock,
-        StockMinimo
-    FROM dbo.Productos
-    WHERE Id = @Id;
-END
-GO
-
-
--- PROCEDIMIENTO ALMACENADO PARA INSERTAR PRODUCTOS
-
-CREATE PROCEDURE dbo.sp_Productos_Insertar
-    @CategoriaId INT,
-    @Nombre NVARCHAR(150),
-    @Codigo NVARCHAR(50),
-    @Precio DECIMAL(10,2),
-    @Stock INT,
-    @StockMinimo INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    INSERT INTO dbo.Productos
-    (
-        CategoriaId,
-        Nombre,
-        Codigo,
-        Precio,
-        Stock,
-        StockMinimo
-    )
-    VALUES
-    (
-        @CategoriaId,
-        @Nombre,
-        @Codigo,
-        @Precio,
-        @Stock,
-        @StockMinimo
-    );
-END
-GO
-
-
--- PROCEDIMIENTO ALMACENADO PARA ACTUALIZAR PRODUCTOS
-
-CREATE PROCEDURE dbo.sp_Productos_Actualizar
-    @Id INT,
-    @CategoriaId INT,
-    @Nombre NVARCHAR(150),
-    @Codigo NVARCHAR(50),
-    @Precio DECIMAL(10,2),
-    @Stock INT,
-    @StockMinimo INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    UPDATE dbo.Productos
-    SET 
-        CategoriaId = @CategoriaId,
-        Nombre = @Nombre,
-        Codigo = @Codigo,
-        Precio = @Precio,
-        Stock = @Stock,
-        StockMinimo = @StockMinimo
-    WHERE Id = @Id;
-END
-GO
-
 -- PROCEDIMIENTO ALMACENADO PARA ELIMINAR PRODUCTOS
 
 CREATE PROCEDURE dbo.sp_Productos_Eliminar
@@ -916,6 +809,130 @@ BEGIN
         TieneAlergias = @TieneAlergias,
         NotasAlergias = @NotasAlergias,
         Peso = @Peso
+    WHERE Id = @Id;
+END
+GO
+
+------------------------------------------------------------
+-- 1. Modificación de la Tabla Productos 02 Marzo de 26
+------------------------------------------------------------
+
+IF DB_ID('VetPostDB') IS NULL
+    CREATE DATABASE VetPostDB;
+GO
+
+-- Ejecutar esto en el proyecto 
+
+-- npm install cloudinary multer multer-storage-cloudinary
+
+
+-- Procedimientos almacenados modificados
+
+-- PROCEDIMIENTO ALMACENADO PARA LISTAR PRODUCTOS
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        p.Id,
+        p.Nombre,
+        p.Codigo,
+        c.Nombre AS Categoria,
+        p.Precio,
+        p.Stock,
+        p.StockMinimo,
+        p.ImagenUrl
+    FROM dbo.Productos p
+    INNER JOIN dbo.Categorias c
+        ON p.CategoriaId = c.Id;
+END
+GO
+
+-- PROCEDIMIENTO ALMACENADO PARA OBTENER PRODUCTOS
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        Id,
+        CategoriaId,
+        Nombre,
+        Codigo,
+        Precio,
+        Stock,
+        StockMinimo,
+        ImagenUrl
+    FROM dbo.Productos
+    WHERE Id = @Id;
+END
+GO
+
+-- PROCEDIMIENTO ALMACENADO PARA INSERTAR PRODUCTOS
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Insertar
+    @CategoriaId INT,
+    @Nombre NVARCHAR(150),
+    @Codigo NVARCHAR(50),
+    @Precio DECIMAL(10,2),
+    @Stock INT,
+    @StockMinimo INT,
+    @ImagenUrl NVARCHAR(500) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId,
+        Nombre,
+        Codigo,
+        Precio,
+        Stock,
+        StockMinimo,
+        ImagenUrl
+    )
+    VALUES
+    (
+        @CategoriaId,
+        @Nombre,
+        @Codigo,
+        @Precio,
+        @Stock,
+        @StockMinimo,
+        @ImagenUrl
+    );
+END
+GO
+
+-- PROCEDIMIENTO ALMACENADO PARA ACTUALIZAR PRODUCTOS
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Actualizar
+    @Id INT,
+    @CategoriaId INT,
+    @Nombre NVARCHAR(150),
+    @Codigo NVARCHAR(50),
+    @Precio DECIMAL(10,2),
+    @Stock INT,
+    @StockMinimo INT,
+    @ImagenUrl NVARCHAR(500) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Productos
+    SET 
+        CategoriaId = @CategoriaId,
+        Nombre = @Nombre,
+        Codigo = @Codigo,
+        Precio = @Precio,
+        Stock = @Stock,
+        StockMinimo = @StockMinimo,
+        ImagenUrl = ISNULL(@ImagenUrl, ImagenUrl)
     WHERE Id = @Id;
 END
 GO

@@ -24,6 +24,7 @@ async function insertarProducto(p) {
         .input('Precio', sql.Decimal(10, 2), p.Precio)
         .input('Stock', sql.Int, p.Stock)
         .input('StockMinimo', sql.Int, p.StockMinimo)
+        .input('ImagenUrl', sql.NVarChar(500), p.ImagenUrl || null)
         .execute('sp_Productos_Insertar');
 }
 
@@ -46,6 +47,7 @@ async function actualizarProducto(p) {
         .input('Precio', sql.Decimal(10, 2), p.Precio)
         .input('Stock', sql.Int, p.Stock)
         .input('StockMinimo', sql.Int, p.StockMinimo)
+        .input('ImagenUrl', sql.NVarChar(500), p.ImagenUrl || null)
         .execute('sp_Productos_Actualizar');
     
     // Registrar movimiento si el stock cambió

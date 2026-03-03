@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 
 const productosModel = require(path.join(__dirname, '../models/productosModel'));
 
@@ -8,6 +11,16 @@ const productosModel = require(path.join(__dirname, '../models/productosModel'))
 function esIdNumerico(id) {
   return /^\d+$/.test(String(id));
 }
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'vetpos_productos',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+  },
+});
+
+const upload = multer({ storage });
 
 // ================= INVENTARIO (LISTA) =================
 router.get('/', async (req, res) => {
@@ -47,7 +60,7 @@ router.get('/compras', (req, res) => {
 });
 
 // ================= CREAR =================
-router.post('/crear', async (req, res) => {
+router.post('/crear', upload.single('Imagen'), async (req, res) => {
   try {
     const existe = await productosModel.existeCodigo(req.body.Codigo);
 
@@ -65,7 +78,15 @@ router.post('/crear', async (req, res) => {
       });
     }
 
-    await productosModel.insertarProducto(req.body);
+    // ✅ URL de Cloudinary (si subieron imagen)
+    const imagenUrl = req.file ? req.file.path : null;
+
+    // Mandamos todo al model + ImagenUrl
+    await productosModel.insertarProducto({
+      ...req.body,
+      ImagenUrl: imagenUrl
+    });
+
     res.redirect('/inventario');
   } catch (error) {
     console.error('❌ Error creando producto:', error);
@@ -74,9 +95,15 @@ router.post('/crear', async (req, res) => {
 });
 
 // ================= ACTUALIZAR =================
-router.post('/actualizar', async (req, res) => {
+router.post('/actualizar', upload.single('Imagen'), async (req, res) => {
   try {
-    await productosModel.actualizarProducto(req.body);
+    const imagenUrl = req.file ? req.file.path : null;
+
+    await productosModel.actualizarProducto({
+      ...req.body,
+      ImagenUrl: imagenUrl
+    });
+
     res.redirect('/inventario');
   } catch (error) {
     console.error('❌ Error actualizando producto:', error);

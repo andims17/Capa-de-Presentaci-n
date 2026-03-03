@@ -117,7 +117,7 @@
             <button class="close" onclick="closeModal('productoModal')">&times;</button>
         </div>
 
-        <form method="POST" action="/inventario/actualizar" class="modal-form">
+        <form method="POST" action="/inventario/actualizar" class="modal-form" enctype="multipart/form-data">
             <input type="hidden" name="Id" id="prodId">
 
             <!-- Código y Categoría -->
@@ -134,6 +134,10 @@
                             <option value="<%= c.Id %>"><%= c.Nombre %></option>
                         <% }) %>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cambiar Imagen (opcional)</label>
+                    <input type="file" name="Imagen" class="form-control" accept="image/*">
                 </div>
             </div>
 
@@ -189,7 +193,7 @@
             <button class="close" onclick="closeModal('nuevoProductoModal')">&times;</button>
         </div>
 
-        <form method="POST" action="/inventario/crear" class="modal-form">
+        <form method="POST" action="/inventario/crear" class="modal-form" enctype="multipart/form-data">
 
             <!-- Código y Categoría -->
             <div class="two-cols">
@@ -206,6 +210,10 @@
                             <option value="<%= c.Id %>"><%= c.Nombre %></option>
                         <% }) %>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Imagen del Producto</label>
+                    <input type="file" name="Imagen" class="form-control" accept="image/*">
                 </div>
             </div>
 
