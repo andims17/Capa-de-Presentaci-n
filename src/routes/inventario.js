@@ -23,27 +23,24 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage });
 
 // ================= INVENTARIO (LISTA) =================
+// ================= INVENTARIO (LISTA) =================
 router.get('/', async (req, res) => {
   try {
-    const productos = await productosModel.listarProductos();
-    const resumen = await productosModel.resumenInventario();
-    const categorias = await productosModel.listarCategorias();
+    const productos     = await productosModel.listarProductos();
+    const resumen       = await productosModel.resumenInventario();
+    const categorias    = await productosModel.listarCategorias();
+    const proveedores   = await require('../models/proveedoresModel').listarProveedores();  // ← nuevo
 
     res.render('inventario/index', {
       title: 'Gestión de Inventario',
       productos,
       resumen,
-      categorias
+      categorias,
+      proveedores          // ← pasamos la lista completa
     });
   } catch (error) {
     console.error('❌ Error cargando inventario:', error);
-    res.render('inventario/index', {
-      title: 'Gestión de Inventario',
-      productos: [],
-      resumen: {},
-      categorias: [],
-      error: 'Error cargando inventario'
-    });
+    res.render('inventario/index', { /* ... */ });
   }
 });
 

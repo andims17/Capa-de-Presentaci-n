@@ -7,18 +7,15 @@
 <!-- ======= MENSAJES DE ERROR / ÉXITO ======= -->
 <% if (typeof error !== 'undefined') { %>
     <div class="alert alert-danger">
-        <i class="fas fa-exclamation-circle"></i>
-        <%= error %>
+        <i class="fas fa-exclamation-circle"></i> <%= error %>
     </div>
 <% } %>
 
 <% if (typeof success !== 'undefined') { %>
     <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i>
-        <%= success %>
+        <i class="fas fa-check-circle"></i> <%= success %>
     </div>
 <% } %>
-
 
 <!-- ================= WIDGETS ================= -->
 <div class="stats-grid">
@@ -27,19 +24,16 @@
         <div class="stat-value"><%= resumen.TotalProductos || 0 %></div>
         <div class="stat-label">Total</div>
     </div>
-
     <div class="stat-card">
         <div class="stat-icon bg-green"><i class="fas fa-check-circle"></i></div>
         <div class="stat-value"><%= resumen.EnStock || 0 %></div>
         <div class="stat-label">En Stock</div>
     </div>
-
     <div class="stat-card">
         <div class="stat-icon bg-orange"><i class="fas fa-exclamation-triangle"></i></div>
         <div class="stat-value"><%= resumen.StockBajo || 0 %></div>
         <div class="stat-label">Stock Bajo</div>
     </div>
-
     <div class="stat-card">
         <div class="stat-icon bg-red"><i class="fas fa-times-circle"></i></div>
         <div class="stat-value"><%= resumen.Agotados || 0 %></div>
@@ -49,47 +43,27 @@
 
 <div class="card">
     <div class="card-header productos-header">
-    
-    <h2>Productos</h2>
-
-    <div class="productos-toolbar">
-
-        <input 
-            type="text" 
-            id="buscadorProductos" 
-            class="form-control buscador-productos"
-            placeholder="Buscar por nombre o código..."
-            onkeyup="filtrarProductos()"
-        >
-
-        <button class="btn btn-view" onclick="setVista('grid')">
-            <i class="fas fa-th-large"></i>
-        </button>
-
-        <button class="btn btn-view" onclick="setVista('table')">
-            <i class="fas fa-list"></i>
-        </button>
-
-        <button class="btn btn-primary" onclick="openModal('nuevoProductoModal')">
-            <i class="fas fa-plus"></i> Nuevo
-        </button>
-
+        <h2>Productos</h2>
+        <div class="productos-toolbar">
+            <input type="text" id="buscadorProductos" class="form-control buscador-productos"
+                   placeholder="Buscar por nombre, código o proveedor..." onkeyup="filtrarProductos()">
+            <button class="btn btn-view" onclick="setVista('grid')"><i class="fas fa-th-large"></i></button>
+            <button class="btn btn-view" onclick="setVista('table')"><i class="fas fa-list"></i></button>
+            <button class="btn btn-primary" onclick="openModal('nuevoProductoModal')">
+                <i class="fas fa-plus"></i> Nuevo
+            </button>
+        </div>
     </div>
 
-</div>
-
     <% if (!productos || productos.length === 0) { %>
-        <div style="padding: 20px; text-align:center;">
-            No hay productos registrados
-        </div>
+        <div style="padding: 20px; text-align:center;">No hay productos registrados</div>
     <% } else { %>
         <div id="vistaGrid" class="productos-grid">
             <% productos.forEach(p => { %>
-                <div 
-    class="producto-card producto-item" 
-    onclick="verProducto(<%= p.Id %>)"
-    data-nombre="<%= (p.Nombre || '').toLowerCase() %>"
-    data-codigo="<%= (p.Codigo || '').toLowerCase() %>">
+                <div class="producto-card producto-item" onclick="verProducto('<%= p.Id %>')"
+                     data-nombre="<%= (p.Nombre || '').toLowerCase() %>"
+                     data-codigo="<%= (p.Codigo || '').toLowerCase() %>"
+                     data-proveedor="<%= (p.Proveedor || '').toLowerCase() %>">
                     <div class="producto-imagen">
                         <% if (p.ImagenUrl) { %>
                             <img src="<%= p.ImagenUrl %>" alt="<%= p.Nombre %>">
@@ -100,14 +74,13 @@
                             </div>
                         <% } %>
                     </div>
-
                     <div class="producto-info">
                         <h3><%= p.Nombre %></h3>
                         <p><strong>Código:</strong> <%= p.Codigo %></p>
                         <p><strong>Categoría:</strong> <%= p.Categoria %></p>
+                        <p><strong>Proveedor:</strong> <%= p.Proveedor || '—' %></p>
                         <p><strong>Precio:</strong> $<%= p.Precio %></p>
                         <p><strong>Stock:</strong> <%= p.Stock %> (Min <%= p.StockMinimo %>)</p>
-
                         <div class="producto-estado">
                             <% if (p.Stock === 0) { %>
                                 <span class="badge badge-danger">Agotado</span>
@@ -118,12 +91,11 @@
                             <% } %>
                         </div>
                     </div>
-
                     <div class="producto-acciones" onclick="event.stopPropagation()">
-                        <button class="btn btn-primary btn-xs" onclick="verProducto(<%= p.Id %>)">
+                        <button class="btn btn-primary btn-xs" onclick="verProducto('<%= p.Id %>')">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-danger btn-xs" onclick="confirmarEliminar(<%= p.Id %>)">
+                        <button class="btn btn-danger btn-xs" onclick="confirmarEliminar('<%= p.Id %>')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -133,7 +105,6 @@
     <% } %>
 </div>
 
-
 <!-- ================= TABLA ================= -->
 <div id="vistaTabla" class="card">
     <table class="table">
@@ -141,6 +112,7 @@
             <tr>
                 <th>Producto</th>
                 <th>Categoría</th>
+                <th>Proveedor</th>
                 <th>Stock</th>
                 <th>Precio</th>
                 <th>Estado</th>
@@ -148,71 +120,57 @@
             </tr>
         </thead>
         <tbody>
-        <% if (!productos || productos.length === 0) { %>
-            <tr>
-                <td colspan="6" style="text-align:center;">
-                    No hay productos registrados
-                </td>
-            </tr>
-        <% } else { %>
-            <% productos.forEach(p => { %>
-                <tr 
-    class="producto-row"
-    data-nombre="<%= (p.Nombre || '').toLowerCase() %>"
-    data-codigo="<%= (p.Codigo || '').toLowerCase() %>"
->
-                    <td>
-                        <strong><%= p.Nombre %></strong><br>
-                        <small><%= p.Codigo %></small>
-                    </td>
-                    <td><%= p.Categoria %></td>
-                    <td><%= p.Stock %> (Min <%= p.StockMinimo %>)</td>
-                    <td>$<%= p.Precio %></td>
-                    <td>
-                        <% if (p.Stock === 0) { %>
-                            <span class="badge badge-danger">Agotado</span>
-                        <% } else if (p.Stock <= p.StockMinimo) { %>
-                            <span class="badge badge-warning">Stock Bajo</span>
-                        <% } else { %>
-                            <span class="badge badge-success">OK</span>
-                        <% } %>
-                    </td>
-                    <td>
-                        <button class="btn btn-primary btn-xs" onclick="verProducto(<%= p.Id %>)">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-danger btn-xs" onclick="confirmarEliminar(<%= p.Id %>)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            <% }) %>
-        <% } %>
+            <% if (!productos || productos.length === 0) { %>
+                <tr><td colspan="7" style="text-align:center;">No hay productos registrados</td></tr>
+            <% } else { %>
+                <% productos.forEach(p => { %>
+                    <tr class="producto-row"
+                        data-nombre="<%= (p.Nombre || '').toLowerCase() %>"
+                        data-codigo="<%= (p.Codigo || '').toLowerCase() %>"
+                        data-proveedor="<%= (p.Proveedor || '').toLowerCase() %>">
+                        <td><strong><%= p.Nombre %></strong><br><small><%= p.Codigo %></small></td>
+                        <td><%= p.Categoria %></td>
+                        <td><%= p.Proveedor || '—' %></td>
+                        <td><%= p.Stock %> (Min <%= p.StockMinimo %>)</td>
+                        <td>$<%= p.Precio %></td>
+                        <td>
+                            <% if (p.Stock === 0) { %>
+                                <span class="badge badge-danger">Agotado</span>
+                            <% } else if (p.Stock <= p.StockMinimo) { %>
+                                <span class="badge badge-warning">Stock Bajo</span>
+                            <% } else { %>
+                                <span class="badge badge-success">OK</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-xs" onclick="verProducto('<%= p.Id %>')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-xs" onclick="confirmarEliminar('<%= p.Id %>')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                <% }) %>
+            <% } %>
         </tbody>
     </table>
 </div>
-
 
 <!-- ================= MODAL VER / EDITAR ================= -->
 <div id="productoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">
-                <i class="fas fa-edit"></i> Editar Producto
-            </h3>
+            <h3 class="modal-title"><i class="fas fa-edit"></i> Editar Producto</h3>
             <button class="close" onclick="closeModal('productoModal')">&times;</button>
         </div>
-
         <form method="POST" action="/inventario/actualizar" class="modal-form" enctype="multipart/form-data">
             <input type="hidden" name="Id" id="prodId">
-
-            <!-- Código y Categoría -->
             <div class="two-cols">
                 <div class="form-group">
                     <label class="form-label">Código</label>
                     <input type="text" name="Codigo" id="prodCodigo" class="form-control" required>
                 </div>
-
                 <div class="form-group">
                     <label class="form-label">Categoría</label>
                     <select name="CategoriaId" id="prodCategoriaId" class="form-control" required>
@@ -222,14 +180,20 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Proveedor</label>
+                    <select name="ProveedorId" id="prodProveedorId" class="form-control">
+                        <option value="">Sin proveedor asignado</option>
+                        <% proveedores.forEach(prov => { %>
+                            <option value="<%= prov.Id %>"><%= prov.Nombre %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Imagen actual</label>
-
                     <div class="producto-preview-box">
                         <img id="prodImagenPreview" src="" alt="Imagen del producto" style="display:none;">
-
                         <div id="prodImagenPlaceholder" class="sin-imagen-preview">
-                            <i class="fas fa-image"></i>
-                            <span>Sin imagen</span>
+                            <i class="fas fa-image"></i><span>Sin imagen</span>
                         </div>
                     </div>
                 </div>
@@ -238,68 +202,45 @@
                     <input type="file" name="Imagen" class="form-control" accept="image/*">
                 </div>
             </div>
-
-            <!-- Nombre -->
             <div class="form-group">
                 <label class="form-label">Nombre del Producto</label>
                 <input type="text" name="Nombre" id="prodNombre" class="form-control" required>
             </div>
-
-            <!-- Precio y Stock -->
             <div class="two-cols">
                 <div class="form-group">
                     <label class="form-label">Precio</label>
-                    <input type="number" name="Precio" id="prodPrecio"
-                           step="0.01" class="form-control" required>
+                    <input type="number" name="Precio" id="prodPrecio" step="0.01" class="form-control" required>
                 </div>
-
                 <div class="form-group">
                     <label class="form-label">Stock</label>
-                    <input type="number" name="Stock" id="prodStock"
-                           class="form-control" required>
+                    <input type="number" name="Stock" id="prodStock" class="form-control" required>
                 </div>
             </div>
-
-            <!-- Stock mínimo -->
             <div class="form-group">
                 <label class="form-label">Stock Mínimo</label>
-                <input type="number" name="StockMinimo" id="prodStockMinimo"
-                       class="form-control" required>
+                <input type="number" name="StockMinimo" id="prodStockMinimo" class="form-control" required>
             </div>
-
-            <!-- Acciones -->
             <div class="modal-actions">
-                <button type="button" class="btn" onclick="closeModal('productoModal')">
-                    Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    Guardar Cambios
-                </button>
+                <button type="button" class="btn" onclick="closeModal('productoModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
             </div>
         </form>
     </div>
 </div>
 
-
 <!-- ================= MODAL NUEVO PRODUCTO ================= -->
 <div id="nuevoProductoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">
-                <i class="fas fa-plus"></i> Nuevo Producto
-            </h3>
+            <h3 class="modal-title"><i class="fas fa-plus"></i> Nuevo Producto</h3>
             <button class="close" onclick="closeModal('nuevoProductoModal')">&times;</button>
         </div>
-
         <form method="POST" action="/inventario/crear" class="modal-form" enctype="multipart/form-data">
-
-            <!-- Código y Categoría -->
             <div class="two-cols">
                 <div class="form-group">
                     <label class="form-label">Código</label>
                     <input type="text" name="Codigo" class="form-control" required>
                 </div>
-
                 <div class="form-group">
                     <label class="form-label">Categoría</label>
                     <select name="CategoriaId" class="form-control" required>
@@ -310,98 +251,92 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Proveedor</label>
+                    <select name="ProveedorId" class="form-control">
+                        <option value="">Sin proveedor asignado</option>
+                        <% proveedores.forEach(prov => { %>
+                            <option value="<%= prov.Id %>"><%= prov.Nombre %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Imagen del Producto</label>
                     <input type="file" name="Imagen" class="form-control" accept="image/*">
                 </div>
             </div>
-
-            <!-- Nombre -->
             <div class="form-group">
                 <label class="form-label">Nombre del Producto</label>
                 <input type="text" name="Nombre" class="form-control" required>
             </div>
-
-            <!-- Precio y Stock probando -->
             <div class="two-cols">
                 <div class="form-group">
                     <label class="form-label">Precio</label>
-                    <input type="number" name="Precio" step="0.01"
-                           class="form-control" required>
+                    <input type="number" name="Precio" step="0.01" class="form-control" required>
                 </div>
-
                 <div class="form-group">
                     <label class="form-label">Stock Inicial</label>
-                    <input type="number" name="Stock"
-                           class="form-control" required>
+                    <input type="number" name="Stock" class="form-control" required>
                 </div>
             </div>
-
-            <!-- Stock mínimo -->
             <div class="form-group">
                 <label class="form-label">Stock Mínimo</label>
-                <input type="number" name="StockMinimo"
-                       class="form-control" required>
+                <input type="number" name="StockMinimo" class="form-control" required>
             </div>
-
-            <!-- Acciones -->
             <div class="modal-actions">
-                <button type="button" class="btn"
-                        onclick="closeModal('nuevoProductoModal')">
-                    Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    Guardar Producto
-                </button>
+                <button type="button" class="btn" onclick="closeModal('nuevoProductoModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Producto</button>
             </div>
-
         </form>
     </div>
 </div>
 
-
 <script>
 async function verProducto(id) {
-    const res = await fetch(`/inventario/${id}`);
-    const p = await res.json();
+    try {
+        const res = await fetch(`/inventario/${id}`);
+        if (!res.ok) throw new Error('Error al obtener producto');
+        const p = await res.json();
 
-    document.getElementById('prodId').value = p.Id;
-    document.getElementById('prodCodigo').value = p.Codigo;
-    document.getElementById('prodCategoriaId').value = p.CategoriaId;
-    document.getElementById('prodNombre').value = p.Nombre;
-    document.getElementById('prodPrecio').value = p.Precio;
-    document.getElementById('prodStock').value = p.Stock;
-    document.getElementById('prodStockMinimo').value = p.StockMinimo;
+        document.getElementById('prodId').value = p.Id || '';
+        document.getElementById('prodCodigo').value = p.Codigo || '';
+        document.getElementById('prodCategoriaId').value = p.CategoriaId || '';
+        document.getElementById('prodProveedorId').value = p.ProveedorId || '';
+        document.getElementById('prodNombre').value = p.Nombre || '';
+        document.getElementById('prodPrecio').value = p.Precio || '';
+        document.getElementById('prodStock').value = p.Stock || '0';
+        document.getElementById('prodStockMinimo').value = p.StockMinimo || '0';
 
-    const img = document.getElementById('prodImagenPreview');
-    const placeholder = document.getElementById('prodImagenPlaceholder');
+        const img = document.getElementById('prodImagenPreview');
+        const placeholder = document.getElementById('prodImagenPlaceholder');
 
-    if (p.ImagenUrl) {
-        img.src = p.ImagenUrl;
-        img.style.display = 'block';
-        placeholder.style.display = 'none';
-    } else {
-        img.src = '';
-        img.style.display = 'none';
-        placeholder.style.display = 'flex';
+        if (p.ImagenUrl) {
+            img.src = p.ImagenUrl;
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+        } else {
+            img.src = '';
+            img.style.display = 'none';
+            placeholder.style.display = 'flex';
+        }
+
+        openModal('productoModal');
+    } catch (err) {
+        console.error('Error cargando producto:', err);
+        alert('No se pudo cargar la información del producto');
     }
-
-    openModal('productoModal');
 }
 
 function confirmarEliminar(id) {
-    if (confirm('¿Seguro que deseas eliminar este producto?')) {
+    if (confirm('¿Seguro que deseas eliminar este producto? Esta acción no se puede deshacer.')) {
         window.location.href = `/inventario/eliminar/${id}`;
     }
 }
 </script>
 
 <script>
-
 function setVista(tipo) {
-
     const grid = document.getElementById("vistaGrid");
     const tabla = document.getElementById("vistaTabla");
-
     if (tipo === "grid") {
         grid.style.display = "grid";
         tabla.style.display = "none";
@@ -409,16 +344,12 @@ function setVista(tipo) {
         grid.style.display = "none";
         tabla.style.display = "block";
     }
-
     localStorage.setItem("inventarioVista", tipo);
 }
 
 window.addEventListener("load", () => {
-
     const vista = localStorage.getItem("inventarioVista") || "grid";
-
     setVista(vista);
-
 });
 </script>
 
@@ -426,24 +357,29 @@ window.addEventListener("load", () => {
 function filtrarProductos() {
     const texto = document.getElementById('buscadorProductos').value.toLowerCase().trim();
 
-    const cards = document.querySelectorAll('.producto-item');
-    const rows = document.querySelectorAll('.producto-row');
+    // Si no hay texto, mostrar todo
+    if (!texto) {
+        document.querySelectorAll('.producto-item, .producto-row').forEach(el => {
+            el.style.display = '';
+        });
+        return;
+    }
 
-    cards.forEach(card => {
-        const nombre = card.dataset.nombre || '';
-        const codigo = card.dataset.codigo || '';
-
-        const coincide = nombre.includes(texto) || codigo.includes(texto);
-
+    // Filtrar grid
+    document.querySelectorAll('.producto-item').forEach(card => {
+        const nombre    = card.dataset.nombre    || '';
+        const codigo    = card.dataset.codigo    || '';
+        const proveedor = card.dataset.proveedor || '';
+        const coincide  = nombre.includes(texto) || codigo.includes(texto) || proveedor.includes(texto);
         card.style.display = coincide ? 'flex' : 'none';
     });
 
-    rows.forEach(row => {
-        const nombre = row.dataset.nombre || '';
-        const codigo = row.dataset.codigo || '';
-
-        const coincide = nombre.includes(texto) || codigo.includes(texto);
-
+    // Filtrar tabla
+    document.querySelectorAll('.producto-row').forEach(row => {
+        const nombre    = row.dataset.nombre    || '';
+        const codigo    = row.dataset.codigo    || '';
+        const proveedor = row.dataset.proveedor || '';
+        const coincide  = nombre.includes(texto) || codigo.includes(texto) || proveedor.includes(texto);
         row.style.display = coincide ? '' : 'none';
     });
 }

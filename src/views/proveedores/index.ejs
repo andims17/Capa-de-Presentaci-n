@@ -1,17 +1,32 @@
 <div class="page-header">
     <h1 class="page-title">Gestión de Proveedores</h1>
-    <p class="page-subtitle">Administra la información de los proveedores</p>
+    <p class="page-subtitle">Administra los proveedores de productos</p>
 </div>
+
+<!-- Mensajes de éxito o error (se muestran en la misma página) -->
+<% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin: 1.5rem 0;">
+        <strong>¡Error!</strong> <%= error %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<% } %>
+
+<% if (typeof success !== 'undefined' && success) { %>
+    <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin: 1.5rem 0;">
+        <strong>¡Éxito!</strong> <%= success %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<% } %>
 
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Lista de Proveedores</h2>
         <div style="display: flex; gap: 1rem;">
             <div class="search-box">
-                <input type="text" id="buscadorProveedores" class="search-input" placeholder="Buscar proveedor...">
-                <button class="search-btn">
-                    <i class="fas fa-search"></i>
-                </button>
+                <input type="text" id="buscadorProveedores" class="search-input"
+                       placeholder="Buscar proveedor por nombre, teléfono o email..." 
+                       onkeyup="filtrarProveedores()">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
             </div>
             <button class="btn btn-primary" onclick="openModal('nuevoProveedorModal')">
                 <i class="fas fa-plus"></i> Nuevo Proveedor
@@ -20,270 +35,198 @@
     </div>
 
     <div class="clients-grid" id="listaProveedores">
-        <div class="client-card" data-nombre="PetSupplies S.A.">
-            <div class="client-header">
-                <div class="client-avatar">PS</div>
-                <div class="client-info">
-                    <h3>PetSupplies S.A.</h3>
-                    <p>PROV-001</p>
+        <% if (proveedores && proveedores.length > 0) { %>
+            <% proveedores.forEach(proveedor => { %>
+                <div class="client-card">
+                    <div class="client-header">
+                        <div class="client-avatar">
+                            <%= (proveedor.Nombre || '?').split(' ').map(n => n[0]).join('') %>
+                        </div>
+                        <div class="client-info">
+                            <h3><%= proveedor.Nombre || 'Sin nombre' %></h3>
+                            <p>PROV-<%= proveedor.Id.toString().padStart(3, '0') %></p>
+                        </div>
+                    </div>
+                    <div class="client-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value"><%= proveedor.Email || '-' %></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Teléfono:</span>
+                            <span class="detail-value"><%= proveedor.Telefono || '-' %></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Dirección:</span>
+                            <span class="detail-value"><%= proveedor.Direccion || '-' %></span>
+                        </div>
+                    </div>
+                    <div class="client-actions">
+                        <button type="button" class="btn btn-primary btn-sm"
+                                data-id="<%= proveedor.Id %>"
+                                data-nombre="<%= encodeURIComponent(proveedor.Nombre || '') %>"
+                                data-email="<%= encodeURIComponent(proveedor.Email || '') %>"
+                                data-telefono="<%= encodeURIComponent(proveedor.Telefono || '') %>"
+                                data-direccion="<%= encodeURIComponent(proveedor.Direccion || '') %>"
+                                onclick="openEditModalFromButton(this)">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        
+                        <button type="button" class="btn btn-danger btn-sm"
+                                data-id="<%= proveedor.Id %>"
+                                data-nombre="<%= encodeURIComponent(proveedor.Nombre || '') %>"
+                                onclick="confirmarEliminarProveedor(this)">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
                 </div>
+            <% }) %>
+        <% } else { %>
+            <div style="padding: 2rem; text-align: center; color: #6b7280;">
+                <i class="fas fa-building" style="font-size: 3rem; opacity: 0.4; margin-bottom: 1rem;"></i>
+                <p>No hay proveedores registrados aún.</p>
             </div>
-            <div class="client-details">
-                <div class="detail-item">
-                    <span class="detail-label">Contacto:</span>
-                    <span class="detail-value">Juan Pérez</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Teléfono:</span>
-                    <span class="detail-value">+1 555-0101</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Email:</span>
-                    <span class="detail-value">contacto@petsupplies.com</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Productos:</span>
-                    <span class="pets-badge">15 productos</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Última compra:</span>
-                    <span class="detail-value">10/10/2024</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Estado:</span>
-                    <span class="badge badge-success">Activo</span>
-                </div>
-            </div>
-            <div class="client-actions">
-                <button class="btn btn-primary btn-sm">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn btn-info btn-sm">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
-            </div>
-        </div>
-
-        <div class="client-card" data-nombre="VetProducts Corp">
-            <div class="client-header">
-                <div class="client-avatar">VC</div>
-                <div class="client-info">
-                    <h3>VetProducts Corp</h3>
-                    <p>PROV-002</p>
-                </div>
-            </div>
-            <div class="client-details">
-                <div class="detail-item">
-                    <span class="detail-label">Contacto:</span>
-                    <span class="detail-value">María Rodríguez</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Teléfono:</span>
-                    <span class="detail-value">+1 555-0102</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Email:</span>
-                    <span class="detail-value">ventas@vetproducts.com</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Productos:</span>
-                    <span class="pets-badge">8 productos</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Última compra:</span>
-                    <span class="detail-value">05/10/2024</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Estado:</span>
-                    <span class="badge badge-success">Activo</span>
-                </div>
-            </div>
-            <div class="client-actions">
-                <button class="btn btn-primary btn-sm">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn btn-info btn-sm">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
-            </div>
-        </div>
-
-        <div class="client-card" data-nombre="AnimalCare Ltd">
-            <div class="client-header">
-                <div class="client-avatar">AC</div>
-                <div class="client-info">
-                    <h3>AnimalCare Ltd</h3>
-                    <p>PROV-003</p>
-                </div>
-            </div>
-            <div class="client-details">
-                <div class="detail-item">
-                    <span class="detail-label">Contacto:</span>
-                    <span class="detail-value">Carlos Sánchez</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Teléfono:</span>
-                    <span class="detail-value">+1 555-0103</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Email:</span>
-                    <span class="detail-value">info@animalcare.com</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Productos:</span>
-                    <span class="pets-badge">12 productos</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Última compra:</span>
-                    <span class="detail-value">01/10/2024</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Estado:</span>
-                    <span class="badge badge-success">Activo</span>
-                </div>
-            </div>
-            <div class="client-actions">
-                <button class="btn btn-primary btn-sm">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn btn-info btn-sm">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
-            </div>
-        </div>
-
-        <div class="client-card" data-nombre="MediVet Supplies">
-            <div class="client-header">
-                <div class="client-avatar">MS</div>
-                <div class="client-info">
-                    <h3>MediVet Supplies</h3>
-                    <p>PROV-004</p>
-                </div>
-            </div>
-            <div class="client-details">
-                <div class="detail-item">
-                    <span class="detail-label">Contacto:</span>
-                    <span class="detail-value">Ana Martínez</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Teléfono:</span>
-                    <span class="detail-value">+1 555-0104</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Email:</span>
-                    <span class="detail-value">pedidos@medivetsupplies.com</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Productos:</span>
-                    <span class="pets-badge">20 productos</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Última compra:</span>
-                    <span class="detail-value">12/10/2024</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Estado:</span>
-                    <span class="badge badge-success">Activo</span>
-                </div>
-            </div>
-            <div class="client-actions">
-                <button class="btn btn-primary btn-sm">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn btn-info btn-sm">
-                    <i class="fas fa-eye"></i> Ver
-                </button>
-            </div>
-        </div>
+        <% } %>
     </div>
 </div>
 
+<!-- Modal Nuevo Proveedor -->
 <div id="nuevoProveedorModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content card">
         <div class="modal-header">
             <h3 class="modal-title">Registrar Nuevo Proveedor</h3>
             <button class="close" onclick="closeModal('nuevoProveedorModal')">&times;</button>
         </div>
-
-        <form id="formNuevoProveedor">
+        <form action="/proveedores/crear" method="POST">
             <div class="form-group">
-                <label class="form-label">Nombre de la Empresa</label>
-                <input type="text" id="nombreProveedor" class="form-control" placeholder="Nombre de la empresa">
+                <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                <input type="text" name="Nombre" class="form-control" placeholder="Nombre del proveedor" required>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label class="form-label">Persona de Contacto</label>
-                    <input type="text" id="contactoProveedor" class="form-control" placeholder="Nombre del contacto">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Teléfono</label>
-                    <input type="tel" id="telefonoProveedor" class="form-control" placeholder="Número de teléfono">
-                </div>
-            </div>
-
             <div class="form-group">
                 <label class="form-label">Email</label>
-                <input type="email" id="emailProveedor" class="form-control" placeholder="Correo electrónico">
+                <input type="email" name="Email" class="form-control" placeholder="ejemplo@empresa.com">
             </div>
-
+            <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" name="Telefono" class="form-control" placeholder="Ej: 88881234">
+            </div>
             <div class="form-group">
                 <label class="form-label">Dirección</label>
-                <textarea id="direccionProveedor" class="form-control" rows="2" placeholder="Dirección completa"></textarea>
+                <textarea name="Direccion" class="form-control" rows="2" placeholder="Dirección completa"></textarea>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label class="form-label">RUC / NIT</label>
-                    <input type="text" id="rucProveedor" class="form-control" placeholder="Número de identificación fiscal">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Estado</label>
-                    <select id="estadoProveedor" class="form-control">
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                    </select>
-                </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('nuevoProveedorModal')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Registrar Proveedor
+                </button>
             </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Proveedor -->
+<div id="editarProveedorModal" class="modal">
+    <div class="modal-content card">
+        <div class="modal-header">
+            <h3 class="modal-title">Editar Proveedor</h3>
+            <button class="close" onclick="closeModal('editarProveedorModal')">&times;</button>
+        </div>
+        <form id="formEditarProveedor" method="POST">
+            <input type="hidden" name="Id" id="editarIdProveedor">
 
             <div class="form-group">
-                <label class="form-label">Notas</label>
-                <textarea id="notasProveedor" class="form-control" rows="3" placeholder="Información adicional del proveedor..."></textarea>
+                <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                <input type="text" name="Nombre" id="editarNombreProveedor" class="form-control" required>
             </div>
-
-            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="btn" onclick="closeModal('nuevoProveedorModal')" style="background: #E2E8F0;">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Registrar Proveedor</button>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="Email" id="editarEmailProveedor" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" name="Telefono" id="editarTelefonoProveedor" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Dirección</label>
+                <textarea name="Direccion" id="editarDireccionProveedor" class="form-control" rows="2"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editarProveedorModal')">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Actualizar Proveedor
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('buscadorProveedores');
-    const cards = document.querySelectorAll('#listaProveedores .client-card');
+// =============================================
+// Funciones básicas de modales
+// =============================================
+function openModal(id) {
+    document.getElementById(id).style.display = 'block';
+}
 
-    if (input && cards.length > 0) {
-        input.addEventListener('input', () => {
-            const texto = input.value.toLowerCase();
-            cards.forEach(card => {
-                const nombre = card.getAttribute('data-nombre').toLowerCase();
-                card.style.display = nombre.includes(texto) ? '' : 'none';
-            });
-        });
+function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+// =============================================
+// Filtro de búsqueda
+// =============================================
+function filtrarProveedores() {
+    const texto = document.getElementById('buscadorProveedores').value.toLowerCase().trim();
+    const tarjetas = document.querySelectorAll('.client-card');
+    tarjetas.forEach(tarjeta => {
+        const contenido = tarjeta.innerText.toLowerCase();
+        tarjeta.style.display = contenido.includes(texto) ? "" : "none";
+    });
+}
+
+// =============================================
+// Editar proveedor (desde botón)
+// =============================================
+function openEditModalFromButton(button) {
+    const id        = button.getAttribute('data-id');
+    const nombre    = button.getAttribute('data-nombre');
+    const email     = button.getAttribute('data-email');
+    const telefono  = button.getAttribute('data-telefono');
+    const direccion = button.getAttribute('data-direccion');
+
+    document.getElementById('editarIdProveedor').value = id;
+    document.getElementById('editarNombreProveedor').value = decodeURIComponent(nombre);
+    document.getElementById('editarEmailProveedor').value = decodeURIComponent(email);
+    document.getElementById('editarTelefonoProveedor').value = decodeURIComponent(telefono);
+    document.getElementById('editarDireccionProveedor').value = decodeURIComponent(direccion);
+
+    document.getElementById('formEditarProveedor').action = '/proveedores/editar/' + id;
+
+    openModal('editarProveedorModal');
+}
+
+// =============================================
+// Eliminar proveedor (con confirmación)
+// =============================================
+function confirmarEliminarProveedor(button) {
+    const id = button.getAttribute('data-id');
+    const nombreEncoded = button.getAttribute('data-nombre');
+    const nombre = decodeURIComponent(nombreEncoded);
+
+    if (confirm(`¿Realmente deseas ELIMINAR al proveedor "${nombre}"?\n\nEsta acción no se puede deshacer y solo será posible si NO tiene productos asociados.`)) {
+        window.location.href = `/proveedores/eliminar/${id}`;
     }
+}
 
-    const formNuevoProveedor = document.getElementById('formNuevoProveedor');
-    if (formNuevoProveedor) {
-        formNuevoProveedor.addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Proveedor registrado (demo, sin guardar en BD)');
-            closeModal('nuevoProveedorModal');
-        });
+// Cerrar modales con tecla ESC (opcional pero útil)
+document.addEventListener('keydown', function(e) {
+    if (e.key === "Escape") {
+        closeModal('nuevoProveedorModal');
+        closeModal('editarProveedorModal');
     }
 });
 </script>
-

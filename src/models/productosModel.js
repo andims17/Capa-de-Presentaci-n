@@ -12,7 +12,7 @@ async function obtenerProductoPorId(id) {
     const result = await pool.request()
         .input('Id', sql.Int, id)
         .execute('sp_Productos_ObtenerPorId');
-    return result.recordset[0];
+    return result.recordset[0];   // ya debe traer ProveedorId
 }
 
 async function insertarProducto(p) {
@@ -25,6 +25,7 @@ async function insertarProducto(p) {
         .input('Stock', sql.Int, p.Stock)
         .input('StockMinimo', sql.Int, p.StockMinimo)
         .input('ImagenUrl', sql.NVarChar(500), p.ImagenUrl || null)
+        .input('ProveedorId', sql.Int, p.ProveedorId || null)
         .execute('sp_Productos_Insertar');
 }
 
@@ -48,6 +49,7 @@ async function actualizarProducto(p) {
         .input('Stock', sql.Int, p.Stock)
         .input('StockMinimo', sql.Int, p.StockMinimo)
         .input('ImagenUrl', sql.NVarChar(500), p.ImagenUrl || null)
+        .input('ProveedorId', sql.Int, p.ProveedorId || null)
         .execute('sp_Productos_Actualizar');
     
     // Registrar movimiento si el stock cambió

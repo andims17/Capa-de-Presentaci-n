@@ -1,7 +1,7 @@
 ------------------------------------------------------------
 -- Crear Base de Datos
 ------------------------------------------------------------
-IF DB_ID('VetPostDB') IS NULL
+IF DB_ID('VetPostDB') IS NULL       
     CREATE DATABASE VetPostDB;
 GO
 
@@ -247,6 +247,113 @@ VALUES
 ----------------Inventario STORAGE PROCEDURES---------------
 ------------------------------------------------------------
 
+
+
+
+-- PROCEDIMIENTO ALMACENADO PARA LISTAR PRODUCTOS
+
+CREATE PROCEDURE dbo.sp_Productos_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        p.Id,
+        p.Nombre,
+        p.Codigo,
+        c.Nombre AS Categoria,
+        p.Precio,
+        p.Stock,
+        p.StockMinimo
+    FROM dbo.Productos p
+    INNER JOIN dbo.Categorias c
+        ON p.CategoriaId = c.Id;
+END
+GO
+
+
+-- PROCEDIMIENTO ALMACENADO PARA OBTENER PRODUCTOS
+
+CREATE PROCEDURE dbo.sp_Productos_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        Id,
+        CategoriaId,
+        Nombre,
+        Codigo,
+        Precio,
+        Stock,
+        StockMinimo
+    FROM dbo.Productos
+    WHERE Id = @Id;
+END
+GO
+
+
+-- PROCEDIMIENTO ALMACENADO PARA INSERTAR PRODUCTOS
+
+CREATE PROCEDURE dbo.sp_Productos_Insertar
+    @CategoriaId INT,
+    @Nombre NVARCHAR(150),
+    @Codigo NVARCHAR(50),
+    @Precio DECIMAL(10,2),
+    @Stock INT,
+    @StockMinimo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId,
+        Nombre,
+        Codigo,
+        Precio,
+        Stock,
+        StockMinimo
+    )
+    VALUES
+    (
+        @CategoriaId,
+        @Nombre,
+        @Codigo,
+        @Precio,
+        @Stock,
+        @StockMinimo
+    );
+END
+GO
+
+
+-- PROCEDIMIENTO ALMACENADO PARA ACTUALIZAR PRODUCTOS
+
+CREATE PROCEDURE dbo.sp_Productos_Actualizar
+    @Id INT,
+    @CategoriaId INT,
+    @Nombre NVARCHAR(150),
+    @Codigo NVARCHAR(50),
+    @Precio DECIMAL(10,2),
+    @Stock INT,
+    @StockMinimo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Productos
+    SET 
+        CategoriaId = @CategoriaId,
+        Nombre = @Nombre,
+        Codigo = @Codigo,
+        Precio = @Precio,
+        Stock = @Stock,
+        StockMinimo = @StockMinimo
+    WHERE Id = @Id;
+END
+GO
 
 -- PROCEDIMIENTO ALMACENADO PARA ELIMINAR PRODUCTOS
 
@@ -696,9 +803,6 @@ GO
 
 
 
-
-
-
 ------------------------------------------------------------
 -- 1. Modificación de la Tabla
 ------------------------------------------------------------
@@ -726,10 +830,9 @@ END
 GO
 
 
-
-
-USE VetPostDB;
-GO
+---------------------------------------
+------Modificaciones para alergia------
+---------------------------------------
 
 CREATE OR ALTER PROCEDURE dbo.sp_Mascota_Listar
 AS
@@ -745,13 +848,11 @@ BEGIN
         FechaNacimiento,
         TieneAlergias, 
         NotasAlergias, 
-        Peso         
+        Peso           
     FROM dbo.Mascotas
     ORDER BY Id DESC; 
 END
 GO
-
-
 
 CREATE OR ALTER PROCEDURE dbo.sp_Mascota_Insertar
     @ClienteId INT,
@@ -813,6 +914,7 @@ BEGIN
 END
 GO
 
+
 ------------------------------------------------------------
 -- 1. Modificación de la Tabla Productos 02 Marzo de 26
 ------------------------------------------------------------
@@ -820,6 +922,13 @@ GO
 IF DB_ID('VetPostDB') IS NULL
     CREATE DATABASE VetPostDB;
 GO
+
+------------------------- Variable AMANDA -------------------------
+
+ALTER TABLE Productos
+ADD ImagenUrl NVARCHAR(500) NULL DEFAULT '';
+
+-------------------------------------------------------------------
 
 -- Ejecutar esto en el proyecto 
 
@@ -829,6 +938,8 @@ GO
 -- Procedimientos almacenados modificados
 
 -- PROCEDIMIENTO ALMACENADO PARA LISTAR PRODUCTOS
+
+
 
 CREATE OR ALTER PROCEDURE dbo.sp_Productos_Listar
 AS
@@ -936,3 +1047,187 @@ BEGIN
     WHERE Id = @Id;
 END
 GO
+
+
+
+------- 10/3/2026 - AMANDA - PROVEEDORES -------
+
+-- =============================================
+-- 1. Agregar ProveedorId a la tabla Productos
+-- =============================================
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Productos') AND name = 'ProveedorId')
+BEGIN
+    ALTER TABLE dbo.Productos 
+    ADD ProveedorId INT NULL;
+
+    ALTER TABLE dbo.Productos 
+    ADD CONSTRAINT FK_Productos_Proveedores 
+    FOREIGN KEY (ProveedorId) REFERENCES dbo.Proveedores(Id);
+END
+GO
+
+-- =============================================
+-- 2. PROCEDIMIENTOS PARA PROVEEDORES (CRUD)
+-- =============================================
+CREATE OR ALTER PROCEDURE dbo.sp_Proveedores_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT Id, Nombre, Email, Telefono, Direccion
+    FROM dbo.Proveedores
+    ORDER BY Id DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Proveedores_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT Id, Nombre, Email, Telefono, Direccion
+    FROM dbo.Proveedores
+    WHERE Id = @Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Proveedores_Insertar
+    @Nombre NVARCHAR(150),
+    @Email NVARCHAR(120),
+    @Telefono NVARCHAR(30),
+    @Direccion NVARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO dbo.Proveedores (Nombre, Email, Telefono, Direccion)
+    VALUES (@Nombre, @Email, @Telefono, @Direccion);
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Proveedores_Actualizar
+    @Id INT,
+    @Nombre NVARCHAR(150),
+    @Email NVARCHAR(120),
+    @Telefono NVARCHAR(30),
+    @Direccion NVARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE dbo.Proveedores
+    SET Nombre = @Nombre,
+        Email = @Email,
+        Telefono = @Telefono,
+        Direccion = @Direccion
+    WHERE Id = @Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Proveedores_Eliminar
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DELETE FROM dbo.Proveedores WHERE Id = @Id;
+END
+GO
+
+-- =============================================
+-- 3. ACTUALIZAR PROCEDIMIENTOS DE PRODUCTOS (ahora soportan ProveedorId)
+-- =============================================
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        p.Id, p.Nombre, p.Codigo, c.Nombre AS Categoria,
+        p.Precio, p.Stock, p.StockMinimo, p.ImagenUrl,
+        ISNULL(prov.Nombre, 'Sin proveedor asignado') AS Proveedor
+    FROM dbo.Productos p
+    INNER JOIN dbo.Categorias c ON p.CategoriaId = c.Id
+    LEFT JOIN dbo.Proveedores prov ON p.ProveedorId = prov.Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT Id, CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    FROM dbo.Productos
+    WHERE Id = @Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Insertar
+    @CategoriaId INT,
+    @Nombre NVARCHAR(150),
+    @Codigo NVARCHAR(50),
+    @Precio DECIMAL(10,2),
+    @Stock INT,
+    @StockMinimo INT,
+    @ImagenUrl NVARCHAR(500) = NULL,
+    @ProveedorId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO dbo.Productos (CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId)
+    VALUES (@CategoriaId, @Nombre, @Codigo, @Precio, @Stock, @StockMinimo, @ImagenUrl, @ProveedorId);
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Actualizar
+    @Id INT,
+    @CategoriaId INT,
+    @Nombre NVARCHAR(150),
+    @Codigo NVARCHAR(50),
+    @Precio DECIMAL(10,2),
+    @Stock INT,
+    @StockMinimo INT,
+    @ImagenUrl NVARCHAR(500) = NULL,
+    @ProveedorId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE dbo.Productos
+    SET CategoriaId = @CategoriaId,
+        Nombre = @Nombre,
+        Codigo = @Codigo,
+        Precio = @Precio,
+        Stock = @Stock,
+        StockMinimo = @StockMinimo,
+        ImagenUrl = ISNULL(@ImagenUrl, ImagenUrl),
+        ProveedorId = ISNULL(@ProveedorId, ProveedorId)
+    WHERE Id = @Id;
+END
+GO
+
+-- =============================================
+-- 4. Datos de prueba
+-- =============================================
+INSERT INTO dbo.Proveedores (Nombre, Email, Telefono, Direccion) VALUES
+('VetSupply CR', 'info@vetsupply.cr', '22224444', 'Alajuela, Costa Rica'),
+('Mascotas Pro', 'ventas@mascotaspro.com', '24445555', 'Heredia, Costa Rica'),
+('Farmacia Animal', 'contacto@farmaciaanimal.cr', '22998877', 'San José, Costa Rica');
+GO
+
+-- Asignar un proveedor por defecto a los productos existentes
+UPDATE dbo.Productos 
+SET ProveedorId = (SELECT TOP 1 Id FROM Proveedores ORDER BY Id)
+WHERE ProveedorId IS NULL;
+GO
+
+-----------------Añadir proveedor a la lista de productos-----------------
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        p.Id, p.Nombre, p.Codigo, c.Nombre AS Categoria,
+        p.Precio, p.Stock, p.StockMinimo, p.ImagenUrl,
+        p.ProveedorId,
+        ISNULL(prov.Nombre, 'Sin proveedor') AS Proveedor
+    FROM dbo.Productos p
+    INNER JOIN dbo.Categorias c ON p.CategoriaId = c.Id
+    LEFT JOIN dbo.Proveedores prov ON p.ProveedorId = prov.Id;
+END
