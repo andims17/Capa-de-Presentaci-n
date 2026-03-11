@@ -146,4 +146,26 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+function setVista(tipo) {
+
+    const grid = document.getElementById("vistaGrid");
+    const tabla = document.getElementById("vistaTabla");
+
+    const botones = document.querySelectorAll(".btn-view");
+
+    botones.forEach(b => b.classList.remove("active"));
+
+    if (tipo === "grid") {
+        grid.style.display = "grid";
+        tabla.style.display = "none";
+        botones[0].classList.add("active");
+    } else {
+        grid.style.display = "none";
+        tabla.style.display = "block";
+        botones[1].classList.add("active");
+    }
+
+    localStorage.setItem("inventarioVista", tipo);
+}
+
 module.exports = router;
