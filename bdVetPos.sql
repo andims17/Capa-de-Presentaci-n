@@ -1147,6 +1147,7 @@ BEGIN
 END
 GO
 
+------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.sp_Productos_ObtenerPorId
     @Id INT
 AS
@@ -1231,3 +1232,69 @@ BEGIN
     INNER JOIN dbo.Categorias c ON p.CategoriaId = c.Id
     LEFT JOIN dbo.Proveedores prov ON p.ProveedorId = prov.Id;
 END
+GO
+
+------------------------------------------------------------
+-- 12/03/2026 - BITACORA DE AUDITORIA (ADMIN) Aaron
+------------------------------------------------------------
+
+IF OBJECT_ID('dbo.TiposEventoLog', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.TiposEventoLog (
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        Codigo VARCHAR(60) NOT NULL UNIQUE,
+        Nombre VARCHAR(150) NOT NULL
+    );
+END
+GO
+
+IF OBJECT_ID('dbo.LogAuditoria', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.LogAuditoria (
+        Id BIGINT IDENTITY(1,1) PRIMARY KEY,
+        Fecha DATETIME NOT NULL DEFAULT GETDATE(),
+        TipoEventoId INT NOT NULL,
+        ActorUsuarioId INT NULL,
+        UsuarioAfectadoId INT NULL,
+        Detalle NVARCHAR(300) NULL,
+        Ip NVARCHAR(45) NULL,
+        DatosJson NVARCHAR(MAX) NULL,
+        CONSTRAINT FK_LogAuditoria_TipoEvento FOREIGN KEY (TipoEventoId) REFERENCES dbo.TiposEventoLog(Id),
+        CONSTRAINT FK_LogAuditoria_Actor FOREIGN KEY (ActorUsuarioId) REFERENCES dbo.Usuarios(Id),
+        CONSTRAINT FK_LogAuditoria_UsuarioAfectado FOREIGN KEY (UsuarioAfectadoId) REFERENCES dbo.Usuarios(Id)
+    );
+
+    CREATE INDEX IX_LogAuditoria_Fecha ON dbo.LogAuditoria(Fecha DESC);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_REGISTRO_CUENTA')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_REGISTRO_CUENTA', 'Registro de cuenta (empleado)');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_ALTA_ADMIN')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_ALTA_ADMIN', 'Alta de administrador');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_ALTA_EMPLEADO')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_ALTA_EMPLEADO', 'Alta de empleado por admin');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_EDITADO')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_EDITADO', 'Edición de usuario');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_CAMBIO_ROL')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_CAMBIO_ROL', 'Cambio de rol de usuario');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_ACTIVADO')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_ACTIVADO', 'Usuario activado');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_DESACTIVADO')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_DESACTIVADO', 'Usuario desactivado');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_RESET_PASSWORD')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_RESET_PASSWORD', 'Reseteo de contraseña');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'CLI_CREADO')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('CLI_CREADO', 'Cliente creado');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'CLI_EDITADO')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('CLI_EDITADO', 'Cliente editado');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'CLI_ELIMINADO')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('CLI_ELIMINADO', 'Cliente eliminado');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_LOGIN')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_LOGIN', 'Inicio de sesión');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_LOGOUT')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_LOGOUT', 'Cierre de sesión');
+GO
+
+--Termina Aaron --------------------------------
+---------------------------------------------------------------------

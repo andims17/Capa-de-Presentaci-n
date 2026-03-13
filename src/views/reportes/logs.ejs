@@ -1,0 +1,208 @@
+<% title = 'Bitácora de Auditoría' %>
+
+<%
+    function obtenerClaseEvento(codigo) {
+        if (!codigo) return 'badge-evento badge-evento-neutral';
+        if (codigo.includes('ALTA') || codigo.includes('REGISTRO') || codigo.includes('ACTIVADO') || codigo.includes('CREADO') || codigo.includes('LOGIN') || codigo.includes('INICIO_SESION')) return 'badge-evento badge-evento-success';
+        if (codigo.includes('DESACTIVADO') || codigo.includes('ELIMINADO')) return 'badge-evento badge-evento-danger';
+        if (codigo.includes('CAMBIO_ROL') || codigo.includes('RESET_PASSWORD') || codigo.includes('EDITADO') || codigo.includes('LOGOUT') || codigo.includes('CIERRE_SESION')) return 'badge-evento badge-evento-warning';
+        return 'badge-evento badge-evento-neutral';
+    }
+
+    function esReciente(fecha) {
+        const ahora = new Date();
+        const evento = new Date(fecha);
+        const diffHoras = (ahora - evento) / (1000 * 60 * 60);
+        return diffHoras <= 24;
+    }
+%>
+
+<style>
+    .bitacora-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .bitacora-total {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        font-weight: 600;
+    }
+
+    .bitacora-total i {
+        color: var(--primary-dark);
+    }
+
+    .bitacora-note {
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .badge-evento {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+    }
+
+    .badge-evento-success {
+        background: rgba(16, 185, 129, 0.14);
+        color: #059669;
+    }
+
+    .badge-evento-danger {
+        background: rgba(239, 68, 68, 0.14);
+        color: #DC2626;
+    }
+
+    .badge-evento-warning {
+        background: rgba(245, 158, 11, 0.14);
+        color: #D97706;
+    }
+
+    .badge-evento-neutral {
+        background: rgba(100, 116, 139, 0.14);
+        color: #475569;
+    }
+
+    [data-theme="dark"] .badge-evento-success {
+        color: #6EE7B7;
+    }
+
+    [data-theme="dark"] .badge-evento-danger {
+        color: #FCA5A5;
+    }
+
+    [data-theme="dark"] .badge-evento-warning {
+        color: #FCD34D;
+    }
+
+    [data-theme="dark"] .badge-evento-neutral {
+        color: #CBD5E1;
+    }
+
+    .tabla-bitacora {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .tabla-bitacora thead th {
+        position: sticky;
+        top: 0;
+        background: var(--bg-secondary);
+        z-index: 1;
+    }
+
+    .tabla-bitacora tbody tr.bitacora-reciente {
+        background: rgba(125, 211, 252, 0.08);
+    }
+
+    [data-theme="dark"] .tabla-bitacora tbody tr.bitacora-reciente {
+        background: rgba(14, 165, 233, 0.12);
+    }
+
+    .bitacora-usuario {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .bitacora-muted {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .bitacora-detalle {
+        max-width: 320px;
+        white-space: normal;
+    }
+
+    .bitacora-fecha {
+        white-space: nowrap;
+        font-weight: 600;
+    }
+</style>
+
+<div class="page-header">
+    <h1 class="page-title">Bitácora de Auditoría</h1>
+    <p class="page-subtitle">Eventos críticos de usuarios y administración</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Registro de Eventos del Sistema</h2>
+    </div>
+    <div class="card-body">
+        <div class="bitacora-summary">
+            <div class="bitacora-total">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Total de eventos: <%= eventos ? eventos.length : 0 %></span>
+            </div>
+
+            <p class="bitacora-note">
+                Se muestran primero los eventos más recientes. Los registros de las últimas 24 horas aparecen resaltados.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        <h2 class="card-title">Actividad Registrada</h2>
+    </div>
+    <div class="card-body">
+        <table class="table tabla-bitacora">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Acción</th>
+                    <th>Quién</th>
+                    <th>A quién</th>
+                    <th>Detalle</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (eventos && eventos.length) { %>
+                    <% eventos.forEach(e => { %>
+                        <tr class="<%= esReciente(e.Fecha) ? 'bitacora-reciente' : '' %>">
+                            <td class="bitacora-fecha">
+                                <div><%= new Date(e.Fecha).toLocaleDateString() %></div>
+                                <div class="bitacora-muted"><%= new Date(e.Fecha).toLocaleTimeString() %></div>
+                            </td>
+                            <td>
+                                <span class="<%= obtenerClaseEvento(e.TipoCodigo) %>"><%= e.TipoEvento %></span>
+                            </td>
+                            <td>
+                                <div class="bitacora-usuario"><%= e.ActorUsername || 'Sistema' %></div>
+                                <div class="bitacora-muted"><%= e.ActorUsername ? 'Usuario ejecutor' : 'Proceso interno' %></div>
+                            </td>
+                            <td>
+                                <div class="bitacora-usuario"><%= e.UsuarioAfectadoUsername || '-' %></div>
+                                <div class="bitacora-muted"><%= e.UsuarioAfectadoUsername ? 'Usuario afectado' : 'Sin objetivo directo' %></div>
+                            </td>
+                            <td class="bitacora-detalle"><%= e.Detalle || '-' %></td>
+                            <td><span class="bitacora-muted"><%= e.Ip || '-' %></span></td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6">No se encontraron eventos para los filtros seleccionados.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
