@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const clientesModel = require('../models/clientesModel');
-const { registrarEvento } = require('../models/logAuditoriaModel');
-
-function obtenerIp(req) {
-    return (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-}
 
 
 function validarCliente(data) {
@@ -45,14 +40,6 @@ router.post('/crear', async (req, res) => {
         if (errorValidacion) return res.send(errorValidacion);
 
         await clientesModel.insertarCliente(req.body);
-
-        registrarEvento({
-            codigoEvento: 'CLI_CREADO',
-            actorUsuarioId: req.session.user?.id ?? null,
-            detalle: `Cliente creado: ${req.body.NombreCompleto}`,
-            ip: obtenerIp(req)
-        });
-
         res.redirect('/clientes');
     } catch (error) {
         console.error(error);
@@ -87,13 +74,6 @@ router.post('/editar/:id', async (req, res) => {
             Direccion: req.body.Direccion
         });
 
-        registrarEvento({
-            codigoEvento: 'CLI_EDITADO',
-            actorUsuarioId: req.session.user?.id ?? null,
-            detalle: `Cliente editado: ${req.body.NombreCompleto} (ID ${req.params.id})`,
-            ip: obtenerIp(req)
-        });
-
         res.redirect('/clientes');
     } catch (error) {
         console.error(error);
@@ -105,14 +85,6 @@ router.post('/editar/:id', async (req, res) => {
 router.get('/eliminar/:id', async (req, res) => {
     try {
         await clientesModel.eliminarCliente(req.params.id);
-
-        registrarEvento({
-            codigoEvento: 'CLI_ELIMINADO',
-            actorUsuarioId: req.session.user?.id ?? null,
-            detalle: `Cliente eliminado (ID ${req.params.id})`,
-            ip: obtenerIp(req)
-        });
-
         res.redirect('/clientes');
     } catch (error) {
         console.error(error);

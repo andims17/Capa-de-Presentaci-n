@@ -8,29 +8,8 @@ const {
   createUser,
   getRoleIdByName
 } = require('../models/usuarioModel');
-const { registrarEvento } = require('../models/logAuditoriaModel');
 
 const router = express.Router();
-
-function obtenerIp(req) {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) return String(forwarded).split(',')[0].trim();
-  return req.socket?.remoteAddress || req.ip || null;
-}
-
-async function registrarCierreSesion(req) {
-  const usuario = req.session?.user;
-  if (!usuario) return;
-
-  await registrarEvento({
-    codigoEvento: 'USR_LOGOUT',
-    actorUsuarioId: usuario.id,
-    usuarioAfectadoId: usuario.id,
-    detalle: `Cierre de sesión: ${usuario.username}`,
-    ip: obtenerIp(req),
-    datos: { username: usuario.username, rol: usuario.rolNombre }
-  });
-}
 
 // ===== LOGIN =====
 router.get('/login', (req, res) => {
@@ -70,15 +49,6 @@ router.post('/login', async (req, res) => {
     rolId: user.RolId,
     rolNombre: user.RolNombre
   };
-
-    await registrarEvento({
-      codigoEvento: 'USR_LOGIN',
-      actorUsuarioId: user.Id,
-      usuarioAfectadoId: user.Id,
-      detalle: `Inicio de sesión: ${user.Username}`,
-      ip: obtenerIp(req),
-      datos: { username: user.Username, rol: user.RolNombre }
-    });
 
 
     return res.redirect('/inicio');
@@ -164,15 +134,6 @@ router.post('/registro', async (req, res) => {
       rolId: rolEmpleadoId
     });
 
-    await registrarEvento({
-      codigoEvento: 'USR_REGISTRO_CUENTA',
-      actorUsuarioId: newId,
-      usuarioAfectadoId: newId,
-      detalle: `Nuevo usuario registrado desde Crear Cuenta: ${username}`,
-      ip: obtenerIp(req),
-      datos: { username, rol: 'Empleado' }
-    });
-
     // Auto-login al registrarse
     req.session.user = {
   id: newId,
@@ -180,15 +141,6 @@ router.post('/registro', async (req, res) => {
   rolId: rolEmpleadoId,
   rolNombre: 'Empleado'
 };
-
-    await registrarEvento({
-      codigoEvento: 'USR_LOGIN',
-      actorUsuarioId: newId,
-      usuarioAfectadoId: newId,
-      detalle: `Inicio de sesión automático tras registro: ${username}`,
-      ip: obtenerIp(req),
-      datos: { username, rol: 'Empleado' }
-    });
 
 
 
@@ -204,15 +156,13 @@ router.post('/registro', async (req, res) => {
 });
 
 // ===== LOGOUT =====
-router.post('/logout', async (req, res) => {
-  await registrarCierreSesion(req);
+router.post('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/cuenta/login');
   });
 });
 
-router.get('/logout', async (req, res) => {
-  await registrarCierreSesion(req);
+router.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/cuenta/login');
   });

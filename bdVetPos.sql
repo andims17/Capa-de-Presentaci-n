@@ -1147,7 +1147,6 @@ BEGIN
 END
 GO
 
-------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.sp_Productos_ObtenerPorId
     @Id INT
 AS
@@ -1232,11 +1231,794 @@ BEGIN
     INNER JOIN dbo.Categorias c ON p.CategoriaId = c.Id
     LEFT JOIN dbo.Proveedores prov ON p.ProveedorId = prov.Id;
 END
+
+
+
+------- 11/3/2026 - AMANDA - Citas y Transporte para Grooming -------
+
+USE VetPostDB;
 GO
 
-------------------------------------------------------------
+-- 1. Asegurar columnas necesarias en Citas
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Citas') AND name = 'TransporteNecesario')
+BEGIN
+    ALTER TABLE Citas ADD TransporteNecesario BIT DEFAULT 0;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Citas') AND name = 'TransporteId')
+BEGIN
+    ALTER TABLE Citas ADD TransporteId INT NULL;
+    ALTER TABLE Citas ADD CONSTRAINT FK_Citas_Transporte FOREIGN KEY (TransporteId) REFERENCES Transporte(Id);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Citas') AND name = 'TipoTransporte')
+BEGIN
+    ALTER TABLE Citas ADD TipoTransporte VARCHAR(20) NULL;  -- 'Ida', 'Vuelta', 'Ambos'
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Citas') AND name = 'CostoGrooming')
+BEGIN
+    ALTER TABLE Citas ADD CostoGrooming DECIMAL(10,2) NULL;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Citas') AND name = 'CostoTransporte')
+BEGIN
+    ALTER TABLE Citas ADD CostoTransporte DECIMAL(10,2) NULL;
+END
+GO
+
+-- 2. Asegurar Provincia en Clientes (para calcular costo transporte GAM)
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Clientes') AND name = 'Provincia')
+BEGIN
+    ALTER TABLE Clientes ADD Provincia VARCHAR(50) NULL;  -- ej: 'San José', 'Heredia', etc.
+END
+GO
+
+-- 3. PROCEDIMIENTOS PARA CITAS
+
+-- Listar citas con filtros
+CREATE OR ALTER PROCEDURE sp_Citas_Listar
+    @FechaInicio DATE = NULL,
+    @FechaFin DATE = NULL,
+    @ClienteId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        c.Id,
+        c.MascotaId,
+        m.Nombre AS MascotaNombre,
+        m.Peso,
+        cl.NombreCompleto AS ClienteNombre,
+        cl.Provincia,
+        c.UsuarioId,
+        u.NombreCompleto AS Veterinario,
+        c.Fecha,
+        c.Hora,
+        c.Servicio,
+        c.Estado,
+        c.TransporteNecesario,
+        c.TipoTransporte,
+        c.TransporteId,
+        t.NombreConductor AS Conductor,
+        t.Telefono AS TelefonoTransporte,
+        c.CostoGrooming,
+        c.CostoTransporte,
+        (ISNULL(c.CostoGrooming, 0) + ISNULL(c.CostoTransporte, 0)) AS Total
+    FROM Citas c
+    INNER JOIN Mascotas m ON c.MascotaId = m.Id
+    INNER JOIN Clientes cl ON m.ClienteId = cl.Id
+    INNER JOIN Usuarios u ON c.UsuarioId = u.Id
+    LEFT JOIN Transporte t ON c.TransporteId = t.Id
+    WHERE (@FechaInicio IS NULL OR c.Fecha >= @FechaInicio)
+      AND (@FechaFin IS NULL OR c.Fecha <= @FechaFin)
+      AND (@ClienteId IS NULL OR cl.Id = @ClienteId)
+    ORDER BY c.Fecha DESC, c.Hora DESC;
+END
+GO
+
+-- Obtener cita por ID (para editar)
+CREATE OR ALTER PROCEDURE sp_Citas_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        c.*,
+        m.Peso,
+        cl.Provincia,
+        cl.Id AS ClienteId,
+        m.Id AS MascotaId
+    FROM Citas c
+    INNER JOIN Mascotas m ON c.MascotaId = m.Id
+    INNER JOIN Clientes cl ON m.ClienteId = cl.Id
+    WHERE c.Id = @Id;
+END
+GO
+
+-- Insertar cita (con todos los cálculos y validaciones al 100%)
+CREATE OR ALTER PROCEDURE sp_Citas_Insertar
+    @MascotaId INT,
+    @UsuarioId INT = 1,               -- Veterinario fijo (admin por defecto)
+    @Fecha DATE,
+    @Hora TIME,
+    @Servicio VARCHAR(100) = 'Grooming',
+    @TransporteNecesario BIT = 0,
+    @TipoTransporte VARCHAR(20) = NULL,  -- 'Ida', 'Vuelta', 'Ambos'
+    @TransporteId INT = NULL,
+    @Provincia VARCHAR(50)            -- De la tabla Clientes
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 1. Validar que el servicio sea Grooming (por ahora solo ese)
+    IF @Servicio <> 'Grooming'
+    BEGIN
+        RAISERROR('Actualmente solo se soporta el servicio de Grooming.', 16, 1);
+        RETURN;
+    END
+
+    -- 2. Validar horario del veterinario (no solapamiento ±60 min)
+    IF EXISTS (
+        SELECT 1 FROM Citas
+        WHERE UsuarioId = @UsuarioId
+          AND Fecha = @Fecha
+          AND ABS(DATEDIFF(MINUTE, Hora, @Hora)) < 60
+    )
+    BEGIN
+        RAISERROR('El horario seleccionado ya está ocupado para el veterinario.', 16, 1);
+        RETURN;
+    END
+
+    -- 3. Si requiere transporte, validar datos obligatorios
+    IF @TransporteNecesario = 1
+    BEGIN
+        IF @TransporteId IS NULL OR @TipoTransporte NOT IN ('Ida', 'Vuelta', 'Ambos')
+        BEGIN
+            RAISERROR('Debe seleccionar un transporte válido y el tipo (Ida/Vuelta/Ambos).', 16, 1);
+            RETURN;
+        END
+
+        -- 4. Validar disponibilidad del transporte (±30 min)
+        IF EXISTS (
+            SELECT 1 FROM Citas
+            WHERE TransporteId = @TransporteId
+              AND Fecha = @Fecha
+              AND ABS(DATEDIFF(MINUTE, Hora, @Hora)) <= 30
+        )
+        BEGIN
+            RAISERROR('El transporte seleccionado no está disponible en ese horario (±30 min).', 16, 1);
+            RETURN;
+        END
+    END
+
+    -- 5. Validar peso de mascota (debe existir y ser >0)
+    DECLARE @Peso DECIMAL(5,2);
+    SELECT @Peso = Peso FROM Mascotas WHERE Id = @MascotaId;
+    IF @Peso IS NULL OR @Peso <= 0
+    BEGIN
+        RAISERROR('La mascota debe tener un peso registrado mayor a 0 para calcular el costo de grooming.', 16, 1);
+        RETURN;
+    END
+
+    -- 6. Calcular costo grooming según peso
+    DECLARE @CostoGrooming DECIMAL(10,2) = CASE
+        WHEN @Peso <= 2 THEN 7000
+        WHEN @Peso <= 4 THEN 10000
+        WHEN @Peso <= 7 THEN 13000
+        WHEN @Peso <= 10 THEN 16000
+        ELSE 20000
+    END;
+
+    -- 7. Calcular costo transporte según provincia
+    DECLARE @CostoTransporte DECIMAL(10,2) = 0;
+    IF @TransporteNecesario = 1
+    BEGIN
+        IF @Provincia IS NULL
+        BEGIN
+            RAISERROR('La provincia del cliente es requerida para calcular el costo de transporte.', 16, 1);
+            RETURN;
+        END
+
+        SET @CostoTransporte = CASE
+            WHEN @Provincia IN ('San José', 'Heredia', 'Alajuela', 'Cartago') THEN 10000
+            ELSE 25000
+        END;
+    END
+
+    -- 8. Insertar la cita
+    INSERT INTO Citas (
+        MascotaId, UsuarioId, Fecha, Hora, Servicio, Estado,
+        TransporteNecesario, TipoTransporte, TransporteId,
+        CostoGrooming, CostoTransporte
+    )
+    VALUES (
+        @MascotaId, @UsuarioId, @Fecha, @Hora, @Servicio, 'Pendiente',
+        @TransporteNecesario, @TipoTransporte, @TransporteId,
+        @CostoGrooming, @CostoTransporte
+    );
+
+    -- Retornar el ID de la nueva cita
+    SELECT SCOPE_IDENTITY() AS Id;
+END
+GO
+
+-- Actualizar cita (solo campos editables: fecha, hora, estado, transporte)
+CREATE OR ALTER PROCEDURE sp_Citas_Actualizar
+    @Id INT,
+    @Fecha DATE = NULL,
+    @Hora TIME = NULL,
+    @Estado VARCHAR(20) = NULL,
+    @TransporteNecesario BIT = NULL,
+    @TipoTransporte VARCHAR(20) = NULL,
+    @TransporteId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Re-validar si se cambia fecha/hora/transporte
+    DECLARE @UsuarioId INT, @FechaNueva DATE, @HoraNueva TIME;
+    SELECT @UsuarioId = UsuarioId, @FechaNueva = ISNULL(@Fecha, Fecha), @HoraNueva = ISNULL(@Hora, Hora)
+    FROM Citas WHERE Id = @Id;
+
+    IF EXISTS (
+        SELECT 1 FROM Citas
+        WHERE Id <> @Id
+          AND UsuarioId = @UsuarioId
+          AND Fecha = @FechaNueva
+          AND ABS(DATEDIFF(MINUTE, Hora, @HoraNueva)) < 60
+    )
+    BEGIN
+        RAISERROR('El nuevo horario ya está ocupado para el veterinario.', 16, 1);
+        RETURN;
+    END
+
+    IF ISNULL(@TransporteNecesario, (SELECT TransporteNecesario FROM Citas WHERE Id = @Id)) = 1 
+       AND ISNULL(@TransporteId, (SELECT TransporteId FROM Citas WHERE Id = @Id)) > 0
+    BEGIN
+        IF EXISTS (
+            SELECT 1 FROM Citas
+            WHERE Id <> @Id
+              AND TransporteId = @TransporteId
+              AND Fecha = @FechaNueva
+              AND ABS(DATEDIFF(MINUTE, Hora, @HoraNueva)) <= 30
+        )
+        BEGIN
+            RAISERROR('El transporte no está disponible en el nuevo horario.', 16, 1);
+            RETURN;
+        END
+    END
+
+    UPDATE Citas
+    SET Fecha = ISNULL(@Fecha, Fecha),
+        Hora = ISNULL(@Hora, Hora),
+        Estado = ISNULL(@Estado, Estado),
+        TransporteNecesario = ISNULL(@TransporteNecesario, TransporteNecesario),
+        TipoTransporte = ISNULL(@TipoTransporte, TipoTransporte),
+        TransporteId = ISNULL(@TransporteId, TransporteId)
+    WHERE Id = @Id;
+END
+GO
+
+-- 4. PROCEDIMIENTOS PARA TRANSPORTE
+
+CREATE OR ALTER PROCEDURE sp_Transporte_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT t.*, p.Nombre AS Proveedor
+    FROM Transporte t
+    INNER JOIN Proveedores p ON t.ProveedorId = p.Id
+    ORDER BY t.Id DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_Transporte_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT * FROM Transporte WHERE Id = @Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_Transporte_Insertar
+    @ProveedorId INT,
+    @TipoVehiculo VARCHAR(50),
+    @Placa VARCHAR(20),
+    @NombreConductor VARCHAR(100),
+    @Telefono VARCHAR(30)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO Transporte (ProveedorId, TipoVehiculo, Placa, NombreConductor, Telefono)
+    VALUES (@ProveedorId, @TipoVehiculo, @Placa, @NombreConductor, @Telefono);
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_Transporte_Actualizar
+    @Id INT,
+    @ProveedorId INT,
+    @TipoVehiculo VARCHAR(50),
+    @Placa VARCHAR(20),
+    @NombreConductor VARCHAR(100),
+    @Telefono VARCHAR(30)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE Transporte
+    SET ProveedorId = @ProveedorId,
+        TipoVehiculo = @TipoVehiculo,
+        Placa = @Placa,
+        NombreConductor = @NombreConductor,
+        Telefono = @Telefono
+    WHERE Id = @Id;
+END
+GO
+
+-- Verificar disponibilidad de transporte en rango horario
+CREATE OR ALTER PROCEDURE sp_Transporte_VerificarDisponibilidad
+    @Fecha DATE,
+    @Hora TIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Buscar citas con transporte en ventana de ±30 min
+    SELECT COUNT(*) AS Conflictos
+    FROM Citas c
+    WHERE c.TransporteNecesario = 1
+      AND c.Fecha = @Fecha
+      AND ABS(DATEDIFF(MINUTE, c.Hora, @Hora)) <= 30;
+END
+GO
+
+---------------- MODIFICACIONES PARA CORREGIR TRANSPORTE 13/3/2026 AMANDA ------------
+
+-- 1. Eliminar FK con Proveedores (ya no se necesita)
+IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_Citas_Transporte')
+BEGIN
+    ALTER TABLE Citas DROP CONSTRAINT FK_Citas_Transporte;
+END
+GO
+-- mantenimiento de bd
+IF EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK__Transport__Prove__6477ECF3')
+BEGIN
+    ALTER TABLE Transporte DROP CONSTRAINT FK__Transport__Prove__6477ECF3;
+END
+GO
+
+-- 2. Quitar columna ProveedorId de Transporte (ya no existe proveedor)
+IF EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Transporte') AND name = 'ProveedorId')
+BEGIN
+    ALTER TABLE Transporte DROP COLUMN ProveedorId;
+END
+GO
+
+-- 3. Asegurar que solo haya 1 transportista (borrar extras si hay)
+DELETE FROM Transporte WHERE Id > 1;
+GO
+
+-- 4. Crear/actualizar el único transportista (ejemplo)
+IF NOT EXISTS (SELECT * FROM Transporte WHERE Id = 1)
+BEGIN
+    INSERT INTO Transporte (TipoVehiculo, Placa, NombreConductor, Telefono)
+    VALUES ('Camioneta', 'ABC-123', 'Juan Pérez', '88881234');
+END
+ELSE
+BEGIN
+    UPDATE Transporte SET 
+        TipoVehiculo = 'Camioneta',
+        Placa = 'ABC-123',
+        NombreConductor = 'Juan Pérez',
+        Telefono = '88881234'
+    WHERE Id = 1;
+END
+GO
+
+-- 5. SP para listar el único transportista + sus citas
+CREATE OR ALTER PROCEDURE sp_Transporte_ListarConCitas
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Datos del transportista (solo 1)
+    SELECT TOP 1 
+        Id,
+        TipoVehiculo,
+        Placa,
+        NombreConductor,
+        Telefono
+    FROM Transporte
+    ORDER BY Id;
+
+    -- Citas asignadas (solo las que necesitan transporte)
+    SELECT 
+        c.Id AS CitaId,
+        c.Fecha,
+        c.Hora,
+        c.TipoTransporte,
+        cl.Direccion AS DireccionCliente,
+        c.CostoTransporte
+    FROM Citas c
+    INNER JOIN Mascotas m ON c.MascotaId = m.Id
+    INNER JOIN Clientes cl ON m.ClienteId = cl.Id
+    WHERE c.TransporteNecesario = 1
+      AND c.TransporteId = 1  -- El único transportista
+    ORDER BY c.Fecha DESC, c.Hora DESC;
+END
+GO
+
+--- Correccion para visualizar el error en el overlap de tiempos
+
+  CREATE OR ALTER PROCEDURE sp_Citas_Actualizar
+    @Id INT,
+    @Fecha DATE = NULL,
+    @Hora TIME = NULL,
+    @Estado VARCHAR(20) = NULL,
+    @TransporteNecesario BIT = NULL,
+    @TipoTransporte VARCHAR(20) = NULL,
+    @TransporteId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @UsuarioId INT, @FechaNueva DATE, @HoraNueva TIME;
+    SELECT @UsuarioId = UsuarioId, 
+           @FechaNueva = ISNULL(@Fecha, Fecha), 
+           @HoraNueva  = ISNULL(@Hora, Hora)
+    FROM Citas WHERE Id = @Id;
+
+    IF EXISTS (
+        SELECT 1 FROM Citas
+        WHERE Id <> @Id
+          AND UsuarioId = @UsuarioId
+          AND Fecha = @FechaNueva
+          AND ABS(DATEDIFF(MINUTE, Hora, @HoraNueva)) < 60
+    )
+    BEGIN
+        RAISERROR('CONFLICTO_VETERINARIO', 16, 1);
+        RETURN;
+    END
+
+    IF ISNULL(@TransporteNecesario, (SELECT TransporteNecesario FROM Citas WHERE Id = @Id)) = 1 
+       AND ISNULL(@TransporteId, (SELECT TransporteId FROM Citas WHERE Id = @Id)) > 0
+    BEGIN
+        IF EXISTS (
+            SELECT 1 FROM Citas
+            WHERE Id <> @Id
+              AND TransporteId = ISNULL(@TransporteId, (SELECT TransporteId FROM Citas WHERE Id = @Id))
+              AND Fecha = @FechaNueva
+              AND ABS(DATEDIFF(MINUTE, Hora, @HoraNueva)) <= 30
+        )
+        BEGIN
+            RAISERROR('CONFLICTO_TRANSPORTE', 16, 1);
+            RETURN;
+        END
+    END
+
+    UPDATE Citas
+    SET Fecha               = ISNULL(@Fecha, Fecha),
+        Hora                = ISNULL(@Hora, Hora),
+        Estado              = ISNULL(@Estado, Estado),
+        TransporteNecesario = ISNULL(@TransporteNecesario, TransporteNecesario),
+        TipoTransporte      = ISNULL(@TipoTransporte, TipoTransporte),
+        TransporteId        = ISNULL(@TransporteId, TransporteId)
+    WHERE Id = @Id;
+END
+GO
+
+
+-- Corregir el tiempo de validacion entre citas dependiendo si esta en GAM o no:
+
+CREATE OR ALTER PROCEDURE sp_Citas_Actualizar
+    @Id INT,
+    @Fecha DATE = NULL,
+    @Hora TIME = NULL,
+    @Estado VARCHAR(20) = NULL,
+    @TransporteNecesario BIT = NULL,
+    @TipoTransporte VARCHAR(20) = NULL,
+    @TransporteId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @UsuarioId        INT;
+    DECLARE @FechaNueva       DATE;
+    DECLARE @HoraNueva        TIME;
+    DECLARE @Provincia        VARCHAR(50);
+    DECLARE @MinutosBloqueo   INT;
+    DECLARE @TransporteActual INT;
+
+    -- Obtener datos actuales + provincia del cliente
+    SELECT
+        @UsuarioId        = c.UsuarioId,
+        @FechaNueva       = ISNULL(@Fecha, c.Fecha),
+        @HoraNueva        = ISNULL(@Hora,  c.Hora),
+        @Provincia        = cl.Provincia,
+        @TransporteActual = c.TransporteId
+    FROM Citas c
+    INNER JOIN Mascotas m  ON c.MascotaId = m.Id
+    INNER JOIN Clientes cl ON m.ClienteId = cl.Id
+    WHERE c.Id = @Id;
+
+    -- 1. Validar conflicto con veterinario (60 min siempre)
+    IF EXISTS (
+        SELECT 1 FROM Citas
+        WHERE Id <> @Id
+          AND UsuarioId = @UsuarioId
+          AND Fecha = @FechaNueva
+          AND ABS(DATEDIFF(MINUTE, Hora, @HoraNueva)) < 60
+    )
+    BEGIN
+        RAISERROR('CONFLICTO_VETERINARIO', 16, 1);
+        RETURN;
+    END
+
+    -- 2. Validar conflicto de transporte si la cita usa transporte
+    DECLARE @UsaTransporte      BIT = ISNULL(@TransporteNecesario,
+                                        (SELECT TransporteNecesario FROM Citas WHERE Id = @Id));
+    DECLARE @TransporteEfectivo INT = ISNULL(@TransporteId, @TransporteActual);
+
+    IF @UsaTransporte = 1 AND @TransporteEfectivo IS NOT NULL
+    BEGIN
+        SET @MinutosBloqueo = CASE
+            WHEN @Provincia IN ('San José', 'Heredia', 'Alajuela', 'Cartago') THEN 60
+            ELSE 150
+        END;
+
+        IF EXISTS (
+            SELECT 1 FROM Citas c2
+            INNER JOIN Mascotas m2  ON c2.MascotaId = m2.Id
+            INNER JOIN Clientes cl2 ON m2.ClienteId = cl2.Id
+            WHERE c2.Id <> @Id
+              AND c2.TransporteId = @TransporteEfectivo
+              AND c2.TransporteNecesario = 1
+              AND c2.Fecha = @FechaNueva
+              AND ABS(DATEDIFF(MINUTE, c2.Hora, @HoraNueva)) < @MinutosBloqueo
+        )
+        BEGIN
+            RAISERROR('CONFLICTO_TRANSPORTE', 16, 1);
+            RETURN;
+        END
+    END
+
+    -- 3. Actualizar
+    UPDATE Citas
+    SET Fecha               = ISNULL(@Fecha,               Fecha),
+        Hora                = ISNULL(@Hora,                Hora),
+        Estado              = ISNULL(@Estado,              Estado),
+        TransporteNecesario = ISNULL(@TransporteNecesario, TransporteNecesario),
+        TipoTransporte      = ISNULL(@TipoTransporte,      TipoTransporte),
+        TransporteId        = ISNULL(@TransporteId,        TransporteId)
+    WHERE Id = @Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_Citas_Insertar
+    @MascotaId INT,
+    @UsuarioId INT = 1,
+    @Fecha DATE,
+    @Hora TIME,
+    @Servicio VARCHAR(100) = 'Grooming',
+    @TransporteNecesario BIT = 0,
+    @TipoTransporte VARCHAR(20) = NULL,
+    @TransporteId INT = NULL,
+    @Provincia VARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @MinutosBloqueo INT;
+
+    -- 1. Validar que el servicio sea Grooming
+    IF @Servicio <> 'Grooming'
+    BEGIN
+        RAISERROR('SERVICIO_INVALIDO', 16, 1);
+        RETURN;
+    END
+
+    -- 2. Validar horario del veterinario (no solapamiento 60 min)
+    IF EXISTS (
+        SELECT 1 FROM Citas
+        WHERE UsuarioId = @UsuarioId
+          AND Fecha = @Fecha
+          AND ABS(DATEDIFF(MINUTE, Hora, @Hora)) < 60
+    )
+    BEGIN
+        RAISERROR('CONFLICTO_VETERINARIO', 16, 1);
+        RETURN;
+    END
+
+    -- 3. Validar transporte si es necesario
+    IF @TransporteNecesario = 1
+    BEGIN
+        IF @TransporteId IS NULL OR @TipoTransporte NOT IN ('Ida', 'Vuelta', 'Ambos')
+        BEGIN
+            RAISERROR('TRANSPORTE_DATOS_INVALIDOS', 16, 1);
+            RETURN;
+        END
+
+        -- Calcular bloqueo según provincia (GAM vs fuera)
+        SET @MinutosBloqueo = CASE
+            WHEN @Provincia IN ('San José', 'Heredia', 'Alajuela', 'Cartago') THEN 60
+            ELSE 150
+        END;
+
+        IF EXISTS (
+            SELECT 1 FROM Citas c2
+            INNER JOIN Mascotas m2  ON c2.MascotaId = m2.Id
+            INNER JOIN Clientes cl2 ON m2.ClienteId = cl2.Id
+            WHERE c2.TransporteId = @TransporteId
+              AND c2.TransporteNecesario = 1
+              AND c2.Fecha = @Fecha
+              AND ABS(DATEDIFF(MINUTE, c2.Hora, @Hora)) < @MinutosBloqueo
+        )
+        BEGIN
+            RAISERROR('CONFLICTO_TRANSPORTE', 16, 1);
+            RETURN;
+        END
+    END
+
+    -- 4. Validar peso de mascota
+    DECLARE @Peso DECIMAL(5,2);
+    SELECT @Peso = Peso FROM Mascotas WHERE Id = @MascotaId;
+    IF @Peso IS NULL OR @Peso <= 0
+    BEGIN
+        RAISERROR('MASCOTA_SIN_PESO', 16, 1);
+        RETURN;
+    END
+
+    -- 5. Calcular costo grooming según peso
+    DECLARE @CostoGrooming DECIMAL(10,2) = CASE
+        WHEN @Peso <= 2  THEN 7000
+        WHEN @Peso <= 4  THEN 10000
+        WHEN @Peso <= 7  THEN 13000
+        WHEN @Peso <= 10 THEN 16000
+        ELSE 20000
+    END;
+
+    -- 6. Calcular costo transporte según provincia
+    DECLARE @CostoTransporte DECIMAL(10,2) = 0;
+    IF @TransporteNecesario = 1
+    BEGIN
+        IF @Provincia IS NULL
+        BEGIN
+            RAISERROR('PROVINCIA_REQUERIDA', 16, 1);
+            RETURN;
+        END
+
+        SET @CostoTransporte = CASE
+            WHEN @Provincia IN ('San José', 'Heredia', 'Alajuela', 'Cartago') THEN 10000
+            ELSE 25000
+        END;
+    END
+
+    -- 7. Insertar la cita
+    INSERT INTO Citas (
+        MascotaId, UsuarioId, Fecha, Hora, Servicio, Estado,
+        TransporteNecesario, TipoTransporte, TransporteId,
+        CostoGrooming, CostoTransporte
+    )
+    VALUES (
+        @MascotaId, @UsuarioId, @Fecha, @Hora, @Servicio, 'Pendiente',
+        @TransporteNecesario, @TipoTransporte, @TransporteId,
+        @CostoGrooming, @CostoTransporte
+    );
+
+    SELECT SCOPE_IDENTITY() AS Id;
+END
+GO
+
+---------- COMO NO SE PUEDEN AGREGAR HASTA QUE ESTE PV, AGREGANDO DATOS DE PRUEBA EN BD ----------
+-- =============================================
+-- LIMPIEZA TOTAL
+-- =============================================
+DELETE FROM Citas;
+DELETE FROM Transporte;
+DELETE FROM Mascotas;
+DELETE FROM Clientes;
+GO
+
+DBCC CHECKIDENT ('Clientes',   RESEED, 0);
+DBCC CHECKIDENT ('Mascotas',   RESEED, 0);
+DBCC CHECKIDENT ('Citas',      RESEED, 0);
+DBCC CHECKIDENT ('Transporte', RESEED, 0);
+GO
+
+-- =============================================
+-- CLIENTES: 5 dentro del GAM (IDs 1-5)
+-- =============================================
+INSERT INTO Clientes (NombreCompleto, Email, Telefono, Direccion, Provincia) VALUES
+('Ana María Rojas',      'ana.rojas@email.com',      '88881234', 'San Pedro, Montes de Oca',  'San José'),
+('Carlos Eduardo Gómez', 'carlos.gomez@email.com',   '87776543', 'Heredia centro',             'Heredia'),
+('Laura Fernández',      'laura.fdz@email.com',      '86665432', 'Alajuela, Desamparados',     'Alajuela'),
+('Roberto Jiménez',      'roberto.jim@email.com',    '85554321', 'Cartago, Paraíso',           'Cartago'),
+('Valeria Mora',         'valeria.mora@email.com',   '84443210', 'Escazú, San Rafael',         'San José');
+GO
+
+-- =============================================
+-- CLIENTES: 5 fuera del GAM (IDs 6-10)
+-- =============================================
+INSERT INTO Clientes (NombreCompleto, Email, Telefono, Direccion, Provincia) VALUES
+('Diego Solano',         'diego.solano@email.com',   '83332109', 'Liberia, Guanacaste',        'Guanacaste'),
+('Mariela Brenes',       'mariela.brenes@email.com', '82221098', 'Puntarenas centro',          'Puntarenas'),
+('Andrés Quesada',       'andres.quesada@email.com', '81110987', 'Ciudad Quesada, San Carlos', 'Alajuela Norte'),
+('Natalia Vega',         'natalia.vega@email.com',   '80009876', 'Pérez Zeledón, San Isidro',  'San José Sur'),
+('Fernando Chaves',      'fernando.chaves@email.com','79998765', 'Limón centro',               'Limón');
+GO
+
+-- =============================================
+-- MASCOTAS: 1 por cliente (IDs 1-10)
+-- =============================================
+INSERT INTO Mascotas (ClienteId, Nombre, Especie, Raza, Sexo, FechaNacimiento, Peso, TieneAlergias, NotasAlergias) VALUES
+-- GAM
+(1,  'Luna',   'Perro', 'Labrador',         'Hembra', '2023-05-15', 8.5,  0, NULL),               -- grooming 16.000
+(2,  'Max',    'Gato',  'Persa',             'Macho',  '2024-01-10', 4.2,  1, 'Alergia al pollo'), -- grooming 10.000
+(3,  'Rocky',  'Perro', 'Bulldog',           'Macho',  '2022-11-20', 12.0, 0, NULL),               -- grooming 20.000
+(4,  'Bella',  'Perro', 'Golden Retriever',  'Hembra', '2023-08-03', 1.8,  0, NULL),               -- grooming  7.000
+(5,  'Simba',  'Gato',  'Siamés',            'Macho',  '2024-02-28', 5.5,  0, NULL),               -- grooming 13.000
+-- Fuera GAM
+(6,  'Canela', 'Perro', 'Beagle',            'Hembra', '2022-07-11', 9.0,  0, NULL),               -- grooming 16.000
+(7,  'Thor',   'Perro', 'Rottweiler',        'Macho',  '2021-03-22', 15.0, 1, 'Alergia al maíz'), -- grooming 20.000
+(8,  'Mía',    'Gato',  'Maine Coon',        'Hembra', '2023-11-05', 3.1,  0, NULL),               -- grooming 10.000
+(9,  'Bruno',  'Perro', 'Dálmata',           'Macho',  '2022-09-17', 6.8,  0, NULL),               -- grooming 13.000
+(10, 'Nina',   'Perro', 'Chihuahua',         'Hembra', '2024-04-01', 1.5,  0, NULL);               -- grooming  7.000
+GO
+
+-- =============================================
+-- TRANSPORTISTA ÚNICO (Id 1)
+-- =============================================
+INSERT INTO Transporte (TipoVehiculo, Placa, NombreConductor, Telefono) VALUES
+('Camioneta', 'ABC-123', 'Juan Pérez', '88881234');
+GO
+
+-- =============================================
+-- CITAS: 10 ejemplos
+-- 5 clientes GAM  → 3 sin transporte, 2 con transporte
+-- 5 clientes fuera GAM → 2 sin transporte, 3 con transporte
+-- Horas separadas para no generar conflictos entre sí
+-- =============================================
+INSERT INTO Citas (MascotaId, UsuarioId, Fecha, Hora, Servicio, Estado, TransporteNecesario, TipoTransporte, TransporteId, CostoGrooming, CostoTransporte)
+VALUES
+-- GAM sin transporte
+(1, 1, '2026-03-24', '08:00:00', 'Grooming', 'Pendiente',  0, NULL,    NULL, 16000,  0),
+(3, 1, '2026-03-25', '10:00:00', 'Grooming', 'Confirmada', 0, NULL,    NULL, 20000,  0),
+(5, 1, '2026-03-26', '09:00:00', 'Grooming', 'Pendiente',  0, NULL,    NULL, 13000,  0),
+-- GAM con transporte (bloqueo 1h → citas separadas 60+ min)
+(2, 1, '2026-03-27', '08:00:00', 'Grooming', 'Pendiente',  1, 'Ambos', 1,   10000, 10000),
+(4, 1, '2026-03-27', '11:00:00', 'Grooming', 'Confirmada', 1, 'Ida',   1,    7000, 10000),
+
+-- Fuera GAM sin transporte
+(6, 1, '2026-03-28', '08:00:00', 'Grooming', 'Pendiente',  0, NULL,    NULL, 16000,  0),
+(8, 1, '2026-03-29', '10:00:00', 'Grooming', 'Pendiente',  0, NULL,    NULL, 10000,  0),
+-- Fuera GAM con transporte (bloqueo 2h30 → citas separadas 150+ min)
+(7,  1, '2026-03-30', '08:00:00', 'Grooming', 'Pendiente',  1, 'Ambos', 1,  20000, 25000),
+(9,  1, '2026-03-30', '11:00:00', 'Grooming', 'Confirmada', 1, 'Vuelta',1,  13000, 25000),
+(10, 1, '2026-03-31', '08:00:00', 'Grooming', 'Pendiente',  1, 'Ida',   1,   7000, 25000);
+GO
+
+-- =============================================
+-- VERIFICACIÓN
+-- =============================================
+SELECT 'Clientes GAM:'      AS Seccion; SELECT * FROM Clientes WHERE Provincia IN ('San José','Heredia','Alajuela','Cartago') ORDER BY Id;
+SELECT 'Clientes fuera GAM:'AS Seccion; SELECT * FROM Clientes WHERE Provincia NOT IN ('San José','Heredia','Alajuela','Cartago') ORDER BY Id;
+SELECT 'Mascotas:'          AS Seccion; SELECT * FROM Mascotas ORDER BY Id;
+SELECT 'Transporte:'        AS Seccion; SELECT * FROM Transporte;
+SELECT 'Citas:'             AS Seccion; SELECT * FROM Citas ORDER BY Id;
+GO
+
+EXEC sp_Transporte_ListarConCitas;
+GO
+
+
 -- 12/03/2026 - BITACORA DE AUDITORIA (ADMIN) Aaron
-------------------------------------------------------------
 
 IF OBJECT_ID('dbo.TiposEventoLog', 'U') IS NULL
 BEGIN
@@ -1284,17 +2066,18 @@ IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_DESACTIVADO'
     INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_DESACTIVADO', 'Usuario desactivado');
 IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_RESET_PASSWORD')
     INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_RESET_PASSWORD', 'Reseteo de contraseña');
+
 IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'CLI_CREADO')
     INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('CLI_CREADO', 'Cliente creado');
 IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'CLI_EDITADO')
     INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('CLI_EDITADO', 'Cliente editado');
 IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'CLI_ELIMINADO')
     INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('CLI_ELIMINADO', 'Cliente eliminado');
+
 IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_LOGIN')
     INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_LOGIN', 'Inicio de sesión');
 IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_LOGOUT')
     INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('USR_LOGOUT', 'Cierre de sesión');
 GO
 
---Termina Aaron --------------------------------
----------------------------------------------------------------------
+---------------------------aaron termina 12.03.2026---------------------

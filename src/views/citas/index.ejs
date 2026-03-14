@@ -1,228 +1,202 @@
 <div class="page-header">
-  <h1 class="page-title">Gestión de Citas</h1>
-  <p class="page-subtitle">Administra las citas de la veterinaria</p>
+    <h1 class="page-title">Gestión de Citas</h1>
+    <p class="page-subtitle">Registro y edición de citas de grooming</p>
 </div>
 
-<div class="filters-section">
-  <div class="filter-group">
-    <label class="filter-label">Fecha</label>
-    <input type="date" class="form-control" style="width: 200px;">
-  </div>
-  <div class="filter-group">
-    <label class="filter-label">Estado</label>
-    <select class="form-control" style="width: 150px;">
-      <option>Todas</option>
-      <option>Confirmadas</option>
-      <option>Pendientes</option>
-      <option>Canceladas</option>
-    </select>
-  </div>
-  <div class="filter-group">
-    <label class="filter-label">Veterinario</label>
-    <select class="form-control" style="width: 180px;">
-      <option>Todos</option>
-      <option>Dr. Carlos Rodríguez</option>
-      <option>Dra. Ana García</option>
-    </select>
-  </div>
+<!-- Modal de Error -->
+<div id="errorModal" class="modal" style="display:none;">
+    <div class="modal-content card" style="max-width: 420px; margin: auto;">
+        <div class="modal-header" style="background:#fee2e2; border-bottom: 1px solid #fca5a5;">
+            <h3 class="modal-title" style="color:#991b1b; display:flex; align-items:center; gap:.5rem;">
+                <i class="fas fa-circle-exclamation"></i> No se pudo guardar
+            </h3>
+            <button class="close" onclick="closeModal('errorModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem;">
+            <p id="errorModalMsg" style="margin:0; color:#374151; font-size:.97rem; line-height:1.5;"></p>
+        </div>
+        <div style="display:flex; justify-content:flex-end; padding: 1rem 1.5rem;">
+            <button class="btn btn-primary" onclick="closeModal('errorModal')">Entendido</button>
+        </div>
+    </div>
 </div>
 
-<div class="citas-container">
-  <div class="card">
+<!-- Filtro -->
+<div class="card mb-4">
     <div class="card-header">
-      <h2 class="card-title">Citas de Hoy</h2>
-      <span class="badge badge-info">3 citas</span>
+        <h2 class="card-title">Filtros</h2>
     </div>
-
-    <div class="citas-list">
-      <div class="cita-item">
-        <div class="cita-hora">09:00 AM</div>
-        <div class="cita-info">
-          <div class="cita-cliente">María González</div>
-          <div class="cita-mascota">Max (Perro - Labrador)</div>
-          <div class="cita-servicio">Consulta general</div>
-        </div>
-        <div class="cita-estado">
-          <span class="badge badge-success">Confirmada</span>
-        </div>
-      </div>
-
-      <div class="cita-item">
-        <div class="cita-hora">10:30 AM</div>
-        <div class="cita-info">
-          <div class="cita-cliente">Carlos López</div>
-          <div class="cita-mascota">Luna (Gato - Persa)</div>
-          <div class="cita-servicio">Vacunación anual</div>
-        </div>
-        <div class="cita-estado">
-          <span class="badge badge-warning">Pendiente</span>
-        </div>
-      </div>
-
-      <div class="cita-item">
-        <div class="cita-hora">02:00 PM</div>
-        <div class="cita-info">
-          <div class="cita-cliente">Ana Martínez</div>
-          <div class="cita-mascota">Rocky (Perro - Pastor Alemán)</div>
-          <div class="cita-servicio">Control postoperatorio</div>
-        </div>
-        <div class="cita-estado">
-          <span class="badge badge-success">Confirmada</span>
-        </div>
-      </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label>Fecha</label>
+                <input type="date" name="fecha" value="<%= fecha || '' %>" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label>Cliente</label>
+                <select name="clienteId" class="form-control">
+                    <option value="">Todos</option>
+                    <% (clientes || []).forEach(cl => { %>
+                        <option value="<%= cl.Id %>" <%= (clienteId == cl.Id) ? 'selected' : '' %>>
+                            <%= cl.NombreCompleto %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title">Próximas Citas</h2>
-      <span class="badge badge-info">2 citas</span>
-    </div>
-
-    <div class="citas-list">
-      <div class="cita-item">
-        <div class="cita-fecha">Mañana</div>
-        <div class="cita-info">
-          <div class="cita-cliente">Roberto Sánchez</div>
-          <div class="cita-mascota">Mimi (Gato - Siames)</div>
-          <div class="cita-servicio">Desparasitación - 11:00 AM</div>
-        </div>
-      </div>
-
-      <div class="cita-item">
-        <div class="cita-fecha">15 Oct</div>
-        <div class="cita-info">
-          <div class="cita-cliente">Laura Díaz</div>
-          <div class="cita-mascota">Thor (Perro - Husky)</div>
-          <div class="cita-servicio">Corte de uñas y baño - 03:30 PM</div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
+<!-- Listado -->
 <div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Todas las Citas</h2>
-    <button class="btn btn-primary" onclick="openModal('nuevaCitaModal')">
-      <i class="fas fa-plus"></i> Nueva Cita
-    </button>
-  </div>
-
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Cliente</th>
-        <th>Mascota</th>
-        <th>Servicio</th>
-        <th>Veterinario</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>15/10/2024 09:00</td>
-        <td>María González</td>
-        <td>Max (Perro)</td>
-        <td>Consulta general</td>
-        <td>Dr. Carlos Rodríguez</td>
-        <td><span class="badge badge-success">Confirmada</span></td>
-        <td>
-          <button class="btn btn-primary" style="padding:0.3rem 0.6rem;font-size:0.8rem;">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="btn btn-danger" style="padding:0.3rem 0.6rem;font-size:0.8rem;">
-            <i class="fas fa-trash"></i>
-          </button>
-        </td>
-      </tr>
-      <tr>
-        <td>15/10/2024 10:30</td>
-        <td>Carlos López</td>
-        <td>Luna (Gato)</td>
-        <td>Vacunación anual</td>
-        <td>Dra. Ana García</td>
-        <td><span class="badge badge-warning">Pendiente</span></td>
-        <td>
-          <button class="btn btn-primary" style="padding:0.3rem 0.6rem;font-size:0.8rem;">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="btn btn-danger" style="padding:0.3rem 0.6rem;font-size:0.8rem;">
-            <i class="fas fa-trash"></i>
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div id="nuevaCitaModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 class="modal-title">Agendar Nueva Cita</h3>
-      <button class="close" onclick="closeModal('nuevaCitaModal')">&times;</button>
+    <div class="card-header">
+        <h2 class="card-title">Citas Registradas</h2>
     </div>
-
-    <form>
-      <div class="form-group">
-        <label class="form-label">Cliente</label>
-        <select class="form-control">
-          <option>Seleccionar cliente</option>
-          <option>María González</option>
-          <option>Carlos López</option>
-          <option>Ana Martínez</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Mascota</label>
-        <select class="form-control">
-          <option>Seleccionar mascota</option>
-          <option>Max (Perro - Labrador)</option>
-          <option>Luna (Gato - Persa)</option>
-          <option>Rocky (Perro - Pastor Alemán)</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Fecha y Hora</label>
-        <input type="datetime-local" class="form-control">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Servicio</label>
-        <select class="form-control">
-          <option>Consulta general</option>
-          <option>Vacunación</option>
-          <option>Desparasitación</option>
-          <option>Control postoperatorio</option>
-          <option>Estética</option>
-          <option>Urgencia</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Veterinario</label>
-        <select class="form-control">
-          <option>Dr. Carlos Rodríguez</option>
-          <option>Dra. Ana García</option>
-          <option>Dr. Miguel Torres</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Notas</label>
-        <textarea class="form-control" rows="3" placeholder="Observaciones adicionales..."></textarea>
-      </div>
-
-      <div style="display:flex;gap:1rem;justify-content:flex-end;">
-        <button type="button" class="btn btn-plain" onclick="closeModal('nuevaCitaModal')">
-          Cancelar
-        </button>
-        <button type="submit" class="btn btn-primary">Agendar Cita</button>
-      </div>
-    </form>
-  </div>
+    <div class="card-body">
+        <% if (!citas || citas.length === 0) { %>
+            <p class="text-center text-muted">No hay citas registradas.</p>
+        <% } else { %>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Mascota</th>
+                            <th>Cliente</th>
+                            <th>Servicio</th>
+                            <th>Estado</th>
+                            <th>Transporte</th>
+                            <th>GAM</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% citas.forEach(c => { %>
+                            <tr>
+                                <td><%= c.Fecha || '-' %></td>
+                                <td><%= c.Hora || '-' %></td>
+                                <td><%= c.MascotaNombre || '-' %></td>
+                                <td><%= c.ClienteNombre || '-' %></td>
+                                <td><%= c.Servicio || '-' %></td>
+                                <td><%= c.Estado || 'Pendiente' %></td>
+                                <td>
+                                    <% if (c.TransporteNecesario === 1 || c.TransporteNecesario === true) { %>
+                                        <span class="badge bg-info">Sí</span>
+                                        <br>
+                                        <small><%= c.TipoTransporte || 'No especificado' %> - ₡<%= c.CostoTransporte || 0 %></small>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">No</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <%
+                                        const provinciasGAM = ['San José', 'Heredia', 'Alajuela', 'Cartago'];
+                                        const enGAM = provinciasGAM.includes(c.Provincia);
+                                    %>
+                                    <% if (enGAM) { %>
+                                        <span class="badge bg-success">Sí</span>
+                                    <% } else { %>
+                                        <span class="badge bg-warning text-dark">No</span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary"
+                                            data-id="<%= c.Id %>"
+                                            data-fecha="<%= c.FechaISO || '' %>"
+                                            data-hora="<%= c.Hora || '' %>"
+                                            data-estado="<%= c.Estado || 'Pendiente' %>"
+                                            onclick="openEditModal(this)">
+                                        Editar
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+    </div>
 </div>
+
+<!-- Modal Editar Cita -->
+<div id="editarCitaModal" class="modal">
+    <div class="modal-content card">
+        <div class="modal-header">
+            <h3 class="modal-title">Editar Cita</h3>
+            <button class="close" onclick="closeModal('editarCitaModal')">&times;</button>
+        </div>
+        <form id="formEditarCita" method="POST">
+            <input type="hidden" name="Id" id="editarIdCita">
+
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" name="Fecha" id="editarFecha" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Hora (24 horas)</label>
+                <input type="time" name="Hora" id="editarHora" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Estado</label>
+                <select name="Estado" id="editarEstado" class="form-control">
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Confirmada">Confirmada</option>
+                    <option value="Completada">Completada</option>
+                    <option value="Cancelada">Cancelada</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Requiere transporte:</label>
+                <input type="text" class="form-control" readonly disabled
+                       value="<%= typeof c !== 'undefined' && c.TransporteNecesario === 1 ? 'Sí' : 'No' %>">
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editarCitaModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditModal(button) {
+    const id     = button.getAttribute('data-id');
+    const fecha  = button.getAttribute('data-fecha');
+    const hora   = button.getAttribute('data-hora');
+    const estado = button.getAttribute('data-estado');
+
+    document.getElementById('editarIdCita').value = id;
+    document.getElementById('editarFecha').value  = fecha;
+    document.getElementById('editarHora').value   = hora;
+    document.getElementById('editarEstado').value = estado;
+
+    document.getElementById('formEditarCita').action = '/citas/editar/' + id;
+    openModal('editarCitaModal');
+}
+
+function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// Muestra el modal de error si viene un mensaje en la URL
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const error  = params.get('error');
+    if (error) {
+        document.getElementById('errorModalMsg').textContent = decodeURIComponent(error);
+        openModal('errorModal');
+
+        // Limpia el ?error= de la URL sin recargar
+        params.delete('error');
+        const nueva = params.toString()
+            ? `${window.location.pathname}?${params}`
+            : window.location.pathname;
+        window.history.replaceState({}, '', nueva);
+    }
+})();
+</script>

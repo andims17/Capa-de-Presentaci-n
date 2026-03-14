@@ -1,185 +1,106 @@
 <div class="page-header">
-    <h1 class="page-title"><i class="fas fa-truck"></i> Gestión de Transporte</h1>
-    <p class="page-subtitle">Administra las rutas y vehículos</p>
+    <h1 class="page-title">Gestión de Transporte</h1>
+    <p class="page-subtitle">Transportista único para traslado de mascotas en grooming</p>
 </div>
 
+<% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+<% } %>
 
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title"><i class="fas fa-route"></i> Rutas Disponibles</h2>
-        <div style="display:flex; gap:1rem;">
-            <div class="search-box">
-                <input type="text" class="search-input" placeholder="Buscar ruta...">
-                <button class="search-btn"><i class="fas fa-search"></i></button>
-            </div>
-
-            <button class="btn btn-primary" onclick="openModal('nuevaRutaModal')">
-                <i class="fas fa-plus"></i> Nueva Ruta
+<% if (transportista) { %>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="card-title">Información del Transportista</h2>
+            <button class="btn btn-primary btn-sm" onclick="openEditModal()">
+                <i class="fas fa-edit"></i> Editar
             </button>
         </div>
-
+        <div class="card-body">
+            <p><strong>Conductor:</strong> <%= transportista.NombreConductor || '-' %></p>
+            <p><strong>Vehículo:</strong> <%= transportista.TipoVehiculo || '-' %> (<%= transportista.Placa || 'Sin placa' %>)</p>
+            <p><strong>Teléfono:</strong> <%= transportista.Telefono || '-' %></p>
+        </div>
     </div>
 
-
-    <div class="pets-grid">
-
-
-        <div class="pet-card">
-            <div class="pet-header">
-                <div class="pet-avatar"><i class="fas fa-truck-fast"></i></div>
-                <div>
-                    <h3>Ruta 1</h3>
-                    <p>Santamaría → San José</p>
-                </div>
-            </div>
-            <div class="pet-details">
-                <div class="detail-item"><span>Horario:</span><span>6:00 AM</span></div>
-                <div class="detail-item"><span>Chofer:</span><span>Mario Cruz</span></div>
-                <div class="detail-item"><span>Estado:</span><span class="health-badge">Activa</span></div>
-            </div>
-            <div class="pet-actions">
-                <button class="btn btn-primary btn-xs"><i class="fas fa-eye"></i> Ver</button>
-                <button class="btn btn-plain btn-xs"><i class="fas fa-edit"></i> Editar</button>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Citas Asignadas al Transportista</h2>
         </div>
-
-
-        <div class="pet-card">
-            <div class="pet-header">
-                <div class="pet-avatar"><i class="fas fa-bus"></i></div>
-                <div>
-                    <h3>Ruta 2</h3>
-                    <p>Heredia → Limón</p>
+        <div class="card-body">
+            <% if (citas.length === 0) { %>
+                <p class="text-muted">No hay citas que requieran transporte.</p>
+            <% } else { %>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Tipo</th>
+                                <th>Dirección</th>
+                                <th>Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% citas.forEach(cita => { %>
+                                <tr>
+                                <td><%= cita.Fecha || '-' %></td>
+                                    <td><%= cita.Hora || '-' %></td>
+                                    <td><%= cita.TipoTransporte || '-' %></td>
+                                    <td><%= cita.DireccionCliente || 'No registrada' %></td>
+                                    <td>₡<%= cita.CostoTransporte || 0 %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-            <div class="pet-details">
-                <div class="detail-item"><span>Horario:</span><span>8:30 AM</span></div>
-                <div class="detail-item"><span>Chofer:</span><span>Laura Méndez</span></div>
-                <div class="detail-item"><span>Estado:</span><span class="vaccine-badge">Programada</span></div>
-            </div>
-            <div class="pet-actions">
-                <button class="btn btn-primary btn-xs"><i class="fas fa-eye"></i> Ver</button>
-                <button class="btn btn-plain btn-xs"><i class="fas fa-edit"></i> Editar</button>
-            </div>
+            <% } %>
         </div>
-
-
-        <div class="pet-card">
-            <div class="pet-header">
-                <div class="pet-avatar"><i class="fas fa-truck"></i></div>
-                <div>
-                    <h3>Ruta 3</h3>
-                    <p>Cartago → Alajuela</p>
-                </div>
-            </div>
-            <div class="pet-details">
-                <div class="detail-item"><span>Horario:</span><span>10:15 AM</span></div>
-                <div class="detail-item"><span>Chofer:</span><span>José Vargas</span></div>
-                <div class="detail-item"><span>Estado:</span><span class="health-badge">Activa</span></div>
-            </div>
-            <div class="pet-actions">
-                <button class="btn btn-primary btn-xs verRutaBtn"><i class="fas fa-eye"></i> Ver</button>
-                <button class="btn btn-plain btn-xs"><i class="fas fa-edit"></i> Editar</button>
-            </div>
-
-        </div>
-
-
     </div>
-</div>
+<% } else { %>
+    <div class="alert alert-warning text-center">
+        No hay transportista registrado.
+    </div>
+<% } %>
 
-<div id="nuevaRutaModal" class="modal">
-    <div class="modal-content">
-
+<!-- Modal Editar -->
+<div id="editarTransporteModal" class="modal">
+    <div class="modal-content card">
         <div class="modal-header">
-            <h3 class="modal-title">Registrar Nueva Ruta</h3>
-            <button class="close" onclick="closeModal('nuevaRutaModal')">&times;</button>
+            <h3 class="modal-title">Editar Transportista</h3>
+            <button class="close" onclick="closeModal('editarTransporteModal')">&times;</button>
         </div>
-
-        <form id="formNuevaRuta">
-
+        <form id="formEditarTransporte" method="POST" action="/transporte/editar">
             <div class="form-group">
-                <label class="form-label">Nombre de la Ruta</label>
-                <input type="text" class="form-control" id="nombreRuta" placeholder="Ej: Ruta San José - Heredia">
+                <label>Tipo de Vehículo</label>
+                <input type="text" name="TipoVehiculo" class="form-control" required>
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="form-group">
-                    <label class="form-label">Origen</label>
-                    <input type="text" class="form-control" id="origenRuta" placeholder="Dirección de origen">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Destino</label>
-                    <input type="text" class="form-control" id="destinoRuta" placeholder="Dirección de destino">
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-
-                <div class="form-group">
-                    <label class="form-label">Hora de Salida</label>
-                    <input type="time" class="form-control" id="horaSalida">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Hora Estimada de Llegada</label>
-                    <input type="time" class="form-control" id="horaLlegada">
-                </div>
-
-            </div>
-
             <div class="form-group">
-                <label class="form-label">Chofer Asignado</label>
-                <input type="text" class="form-control" id="choferRuta" placeholder="Nombre del chofer">
+                <label>Placa</label>
+                <input type="text" name="Placa" class="form-control">
             </div>
-
             <div class="form-group">
-                <label class="form-label">Estado</label>
-                <select id="estadoRuta" class="form-control">
-                    <option value="activa">Activa</option>
-                    <option value="programada">Programada</option>
-                    <option value="inactiva">Inactiva</option>
-                </select>
+                <label>Nombre del Conductor</label>
+                <input type="text" name="NombreConductor" class="form-control" required>
             </div>
-
             <div class="form-group">
-                <label class="form-label">Notas</label>
-                <textarea id="notasRuta" class="form-control" rows="3"
-                    placeholder="Información adicional..."></textarea>
+                <label>Teléfono</label>
+                <input type="tel" name="Telefono" class="form-control">
             </div>
 
-            <div style="display:flex; gap:1rem; justify-content:flex-end;">
-                <button type="button" class="btn" onclick="closeModal('nuevaRutaModal')" style="background:#E2E8F0;">
-                    Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    Registrar Ruta
-                </button>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editarTransporteModal')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
             </div>
-
         </form>
     </div>
 </div>
 
-
 <script>
-    document.querySelectorAll(".verRutaBtn").forEach(btn => {
-        btn.addEventListener("click", function () {
+function openEditModal() {
+    openModal('editarTransporteModal');
+}
 
-            const origen = this.dataset.origen;
-            const destino = this.dataset.destino;
-
-            const iframe = document.getElementById("mapFrame");
-            const mapa = document.getElementById("mapContainer");
-
-            const url = `https://www.google.com/maps/embed/v1/directions?key=AIzaSyAW7DT04SVHhOqwUrRhidV5HEr1BwW9-qM
-                         &origin=${encodeURIComponent(origen)}
-                         &destination=${encodeURIComponent(destino)}`;
-
-            iframe.src = url;
-            mapa.style.display = "block";
-            mapa.scrollIntoView({ behavior: "smooth" });
-        });
-    });
+function openModal(id) { document.getElementById(id).style.display = 'block'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 </script>
