@@ -12,8 +12,20 @@ const {
   resetPassword,   // ✅ 1) AGREGADO
   setUserActive
 } = require('../models/usuarioModel');
+const { registrarEvento } = require('../models/logAuditoriaModel');
 
 const router = express.Router();
+
+function obtenerIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) return String(forwarded).split(',')[0].trim();
+  return req.socket?.remoteAddress || req.ip || null;
+}
+
+function nombreRolPorId(roles, rolId) {
+  const rol = roles.find(r => r.Id === parseInt(rolId, 10));
+  return rol ? rol.Nombre : String(rolId);
+}
 
 // LISTA
 router.get('/', async (req, res) => {
@@ -58,6 +70,14 @@ router.post('/nuevo', async (req, res) => {
       email,
       passwordHash,
       rolId: parseInt(rolId, 10)
+    });
+
+    const rolNombre = nombreRolPorId(roles, rolId);
+    registrarEvento({
+      codigoEvento: rolNombre === 'Administrador' ? 'USR_ALTA_ADMIN' : 'USR_ALTA_EMPLEADO',
+      actorUsuarioId: req.session.user?.id ?? null,
+      detalle: `Usuario creado: ${username} (${rolNombre})`,
+      ip: obtenerIp(req)
     });
 
     return res.redirect('/usuarios');
@@ -133,10 +153,36 @@ router.post('/:id/editar', async (req, res) => {
       activo: activoBool
     });
 
+    registrarEvento({
+      codigoEvento: 'USR_EDITADO',
+      actorUsuarioId: req.session.user?.id ?? null,
+      usuarioAfectadoId: id,
+      detalle: `Usuario editado: ${username} (ID ${id})`,
+      ip: obtenerIp(req)
+    });
+
+    if (parseInt(rolId, 10) !== user.RolId) {
+      const roles2 = await getRoles();
+      registrarEvento({
+        codigoEvento: 'USR_CAMBIO_ROL',
+        actorUsuarioId: req.session.user?.id ?? null,
+        usuarioAfectadoId: id,
+        detalle: `Cambio de rol → ${nombreRolPorId(roles2, rolId)}`,
+        ip: obtenerIp(req)
+      });
+    }
+
     // ✅ Reset password opcional en SP aparte
     if (newPassword && newPassword.trim().length >= 6) {
       const passwordHash = await bcrypt.hash(newPassword.trim(), 10);
       await resetPassword({ id, passwordHash });
+      registrarEvento({
+        codigoEvento: 'USR_RESET_PASSWORD',
+        actorUsuarioId: req.session.user?.id ?? null,
+        usuarioAfectadoId: id,
+        detalle: `Reset de contraseña para usuario ID ${id}`,
+        ip: obtenerIp(req)
+      });
     }
 
     return res.redirect('/usuarios');
@@ -150,6 +196,13 @@ router.post('/:id/editar', async (req, res) => {
 router.post('/:id/desactivar', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   await setUserActive(id, 0);
+  registrarEvento({
+    codigoEvento: 'USR_DESACTIVADO',
+    actorUsuarioId: req.session.user?.id ?? null,
+    usuarioAfectadoId: id,
+    detalle: `Usuario desactivado (ID ${id})`,
+    ip: obtenerIp(req)
+  });
   res.redirect('/usuarios');
 });
 
@@ -157,6 +210,13 @@ router.post('/:id/desactivar', async (req, res) => {
 router.post('/:id/activar', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   await setUserActive(id, 1);
+  registrarEvento({
+    codigoEvento: 'USR_ACTIVADO',
+    actorUsuarioId: req.session.user?.id ?? null,
+    usuarioAfectadoId: id,
+    detalle: `Usuario activado (ID ${id})`,
+    ip: obtenerIp(req)
+  });
   res.redirect('/usuarios');
 });
 
