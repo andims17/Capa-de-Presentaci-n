@@ -1,14 +1,40 @@
 const { sql, getPool } = require('../config/db');
 
-async function registrarEvento({ codigoEvento, actorUsuarioId = null, usuarioAfectadoId = null, detalle = null, ip = null, datos = null }) {
+function formatearNombreEvento(codigoEvento) {
+  if (!codigoEvento) return 'Evento del sistema';
+
+  return String(codigoEvento)
+    .split('_')
+    .filter(Boolean)
+    .map(parte => parte.charAt(0) + parte.slice(1).toLowerCase())
+    .join(' ');
+}
+
+async function obtenerOCrearTipoEvento(pool, codigoEvento, nombreEvento = null) {
+  const tipoResult = await pool.request()
+    .input('Codigo', sql.VarChar(60), codigoEvento)
+    .query('SELECT TOP 1 Id FROM dbo.TiposEventoLog WHERE Codigo = @Codigo');
+
+  const tipoEventoId = tipoResult.recordset[0]?.Id;
+  if (tipoEventoId) return tipoEventoId;
+
+  const insertResult = await pool.request()
+    .input('Codigo', sql.VarChar(60), codigoEvento)
+    .input('Nombre', sql.VarChar(150), nombreEvento || formatearNombreEvento(codigoEvento))
+    .query(`
+      INSERT INTO dbo.TiposEventoLog (Codigo, Nombre)
+      OUTPUT INSERTED.Id
+      VALUES (@Codigo, @Nombre)
+    `);
+
+  return insertResult.recordset[0]?.Id;
+}
+
+async function registrarEvento({ codigoEvento, nombreEvento = null, actorUsuarioId = null, usuarioAfectadoId = null, detalle = null, ip = null, datos = null }) {
   try {
     const pool = await getPool();
 
-    const tipoResult = await pool.request()
-      .input('Codigo', sql.VarChar(60), codigoEvento)
-      .query('SELECT TOP 1 Id FROM dbo.TiposEventoLog WHERE Codigo = @Codigo');
-
-    const tipoEventoId = tipoResult.recordset[0]?.Id;
+    const tipoEventoId = await obtenerOCrearTipoEvento(pool, codigoEvento, nombreEvento);
     if (!tipoEventoId) return;
 
     await pool.request()
@@ -73,8 +99,26 @@ async function listarTiposEvento() {
   return result.recordset;
 }
 
+async function limpiarEventosPorCategoria(categoria = 'reportes') {
+  const pool = await getPool();
+
+  if (categoria === 'reportes') {
+    const result = await pool.request().query(`
+      DELETE l
+      FROM dbo.LogAuditoria l
+      INNER JOIN dbo.TiposEventoLog t ON t.Id = l.TipoEventoId
+      WHERE t.Codigo LIKE 'REP[_]%' OR t.Codigo LIKE 'RPT[_]%'
+    `);
+
+    return result.rowsAffected?.[0] || 0;
+  }
+
+  return 0;
+}
+
 module.exports = {
   registrarEvento,
   listarEventos,
-  listarTiposEvento
+  listarTiposEvento,
+  limpiarEventosPorCategoria
 };

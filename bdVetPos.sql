@@ -2081,3 +2081,53 @@ IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'USR_LOGOUT')
 GO
 
 ---------------------------aaron termina 12.03.2026---------------------
+
+--- Aaron 14/03/2026 
+
+
+------------------------------------------------------------
+-- TABLA: MOVIMIENTOS DE INVENTARIO
+------------------------------------------------------------
+IF OBJECT_ID('dbo.Movimientos', 'U') IS NULL
+BEGIN
+    CREATE TABLE Movimientos (
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        Fecha DATETIME NOT NULL DEFAULT GETDATE(),
+        Tipo VARCHAR(50) NOT NULL,
+        ProductoId INT NOT NULL,
+        Cantidad INT NOT NULL,
+        UsuarioId INT NULL,
+        Detalle NVARCHAR(250) NULL,
+        StockPrevio INT NULL,
+        StockNuevo INT NULL,
+
+        FOREIGN KEY (ProductoId) REFERENCES Productos(Id),
+        FOREIGN KEY (UsuarioId) REFERENCES Usuarios(Id)
+    );
+
+    CREATE INDEX IX_Movimientos_Fecha ON Movimientos(Fecha DESC);
+    CREATE INDEX IX_Movimientos_ProductoId ON Movimientos(ProductoId);
+END;
+
+
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'REP_VER_PANEL')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('REP_VER_PANEL', 'Acceso al panel de reportes');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'REP_VER_HISTORIAL')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('REP_VER_HISTORIAL', 'Consulta de historial de inventario');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'REP_FILTRAR_HISTORIAL')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('REP_FILTRAR_HISTORIAL', 'Filtrado de historial de inventario');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'REP_VER_BITACORA')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('REP_VER_BITACORA', 'Consulta de bitácora del sistema');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'REP_GENERAR_REPORTE')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('REP_GENERAR_REPORTE', 'Generación de reporte');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'REP_EXPORTAR_PDF')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('REP_EXPORTAR_PDF', 'Exportación de reporte en PDF');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'REP_EXPORTAR_EXCEL')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('REP_EXPORTAR_EXCEL', 'Exportación de reporte en Excel');
+IF NOT EXISTS (SELECT 1 FROM dbo.TiposEventoLog WHERE Codigo = 'REP_IMPRIMIR')
+    INSERT INTO dbo.TiposEventoLog (Codigo, Nombre) VALUES ('REP_IMPRIMIR', 'Impresión de reporte');
+GO
+
+
+
+----------aaron termina 14.03.2026---------------------

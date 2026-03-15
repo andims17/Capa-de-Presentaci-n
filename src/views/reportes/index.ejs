@@ -227,23 +227,83 @@
 </div>
 
 <script>
-    function generarReporte() {
-        const tipoReporte = document.getElementById('tipoReporte').value;
-        const fechaDesde = document.getElementById('fechaDesde').value;
-        const fechaHasta = document.getElementById('fechaHasta').value;
+    async function registrarAccionReporte(codigoEvento, nombreEvento, detalle, datos = {}) {
+        try {
+            await fetch('/reportes/accion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    codigoEvento,
+                    nombreEvento,
+                    detalle,
+                    datos
+                }),
+                keepalive: true
+            });
+        } catch (error) {
+            console.error('No se pudo registrar la acción del reporte:', error);
+        }
+    }
 
-        alert(`Generando reporte de ${tipoReporte} desde ${fechaDesde || 'N/A'} hasta ${fechaHasta || 'N/A'}`);
+    function obtenerContextoReporte() {
+        return {
+            tipoReporte: document.getElementById('tipoReporte').value,
+            fechaDesde: document.getElementById('fechaDesde').value || null,
+            fechaHasta: document.getElementById('fechaHasta').value || null
+        };
+    }
+
+    function generarReporte() {
+        const contexto = obtenerContextoReporte();
+
+        registrarAccionReporte(
+            'REP_GENERAR_REPORTE',
+            'Generación de reporte',
+            `El usuario generó un reporte de tipo ${contexto.tipoReporte}`,
+            contexto
+        );
+
+        alert(`Generando reporte de ${contexto.tipoReporte} desde ${contexto.fechaDesde || 'N/A'} hasta ${contexto.fechaHasta || 'N/A'}`);
     }
 
     function exportarPDF() {
+        const contexto = obtenerContextoReporte();
+
+        registrarAccionReporte(
+            'REP_EXPORTAR_PDF',
+            'Exportación de reporte en PDF',
+            `El usuario exportó en PDF un reporte de tipo ${contexto.tipoReporte}`,
+            contexto
+        );
+
         alert('Exportando reporte a PDF...');
     }
 
     function exportarExcel() {
+        const contexto = obtenerContextoReporte();
+
+        registrarAccionReporte(
+            'REP_EXPORTAR_EXCEL',
+            'Exportación de reporte en Excel',
+            `El usuario exportó en Excel un reporte de tipo ${contexto.tipoReporte}`,
+            contexto
+        );
+
         alert('Exportando reporte a Excel...');
     }
 
     function imprimirReporte() {
+        const contexto = obtenerContextoReporte();
+
+        registrarAccionReporte(
+            'REP_IMPRIMIR',
+            'Impresión de reporte',
+            `El usuario envió a impresión un reporte de tipo ${contexto.tipoReporte}`,
+            contexto
+        );
+
         window.print();
     }
 </script>
