@@ -2131,3 +2131,272 @@ GO
 
 
 ----------aaron termina 14.03.2026---------------------
+
+
+---------------------------Andres 16.03.2026---------------------
+
+USE VetPostDB;
+GO
+
+-- =============================================
+-- PROVEEDORES REALES
+-- =============================================
+
+SET IDENTITY_INSERT dbo.Proveedores ON;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Proveedores WHERE Id = 4)
+BEGIN
+    INSERT INTO dbo.Proveedores (Id, Nombre, Email, Telefono, Direccion)
+    VALUES
+    (
+        4,
+        'Aquasu',
+        'aaquasu@gmail.com',
+        '62706886',
+        'Concovas, Provincia de Cartago, Paraíso, Costa Rica. Abrir en Waze. 4001 0238'
+    );
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Proveedores WHERE Id = 5)
+BEGIN
+    INSERT INTO dbo.Proveedores (Id, Nombre, Email, Telefono, Direccion)
+    VALUES
+    (
+        5,
+        'Kapuchiti Funny Pets',
+        'Kapuchitifunnypets@gmail.com',
+        '84036001',
+        'Zapote San Jose, Costa Rica'
+    );
+END
+GO
+
+SET IDENTITY_INSERT dbo.Proveedores OFF;
+GO
+
+DBCC CHECKIDENT ('dbo.Proveedores', RESEED, 5);
+GO
+
+-- =============================================
+-- IDs NECESARIOS
+-- =============================================
+
+DECLARE @CategoriaAccesoriosId INT;
+DECLARE @ProveedorAquasuId INT;
+DECLARE @ProveedorKapuchitiId INT;
+
+SELECT TOP 1 @CategoriaAccesoriosId = Id
+FROM dbo.Categorias
+WHERE Nombre = 'Accesorios';
+
+SELECT TOP 1 @ProveedorAquasuId = Id
+FROM dbo.Proveedores
+WHERE Nombre = 'Aquasu';
+
+SELECT TOP 1 @ProveedorKapuchitiId = Id
+FROM dbo.Proveedores
+WHERE Nombre = 'Kapuchiti Funny Pets';
+
+IF @CategoriaAccesoriosId IS NULL
+BEGIN
+    RAISERROR('No existe la categoría Accesorios en dbo.Categorias.', 16, 1);
+    RETURN;
+END
+
+IF @ProveedorAquasuId IS NULL
+BEGIN
+    RAISERROR('No existe el proveedor Aquasu en dbo.Proveedores.', 16, 1);
+    RETURN;
+END
+
+IF @ProveedorKapuchitiId IS NULL
+BEGIN
+    RAISERROR('No existe el proveedor Kapuchiti Funny Pets en dbo.Proveedores.', 16, 1);
+    RETURN;
+END
+
+-- =============================================
+-- PRODUCTOS AQUASU
+-- =============================================
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Productos WHERE Codigo = '1908')
+BEGIN
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    )
+    VALUES
+    (
+        @CategoriaAccesoriosId,
+        'Removedor de Olores Dophin',
+        '1908',
+        5100.00,
+        5,
+        2,
+        'https://res.cloudinary.com/dvvmqwvlb/image/upload/v1773709926/vetpos_productos/p99fyvxbf2gzs3xsbgcn.png',
+        @ProveedorAquasuId
+    );
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Productos WHERE Codigo = '1751-A')
+BEGIN
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    )
+    VALUES
+    (
+        @CategoriaAccesoriosId,
+        'Correa con Harness',
+        '1751-A',
+        5015.00,
+        10,
+        3,
+        'https://res.cloudinary.com/dvvmqwvlb/image/upload/v1773710019/vetpos_productos/ghfaybezq568ar8qusu3.png',
+        @ProveedorAquasuId
+    );
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Productos WHERE Codigo = '1278')
+BEGIN
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    )
+    VALUES
+    (
+        @CategoriaAccesoriosId,
+        'Pechera reflectiva',
+        '1278',
+        5850.00,
+        10,
+        3,
+        'https://res.cloudinary.com/dvvmqwvlb/image/upload/v1773710074/vetpos_productos/n7kiwhbu0avm8ypdz9gq.png',
+        @ProveedorAquasuId
+    );
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Productos WHERE Codigo = '1205')
+BEGIN
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    )
+    VALUES
+    (
+        @CategoriaAccesoriosId,
+        'Collar Snoopy',
+        '1205',
+        550.00,
+        10,
+        3,
+        'https://res.cloudinary.com/dvvmqwvlb/image/upload/v1773710115/vetpos_productos/g9cb91mgjpvtvzpguda5.png',
+        @ProveedorAquasuId
+    );
+END
+
+-- =============================================
+-- PRODUCTOS KAPUCHITI FUNNY PETS
+-- =============================================
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Productos WHERE Codigo = 'AD20202')
+BEGIN
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    )
+    VALUES
+    (
+        @CategoriaAccesoriosId,
+        'Comedero Acero color 22cm',
+        'AD20202',
+        2540.00,
+        7,
+        3,
+        'https://res.cloudinary.com/dvvmqwvlb/image/upload/v1773715601/vetpos_productos/zmoeixnisxvqbtefhfg5.png',
+        @ProveedorKapuchitiId
+    );
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Productos WHERE Codigo = 'AD14042')
+BEGIN
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    )
+    VALUES
+    (
+        @CategoriaAccesoriosId,
+        'Fuente de agua para mascotas',
+        'AD14042',
+        9500.00,
+        10,
+        3,
+        'https://res.cloudinary.com/dvvmqwvlb/image/upload/v1773715655/vetpos_productos/ylzhgbgsrzysk006mqgo.png',
+        @ProveedorKapuchitiId
+    );
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Productos WHERE Codigo = 'MX-241')
+BEGIN
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    )
+    VALUES
+    (
+        @CategoriaAccesoriosId,
+        'Cinturon de seguridad 2.5x80cm',
+        'MX-241',
+        2255.00,
+        15,
+        5,
+        'https://res.cloudinary.com/dvvmqwvlb/image/upload/v1773715704/vetpos_productos/pieg2bvnyoqneng9vj8t.png',
+        @ProveedorKapuchitiId
+    );
+END
+
+IF NOT EXISTS (SELECT 1 FROM dbo.Productos WHERE Codigo = 'AD23104')
+BEGIN
+    INSERT INTO dbo.Productos
+    (
+        CategoriaId, Nombre, Codigo, Precio, Stock, StockMinimo, ImagenUrl, ProveedorId
+    )
+    VALUES
+    (
+        @CategoriaAccesoriosId,
+        'Bebedero para pajaro 375 ml',
+        'AD23104',
+        2115.00,
+        5,
+        2,
+        'https://res.cloudinary.com/dvvmqwvlb/image/upload/v1773715545/vetpos_productos/o0pad6jad2b6tfqaemoc.png',
+        @ProveedorKapuchitiId
+    );
+END
+GO
+
+-- =============================================
+-- VERIFICACIÓN FINAL
+-- =============================================
+
+SELECT 
+    p.Id,
+    p.Nombre,
+    p.Codigo,
+    p.Precio,
+    p.Stock,
+    p.StockMinimo,
+    c.Nombre AS Categoria,
+    pr.Nombre AS Proveedor,
+    p.ImagenUrl
+FROM dbo.Productos p
+INNER JOIN dbo.Categorias c ON p.CategoriaId = c.Id
+LEFT JOIN dbo.Proveedores pr ON p.ProveedorId = pr.Id
+WHERE pr.Nombre IN ('Aquasu', 'Kapuchiti Funny Pets')
+ORDER BY pr.Nombre, p.Id;
+GO
+
+---------------------------Andres Fin 16.03.2026---------------------
