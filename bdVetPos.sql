@@ -2400,3 +2400,95 @@ ORDER BY pr.Nombre, p.Id;
 GO
 
 ---------------------------Andres Fin 16.03.2026---------------------
+
+
+
+---------------------------Nolan comienza 18.03.2026---------------------
+
+CREATE OR ALTER PROCEDURE dbo.sp_Ventas_BuscarProductos
+    @Termino NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        p.Id, 
+        p.Nombre, 
+        p.Codigo,
+        p.Precio, 
+        p.Stock, 
+        p.StockMinimo,
+        p.ImagenUrl,
+        c.Nombre AS Categoria,
+        CASE 
+            WHEN p.Stock <= p.StockMinimo THEN 1 
+            ELSE 0 
+        END AS EsCritico
+    FROM dbo.Productos p
+    INNER JOIN dbo.Categorias c ON p.CategoriaId = c.Id
+    WHERE (p.Nombre LIKE '%' + @Termino + '%' OR p.Codigo = @Termino)
+    AND p.Stock > -100
+    ORDER BY p.Nombre;
+END
+GO
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_Ventas_ProcesarVenta
+    @ClienteId INT,
+    @UsuarioId INT,
+    @Total DECIMAL(10,2),
+    @DetalleJSON NVARCHAR(MAX) 
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        DECLARE @VentaId INT;
+        INSERT INTO dbo.Ventas (ClienteId, UsuarioId, Fecha, Total)
+        VALUES (NULLIF(@ClienteId, 0), @UsuarioId, GETDATE(), @Total);
+
+        SET @VentaId = SCOPE_IDENTITY();
+        INSERT INTO dbo.VentasDetalle (VentaId, ProductoId, Cantidad, PrecioUnitario, Subtotal)
+        SELECT 
+            @VentaId, 
+            ProductoId, 
+            Cantidad, 
+            Precio, 
+            (Cantidad * Precio)
+        FROM OPENJSON(@DetalleJSON)
+        WITH (
+            ProductoId INT,
+            Cantidad INT,
+            Precio DECIMAL(10,2)
+        );
+        UPDATE p
+        SET p.Stock = p.Stock - d.Cantidad
+        FROM dbo.Productos p
+        INNER JOIN (
+            SELECT ProductoId, Cantidad 
+            FROM OPENJSON(@DetalleJSON)
+            WITH (ProductoId INT, Cantidad INT)
+        ) d ON p.Id = d.ProductoId;
+
+        COMMIT TRANSACTION;
+        SELECT @VentaId AS VentaId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrMsg, 16, 1);
+    END CATCH
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_Ventas_ListarClientesPOS
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT Id, NombreCompleto, Telefono, Provincia
+    FROM dbo.Clientes
+    ORDER BY NombreCompleto;
+END
+GO
+---------------------------Nolan Fin 18.03.2026---------------------

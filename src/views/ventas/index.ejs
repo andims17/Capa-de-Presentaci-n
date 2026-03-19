@@ -1,4 +1,36 @@
-<% title = 'Punto de Venta' %>
+<% title='Punto de Venta' %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<style>
+    .manual-discounts {
+        display: flex;
+        gap: 4px;
+        margin-top: 5px;
+    }
+    .btn-desc {
+        padding: 2px 8px;
+        font-size: 11px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        background: #f8f9fa;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    .btn-desc:hover { background: #e2e6ea; }
+    .btn-desc.active {
+        background: #28a745;
+        color: white;
+        border-color: #1e7e34;
+        font-weight: bold;
+    }
+    .price-old {
+        text-decoration: line-through;
+        color: #dc3545;
+        font-size: 0.85em;
+        margin-right: 5px;
+    }
+    .cart-item-info { flex: 1; }
+</style>
 
 <div class="page-header">
     <h1 class="page-title">Punto de Venta</h1>
@@ -6,37 +38,34 @@
 </div>
 
 <div class="pos-container">
-    <!-- Sección de Productos -->
     <div class="products-section">
         <div class="search-box">
-            <input type="text" class="search-input" placeholder="Buscar producto..." id="searchInput">
+            <input type="text" class="search-input" placeholder="Buscar por nombre o código..." id="searchInput" onkeyup="filterProducts()">
             <button class="search-btn">
                 <i class="fas fa-search"></i>
             </button>
         </div>
 
         <div class="categories">
-            <button class="category-btn active" data-category="all">Todos</button>
-            <button class="category-btn" data-category="medicamento">Medicamentos</button>
-            <button class="category-btn" data-category="alimento">Alimentos</button>
-            <button class="category-btn" data-category="accesorio">Accesorios</button>
-            <button class="category-btn" data-category="higiene">Higiene</button>
+            <button class="category-btn active" data-category="all" onclick="setCategory('all', this)">Todos</button>
+            <button class="category-btn" data-category="medicamento" onclick="setCategory('medicamento', this)">Medicamentos</button>
+            <button class="category-btn" data-category="alimento" onclick="setCategory('alimento', this)">Alimentos</button>
+            <button class="category-btn" data-category="accesorio" onclick="setCategory('accesorio', this)">Accesorios</button>
+            <button class="category-btn" data-category="higiene" onclick="setCategory('higiene', this)">Higiene</button>
         </div>
 
-        <div class="products-grid" id="productsGrid">
-            <!-- Los productos se cargan dinámicamente -->
-        </div>
+        <div class="products-grid" id="productsGrid"></div>
     </div>
 
-    <!-- Sección del Carrito -->
     <div class="cart-section">
         <h3 class="cart-title">Carrito de Venta</h3>
 
         <div class="customer-section">
             <div class="customer-info">
                 <div>
-                    <div class="customer-name">Cliente: Venta General</div>
-                    <div class="customer-subtitle">Sin cliente asignado</div>
+                    <input type="hidden" id="selectedCustomerId" value="">
+                    <div class="customer-name" id="displayCustomerName">Cliente: Venta General</div>
+                    <div class="customer-subtitle" id="displayCustomerCode">Sin cliente asignado</div>
                 </div>
                 <span class="change-customer" onclick="openModal('seleccionarClienteModal')">
                     <i class="fas fa-edit"></i> Cambiar
@@ -54,15 +83,15 @@
         <div class="cart-summary" id="cartSummary" style="display: none;">
             <div class="summary-row">
                 <span>Subtotal:</span>
-                <span id="subtotal">$0.00</span>
+                <span id="subtotal">₡0.00</span>
             </div>
             <div class="summary-row">
-                <span>Descuento:</span>
-                <span id="discount">$0.00</span>
+                <span>IVA (13%):</span>
+                <span id="tax-display">₡0.00</span>
             </div>
             <div class="summary-row summary-total">
                 <span>Total:</span>
-                <span id="total">$0.00</span>
+                <span id="total">₡0.00</span>
             </div>
 
             <div class="payment-section">
@@ -76,284 +105,426 @@
                 </div>
 
                 <button class="btn btn-success btn-full" onclick="processSale()">
-                    <i class="fas fa-check"></i> Procesar Venta ($<span id="totalBtn">0.00</span>)
+                    <i class="fas fa-check"></i> Procesar Venta (<span id="totalBtn">₡0.00</span>)
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal para seleccionar cliente -->
+<div id="modalGrooming" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Programar Servicio de Grooming</h3>
+            <button class="close" onclick="closeGroomingModal()">&times;</button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">1. Seleccionar Cliente</label>
+            <select id="citaClienteId" class="form-control"><option value="">-- Seleccione un cliente --</option></select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">2. Seleccionar Mascota</label>
+            <select id="citaMascotaId" class="form-control"><option value="">-- Seleccione la mascota --</option></select>
+        </div>
+        <div class="two-cols">
+            <div class="form-group"><label class="form-label">Fecha</label><input id="citaFecha" type="date" class="form-control" required></div>
+            <div class="form-group"><label class="form-label">Hora</label><input id="citaHora" type="time" class="form-control" required></div>
+        </div>
+        <div class="two-cols">
+            <div class="form-group"><label class="form-label">Servicio</label><input id="citaServicio" type="text" class="form-control" value="Grooming" readonly></div>
+            <div class="form-group"><label class="form-label">Provincia</label>
+                <select id="citaProvincia" class="form-control">
+                    <option value="San José">San José</option><option value="Alajuela">Alajuela</option>
+                    <option value="Cartago">Cartago</option><option value="Heredia">Heredia</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group"><label><input type="checkbox" id="citaTransporte" onchange="toggleTransporteOptions()"> ¿Requiere Transporte?</label></div>
+        <div id="opcionesTransporte" style="display:none;">
+            <div class="form-group"><label class="form-label">Tipo de Transporte</label>
+                <select id="citaTipoTransporte" class="form-control">
+                    <option value="Solo Ida">Solo Ida</option><option value="Solo Vuelta">Solo Vuelta</option><option value="Ida y Vuelta">Ida y Vuelta</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-plain" onclick="closeGroomingModal()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="confirmGroomingAdd()">Agregar al Carrito</button>
+        </div>
+    </div>
+</div>
+
 <div id="seleccionarClienteModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title">Seleccionar Cliente</h3>
             <button class="close" onclick="closeModal('seleccionarClienteModal')">&times;</button>
         </div>
-
-        <div class="search-box modal-search-box">
-            <input type="text" class="search-input" placeholder="Buscar cliente..." id="searchCliente">
-            <button class="search-btn">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-
-        <div class="modal-body-scroll">
-            <div class="client-option" onclick="selectCustomer('Venta General', '')">
+        <div class="modal-body-scroll" id="clientOptionsContainer">
+            <div class="client-option" onclick="selectCustomer('Venta General', '', null)">
                 <strong>Venta General</strong>
                 <span class="client-option-subtitle">Sin cliente asignado</span>
-            </div>
-            <div class="client-option" onclick="selectCustomer('María González', 'CLI-001')">
-                <strong>María González</strong>
-                <span class="client-option-subtitle">CLI-001 • 2 mascotas</span>
-            </div>
-            <div class="client-option" onclick="selectCustomer('Carlos López', 'CLI-002')">
-                <strong>Carlos López</strong>
-                <span class="client-option-subtitle">CLI-002 • 1 mascota</span>
-            </div>
-            <div class="client-option" onclick="selectCustomer('Ana Martínez', 'CLI-003')">
-                <strong>Ana Martínez</strong>
-                <span class="client-option-subtitle">CLI-003 • 1 mascota</span>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Datos de productos (dummy)
-    const products = [
-        { id: 1, name: "Antipulgas para perros", price: 25.00, category: "medicamento", stock: 15, icon: "fas fa-shield-alt" },
-        { id: 2, name: "Alimento para perros 5kg", price: 18.50, category: "alimento", stock: 22, icon: "fas fa-bone" },
-        { id: 3, name: "Arena para gatos 4kg", price: 12.00, category: "accesorio", stock: 18, icon: "fas fa-cat" },
-        { id: 4, name: "Vacuna triple felina", price: 35.00, category: "medicamento", stock: 8, icon: "fas fa-syringe" },
-        { id: 5, name: "Shampoo medicado", price: 10.00, category: "higiene", stock: 3, icon: "fas fa-pump-soap" },
-        { id: 6, name: "Juguete para gatos", price: 8.00, category: "accesorio", stock: 25, icon: "fas fa-baseball-ball" },
-        { id: 7, name: "Alimento para gatos 2kg", price: 15.00, category: "alimento", stock: 12, icon: "fas fa-fish" },
-        { id: 8, name: "Correa para perros", price: 12.00, category: "accesorio", stock: 20, icon: "fas fa-dog" }
-    ];
+    var cart = [];
+    var TAX_RATE = 0.13;
+    var currentCustomer = { id: null, name: 'Venta General', code: '' };
+    let tempGroomingData = null;
+    var currentCategory = 'all';
 
-    let cart = [];
-    let currentCategory = 'all';
-    let currentCustomer = { name: 'Venta General', code: '' };
-
-    // Inicializar productos
-    function initializeProducts() {
-        displayProducts(products);
-        setupCategoryFilters();
-        setupSearch();
+    function setCategory(category, element) {
+        currentCategory = category;
+        document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+        filterProducts();
     }
 
-    // Mostrar productos
-    function displayProducts(productsToShow) {
-        const grid = document.getElementById('productsGrid');
-        grid.innerHTML = '';
-
-        productsToShow.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            productCard.onclick = () => addToCart(product);
-
-            productCard.innerHTML = `
-                <div class="product-icon">
-                    <i class="${product.icon}"></i>
-                </div>
-                <div class="product-name">${product.name}</div>
-                <div class="product-price">$${product.price.toFixed(2)}</div>
-                <div class="product-stock ${product.stock < 5 ? 'stock-low' : ''}">
-                    Stock: ${product.stock}
-                </div>
-            `;
-
-            grid.appendChild(productCard);
-        });
-    }
-
-    // Configurar filtros de categoría
-    function setupCategoryFilters() {
-        const categoryBtns = document.querySelectorAll('.category-btn');
-        categoryBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                categoryBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentCategory = btn.dataset.category;
-                filterProducts();
-            });
-        });
-    }
-
-    // Configurar búsqueda
-    function setupSearch() {
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', filterProducts);
-    }
-
-    // Filtrar productos
-    function filterProducts() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
-        let filteredProducts = products.filter(product => {
-            const matchesSearch = product.name.toLowerCase().includes(searchTerm);
-            const matchesCategory = currentCategory === 'all' || product.category === currentCategory;
-            return matchesSearch && matchesCategory;
-        });
-
-        displayProducts(filteredProducts);
-    }
-
-    // Agregar al carrito
-    function addToCart(product) {
-        const existingItem = cart.find(item => item.id === product.id);
-
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                quantity: 1
-            });
+    function aplicarDescuento(id, porcentaje) {
+        const item = cart.find(i => i.id == id);
+        if (item) {
+            item.descuentoManual = (item.descuentoManual === porcentaje) ? 0 : porcentaje;
+            updateCartUI();
         }
-
-        updateCart();
     }
 
-    // Actualizar carrito
-    function updateCart() {
+    function toggleTransporteOptions() {
+        const check = document.getElementById('citaTransporte').checked;
+        document.getElementById('opcionesTransporte').style.display = check ? 'block' : 'none';
+    }
+
+    async function cargarClientesDropdown() {
+        const selectCliente = document.getElementById('citaClienteId');
+        if (!selectCliente) return;
+        selectCliente.innerHTML = '<option value="">Cargando...</option>';
+        try {
+            const response = await fetch('/ventas/clientes/listar');
+            const clientes = await response.json();
+            selectCliente.innerHTML = '<option value="">-- Seleccione un cliente --</option>';
+            clientes.forEach(c => {
+                const option = document.createElement('option');
+                const id = c.Id || c.id || 0;
+                const nombre = c.NombreCompleto || c.nombreCompleto || "Nombre no disponible";
+                option.value = id;
+                option.textContent = `${nombre} (ID: ${id})`;
+                selectCliente.appendChild(option);
+            });
+        } catch (error) { console.error(error); }
+    }
+
+    async function cargarTodasLasMascotas() {
+        const selectMascota = document.getElementById('citaMascotaId');
+        if (!selectMascota) return;
+        selectMascota.innerHTML = '<option value="">Cargando...</option>';
+        try {
+            const response = await fetch('/ventas/mascotas/todas');
+            const mascotas = await response.json();
+            selectMascota.innerHTML = '<option value="">-- Seleccione la mascota --</option>';
+            mascotas.forEach(m => {
+                const option = document.createElement('option');
+                const id = m.Id || m.id || m.MascotaId;
+                const nombre = m.Nombre || m.nombre || "Mascota";
+                const peso = m.Peso || m.peso || 0;
+                option.value = id;
+                option.textContent = `${nombre} (${peso} kg)`;
+                selectMascota.appendChild(option);
+            });
+        } catch (error) { console.error(error); }
+    }
+
+    function abrirModalGrooming() {
+        cargarClientesDropdown(); 
+        cargarTodasLasMascotas();  
+        document.getElementById('modalGrooming').style.display = 'flex';
+    }
+
+    async function filterProducts() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        try {
+            const response = await fetch(`/ventas/buscar?q=${searchTerm}&category=${currentCategory}`);
+            const data = await response.json();
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+
+            data.forEach(p => {
+                renderProductCard(p.Id || p.id, p.Nombre || p.nombre, parseFloat(p.Precio || p.precio), parseInt(p.Stock || p.stock), p.EsCritico || false, grid);
+            });
+
+            if ((searchTerm === '' || "grooming".includes(searchTerm)) && (currentCategory === 'all' || currentCategory === 'servicio')) {
+                const groomingCard = document.createElement('div');
+                groomingCard.className = 'product-card';
+                groomingCard.onclick = function () { addToCart(99999, "Servicio de Grooming", 0, 999); };
+                groomingCard.innerHTML = `
+                    <div class="product-icon"><i class="fas fa-cut"></i></div>
+                    <div class="product-name">Servicio de Grooming</div>
+                    <div class="product-price">₡0</div>
+                    <div class="product-stock">Programar Cita</div>
+                `;
+                grid.appendChild(groomingCard);
+            }
+        } catch (error) { console.error("Error:", error); }
+    }
+
+    function renderProductCard(id, nombre, precio, stock, critico, grid) {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        if (critico) card.style.border = "2px solid #dc3545";
+        card.onclick = function () { addToCart(id, nombre, precio, stock); };
+        card.innerHTML = `
+            <div class="product-icon"><i class="fas fa-box"></i></div>
+            <div class="product-name">${nombre}</div>
+            <div class="product-price">₡${precio.toLocaleString()}</div>
+            <div class="product-stock ${critico ? 'stock-low' : ''}">Stock: ${stock}</div>
+        `;
+        grid.appendChild(card);
+    }
+
+    function addToCart(id, nombre, precio, stockDisponible) {
+        if (id === 99999) {
+            tempGroomingData = { id, nombre, precio };
+            abrirModalGrooming();
+        } else {
+            const existingItem = cart.find(item => item.id == id);
+            if (existingItem) {
+                if (existingItem.quantity >= stockDisponible) return alert("Stock insuficiente");
+                existingItem.quantity += 1;
+            } else {
+                if (stockDisponible <= 0) return alert("Agotado");
+                cart.push({ 
+                    id, 
+                    nombre, 
+                    precio, 
+                    quantity: 1, 
+                    stockMax: stockDisponible, 
+                    isGrooming: false,
+                    descuentoManual: 0 
+                });
+            }
+            updateCartUI();
+        }
+    }
+
+    function closeGroomingModal() {
+        document.getElementById('modalGrooming').style.display = 'none';
+        tempGroomingData = null;
+    }
+
+    function confirmGroomingAdd() {
+        const clienteId = document.getElementById('citaClienteId').value;
+        const mascotaId = document.getElementById('citaMascotaId').value;
+        const fecha = document.getElementById('citaFecha').value;
+        const hora = document.getElementById('citaHora').value;
+        const provincia = document.getElementById('citaProvincia').value;
+        const requiereTransporte = document.getElementById('citaTransporte').checked;
+
+        if (!mascotaId || !fecha || !hora) return alert("Seleccione al menos mascota, fecha y hora");
+
+        const uniqueId = "groom_" + Date.now();
+        cart.push({
+            id: uniqueId,
+            originalId: 99999,
+            nombre: "Grooming",
+            detalle: `Mascota ID: ${mascotaId} - ${fecha} ${hora}`,
+            spData: {
+                MascotaId: parseInt(mascotaId),
+                ClienteId: clienteId ? parseInt(clienteId) : 0,
+                UsuarioId: 1, 
+                Fecha: fecha,
+                Hora: hora,
+                Servicio: 'Grooming',
+                TransporteNecesario: requiereTransporte ? 1 : 0,
+                TipoTransporte: requiereTransporte ? document.getElementById('citaTipoTransporte').value : null,
+                Provincia: provincia
+            },
+            precio: tempGroomingData.precio,
+            quantity: 1,
+            isGrooming: true,
+            descuentoManual: 0
+        });
+
+        updateCartUI();
+        closeGroomingModal();
+    }
+
+    function updateCartUI() {
         const cartItems = document.getElementById('cartItems');
         const cartEmpty = document.getElementById('cartEmpty');
         const cartSummary = document.getElementById('cartSummary');
-
         if (cart.length === 0) {
-            cartEmpty.style.display = 'block';
-            cartSummary.style.display = 'none';
+            if (cartEmpty) cartEmpty.style.display = 'block';
+            if (cartSummary) cartSummary.style.display = 'none';
             cartItems.innerHTML = '';
-            cartItems.appendChild(cartEmpty);
-        } else {
-            cartEmpty.style.display = 'none';
-            cartSummary.style.display = 'block';
-
-            cartItems.innerHTML = '';
-
-            let subtotal = 0;
-
-            cart.forEach(item => {
-                const itemTotal = item.price * item.quantity;
-                subtotal += itemTotal;
-
-                const row = document.createElement('div');
-                row.className = 'cart-item';
-
-                row.innerHTML = `
-                    <div class="cart-item-info">
-                        <div class="cart-item-name">${item.name}</div>
-                        <div class="cart-item-price">$${item.price.toFixed(2)} c/u</div>
-                    </div>
-                    <div class="cart-item-quantity">
-                        <button class="quantity-btn" onclick="changeQuantity(${item.id}, -1)">-</button>
-                        <input type="number" class="quantity-input" value="${item.quantity}"
-                            onchange="setQuantity(${item.id}, this.value)" min="1">
-                        <button class="quantity-btn" onclick="changeQuantity(${item.id}, 1)">+</button>
-                    </div>
-                    <div class="cart-item-total">
-                        $${itemTotal.toFixed(2)}
-                    </div>
-                    <button class="btn-danger" onclick="removeFromCart(${item.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-
-                cartItems.appendChild(row);
-            });
-
-            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            document.getElementById('total').textContent = `$${subtotal.toFixed(2)}`;
-            document.getElementById('totalBtn').textContent = subtotal.toFixed(2);
-        }
-    }
-
-    // Cambiar cantidad
-    function changeQuantity(productId, change) {
-        const item = cart.find(item => item.id === productId);
-        if (item) {
-            item.quantity += change;
-            if (item.quantity < 1) item.quantity = 1;
-            updateCart();
-        }
-    }
-
-    // Establecer cantidad
-    function setQuantity(productId, quantity) {
-        const item = cart.find(item => item.id === productId);
-        if (item) {
-            const q = parseInt(quantity, 10);
-            item.quantity = isNaN(q) || q < 1 ? 1 : q;
-            updateCart();
-        }
-    }
-
-    // Remover del carrito
-    function removeFromCart(productId) {
-        cart = cart.filter(item => item.id !== productId);
-        updateCart();
-    }
-
-    // Seleccionar cliente
-    function selectCustomer(name, code) {
-        currentCustomer = { name, code };
-
-        const nameEl = document.querySelector('.customer-name');
-        const subtitleEl = document.querySelector('.customer-subtitle');
-
-        if (nameEl && subtitleEl) {
-            nameEl.textContent = `Cliente: ${name}`;
-            subtitleEl.textContent = code ? `Código: ${code}` : 'Sin cliente asignado';
-        }
-
-        closeModal('seleccionarClienteModal');
-    }
-
-    // Procesar venta
-    function processSale() {
-        if (cart.length === 0) {
-            alert('El carrito está vacío');
+            actualizarEtiqueta('total', "₡0");
             return;
         }
+        if (cartEmpty) cartEmpty.style.display = 'none';
+        if (cartSummary) cartSummary.style.display = 'block';
+        cartItems.innerHTML = '';
+        let subtotal = 0;
+        cart.forEach(item => {
+            const desc = item.descuentoManual || 0;
+            const precioFinal = item.precio * (1 - desc);
+            const totalFila = precioFinal * item.quantity;
+            subtotal += totalFila;
 
-        const paymentMethod = document.getElementById('paymentMethod').value;
-        const total = document.getElementById('total').textContent;
-        const customerInfo = currentCustomer.code
-            ? `Cliente: ${currentCustomer.name} (${currentCustomer.code})`
-            : 'Cliente: Venta General';
-
-        const saleId = 'V-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-
-        alert(
-            `✅ Venta procesada exitosamente!\n\n` +
-            `N° Venta: ${saleId}\n` +
-            `${customerInfo}\n` +
-            `Total: ${total}\n` +
-            `Método de pago: ${paymentMethod}\n\n` +
-            `¡Gracias por su compra!`
-        );
-
-        // Reset
-        cart = [];
-        updateCart();
-        document.getElementById('paymentMethod').value = 'efectivo';
-        selectCustomer('Venta General', '');
+            const row = document.createElement('div');
+            row.className = 'cart-item';
+            row.innerHTML = `
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.nombre}</div>
+                    <div style="font-size:0.8em; color:gray;">${item.isGrooming ? item.detalle : ''}</div>
+                    <div class="cart-item-price">
+                        ${desc > 0 ? `<span class="price-old">₡${item.precio.toLocaleString()}</span>` : ''}
+                        ₡${precioFinal.toLocaleString()}
+                    </div>
+                    
+                    <div class="manual-discounts">
+                        <button class="btn-desc ${desc === 0.05 ? 'active' : ''}" onclick="aplicarDescuento('${item.id}', 0.05)">5%</button>
+                        <button class="btn-desc ${desc === 0.10 ? 'active' : ''}" onclick="aplicarDescuento('${item.id}', 0.10)">10%</button>
+                        <button class="btn-desc ${desc === 0.15 ? 'active' : ''}" onclick="aplicarDescuento('${item.id}', 0.15)">15%</button>
+                    </div>
+                </div>
+                <div class="cart-item-quantity">
+                    ${item.isGrooming ? '1' : `
+                        <button class="quantity-btn" onclick="changeQty('${item.id}', -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="quantity-btn" onclick="changeQty('${item.id}', 1)">+</button>
+                    `}
+                </div>
+                <div class="cart-item-total">₡${totalFila.toLocaleString()}</div>
+                <button style="border:none; background:none; cursor:pointer; color:#dc3545;" onclick="removeItem('${item.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            cartItems.appendChild(row);
+        });
+        const iva = subtotal * TAX_RATE;
+        actualizarEtiqueta('subtotal', "₡" + subtotal.toLocaleString());
+        actualizarEtiqueta('tax-display', "₡" + iva.toLocaleString());
+        actualizarEtiqueta('total', "₡" + (subtotal + iva).toLocaleString());
+        actualizarEtiqueta('totalBtn', (subtotal + iva).toLocaleString());
     }
-
-    // Helpers de modal (usando los mismos estilos/funciones que ya tengas)
-    function openModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.style.display = 'block';
+    window.changeQty = function (id, delta) {
+        const item = cart.find(i => i.id == id);
+        if (item && !item.isGrooming) { 
+            if (delta > 0 && item.quantity >= item.stockMax) return alert("Límite de stock");
+            item.quantity += delta;
+            if (item.quantity <= 0) removeItem(id);
+            else updateCartUI();
+        }
+    };
+    window.removeItem = function (id) {
+        cart = cart.filter(i => i.id != id);
+        updateCartUI();
+    };
+    function actualizarEtiqueta(id, valor) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = valor;
     }
+    window.processSale = async function () {
+        if (cart.length === 0) return alert('El carrito está vacío');
+        const subtotal = cart.reduce((acc, item) => {
+            const precioFinal = item.precio * (1 - (item.descuentoManual || 0));
+            return acc + (precioFinal * item.quantity);
+        }, 0);
+        const totalConIVA = subtotal * (1 + TAX_RATE);
 
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.style.display = 'none';
-    }
+        const saleData = {
+            clienteId: currentCustomer.id || 0,
+            total: totalConIVA, 
+            productos: cart.map(p => ({
+                ProductoId: p.isGrooming ? 99999 : p.id, 
+                Cantidad: p.quantity,
+                Precio: p.precio * (1 - (p.descuentoManual || 0))
+            })),
+            datosCita: cart.find(i => i.isGrooming)?.spData || null
+        };
 
-    document.addEventListener('DOMContentLoaded', initializeProducts);
+        try {
+        const response = await fetch('/ventas/pagar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(saleData)
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            await generarPDFFactura(result.ventaId, saleData);
+            
+            alert("Venta procesada y PDF generado.");
+            location.reload();
+        } else {
+            alert("Error: " + result.message);
+        }
+    } catch (e) { console.error(e); }
+    };
+
+    async function generarPDFFactura(ventaId, saleData) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("COMPROBANTE DE VENTA", 105, 20, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text("Animales Fantasticos tienda de mascotas y Grooming", 10, 30);
+    doc.text("Dirección: Moravia, San José, Costa Rica", 10, 40);
+    doc.text(`Factura #: ${ventaId}`, 140, 30);
+    doc.text(`Fecha: ${new Date().toLocaleString()}`, 140, 35);
+    doc.text(`Cajero: Administrador`, 140, 40);
+    
+    doc.line(10, 50, 200, 50);
+    doc.text(`Cliente: ${currentCustomer.name || "Venta General"}`, 10, 60);
+    const columnas = ["Cant.", "Detalle", "Precio Unit.", "Desc.", "Total"];
+    const filas = cart.map(p => {
+        const descPorcentaje = (p.descuentoManual || 0) * 100;
+        const precioConDesc = p.precio * (1 - (p.descuentoManual || 0));
+        
+        return [
+            p.quantity,
+            p.nombre,
+            `₡${p.precio.toLocaleString()}`, 
+            `${descPorcentaje}%`,
+            `₡${(precioConDesc * p.quantity).toLocaleString()}`
+        ];
+    });
+
+    doc.autoTable({
+        startY: 70,
+        head: [columnas],
+        body: filas,
+        theme: 'grid',
+        headStyles: { fillColor: [40, 167, 69] },
+        styles: { fontSize: 9 }
+    });
+    const finalY = doc.lastAutoTable.finalY + 10;
+    const obtenerMontoLimpio = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return "0";
+        const soloNumero = el.innerText.replace(/[^\d.,]/g, '').trim();
+        return soloNumero;
+    };
+
+    const subtotal = obtenerMontoLimpio('subtotal');
+    const iva = obtenerMontoLimpio('tax-display');
+    const total = obtenerMontoLimpio('total');
+
+    doc.setFont("helvetica", "normal");
+    doc.text(`Subtotal: ₡${subtotal}`, 140, finalY);
+    doc.text(`IVA (13%): ₡${iva}`, 140, finalY + 5);
+    
+    doc.setFont("helvetica", "bold");
+    doc.text(`TOTAL FINAL: ₡${total}`, 140, finalY + 12);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Términos: Este documento es un comprobante de pago oficial.", 10, finalY + 30);
+
+    doc.save(`Factura_${ventaId}.pdf`);
+}
+
+    window.openModal = (id) => document.getElementById(id).style.display = 'flex';
+    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+    document.addEventListener('DOMContentLoaded', filterProducts);
 </script>
