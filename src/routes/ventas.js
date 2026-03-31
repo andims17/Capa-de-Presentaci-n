@@ -59,18 +59,20 @@ router.post('/pagar', async (req, res) => {
         if (datosCita) {
             await agendarCitaDesdePOS({ ...datosCita, UsuarioId: usuarioId });
         }
+        const productospass = productos.filter(p => p.ProductoId !== 99999);
         const resultado = await procesarVenta({
             clienteId: clienteId === 0 ? null : clienteId,
             usuarioId,
-            total,
-            productos
+            total, 
+            productos: productospass
         });
+
         const idVenta = resultado?.VentaId || resultado?.Id;
 
         if (idVenta) {
             res.json({ success: true, ventaId: idVenta });
         } else {
-            res.status(400).json({ success: false, message: "La venta se procesó pero no se obtuvo confirmación de ID." });
+            res.status(400).json({ success: false, message: "La venta no devolvió un ID válido." });
         }
     } catch (e) {
         console.error("Error en proceso de pago:", e.message);

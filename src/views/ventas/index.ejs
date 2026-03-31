@@ -320,29 +320,26 @@
         const provincia = document.getElementById('citaProvincia').value;
         const requiereTransporte = document.getElementById('citaTransporte').checked;
 
-        if (!mascotaId || !fecha || !hora) return alert("Seleccione al menos mascota, fecha y hora");
+        if (!mascotaId || !fecha || !hora) return alert("Seleccione mascota, fecha y hora");
 
         const uniqueId = "groom_" + Date.now();
         cart.push({
             id: uniqueId,
-            originalId: 99999,
-            nombre: "Grooming",
-            detalle: `Mascota ID: ${mascotaId} - ${fecha} ${hora}`,
+            nombre: "Servicio de Grooming",
+            precio: tempGroomingData.precio || 0,
+            quantity: 1,
+            isGrooming: true,
+            descuentoManual: 0,
             spData: {
-                MascotaId: parseInt(mascotaId),
-                ClienteId: clienteId ? parseInt(clienteId) : 0,
-                UsuarioId: 1, 
+                MascotaId: mascotaId,
+                ClienteId: clienteId, 
                 Fecha: fecha,
                 Hora: hora,
                 Servicio: 'Grooming',
-                TransporteNecesario: requiereTransporte ? 1 : 0,
+                TransporteNecesario: requiereTransporte,
                 TipoTransporte: requiereTransporte ? document.getElementById('citaTipoTransporte').value : null,
                 Provincia: provincia
-            },
-            precio: tempGroomingData.precio,
-            quantity: 1,
-            isGrooming: true,
-            descuentoManual: 0
+            }
         });
 
         updateCartUI();

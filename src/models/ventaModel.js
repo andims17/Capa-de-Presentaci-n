@@ -40,7 +40,7 @@ async function agendarCitaDesdePOS(datos) {
     const pool = await getPool();
     try {
         const result = await pool.request()
-            .input('MascotaId', sql.Int, datos.MascotaId)
+            .input('MascotaId', sql.Int, parseInt(datos.MascotaId))
             .input('UsuarioId', sql.Int, datos.UsuarioId || 1)
             .input('Fecha', sql.Date, datos.Fecha)
             .input('Hora', sql.Time, datos.Hora)
@@ -48,9 +48,9 @@ async function agendarCitaDesdePOS(datos) {
             .input('TransporteNecesario', sql.Bit, datos.TransporteNecesario ? 1 : 0)
             .input('TipoTransporte', sql.VarChar(20), datos.TipoTransporte || null)
             .input('Provincia', sql.VarChar(50), datos.Provincia)
-            .execute('sp_Citas_Insertar');
+            .execute('dbo.sp_Citas_Insertar');
 
-        return result.recordset[0];
+        return result.recordset ? result.recordset : { success: true };
     } catch (error) {
         console.error("Error al ejecutar sp_Citas_Insertar:", error.message);
         throw error;
