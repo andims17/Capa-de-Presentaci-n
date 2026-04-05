@@ -25,7 +25,29 @@
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">Citas Asignadas al Transportista</h2>
+            <div class="search-box">
+                <input type="text" id="buscadorTransporte" class="search-input"
+                    placeholder="Buscar por dirección..." onkeyup="filtrarTransporte()">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
         </div>
+
+        <!-- Filtros rápidos -->
+        <div style="padding: .75rem 1.5rem; display:flex; gap:.5rem; flex-wrap:wrap; border-bottom:1px solid #E5E7EB;">
+            <button class="btn btn-sm btn-primary filtro-tipo activo" onclick="filtrarTipo('todos', this)">Todos</button>
+            <button class="btn btn-sm btn-secondary filtro-tipo" onclick="filtrarTipo('Ida', this)">Solo Ida</button>
+            <button class="btn btn-sm btn-secondary filtro-tipo" onclick="filtrarTipo('Vuelta', this)">Solo Vuelta</button>
+            <button class="btn btn-sm btn-secondary filtro-tipo" onclick="filtrarTipo('Ambos', this)">Ambos</button>
+            <input type="date" id="filtroFecha" class="form-control" style="width:auto;height:32px;font-size:.85rem;" onchange="filtrarTransporte()" placeholder="Filtrar fecha">
+            <button class="btn btn-sm btn-secondary" onclick="limpiarFiltros()">Limpiar</button>
+        </div>
+
+        <!-- Resumen rápido -->
+        <div style="padding:.75rem 1.5rem; display:flex; gap:2rem; font-size:.85rem; color:#6B7280; border-bottom:1px solid #E5E7EB;">
+            <span>Total visible: <strong id="contadorCitas"><%= citas.length %></strong></span>
+            <span>Total ingresos: <strong id="totalIngresos">₡<%= citas.reduce((s, c) => s + (c.CostoTransporte || 0), 0).toLocaleString('es-CR') %></strong></span>
+        </div>
+
         <div class="card-body">
             <% if (citas.length === 0) { %>
                 <p class="text-muted">No hay citas que requieran transporte.</p>
@@ -41,14 +63,24 @@
                                 <th>Precio</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="tablaTransporte">
                             <% citas.forEach(cita => { %>
-                                <tr>
-                                <td><%= cita.Fecha || '-' %></td>
+                                <tr data-tipo="<%= cita.TipoTransporte || '' %>" data-fecha="<%= cita.Fecha || '' %>">
+                                    <td><%= cita.Fecha || '-' %></td>
                                     <td><%= cita.Hora || '-' %></td>
-                                    <td><%= cita.TipoTransporte || '-' %></td>
+                                    <td>
+                                        <% if (cita.TipoTransporte === 'Ambos') { %>
+                                            <span class="badge bg-info">Ambos</span>
+                                        <% } else if (cita.TipoTransporte === 'Ida') { %>
+                                            <span class="badge bg-success">Ida</span>
+                                        <% } else if (cita.TipoTransporte === 'Vuelta') { %>
+                                            <span class="badge bg-warning text-dark">Vuelta</span>
+                                        <% } else { %>
+                                            <%= cita.TipoTransporte || '-' %>
+                                        <% } %>
+                                    </td>
                                     <td><%= cita.DireccionCliente || 'No registrada' %></td>
-                                    <td>₡<%= cita.CostoTransporte || 0 %></td>
+                                    <td>₡<%= (cita.CostoTransporte || 0).toLocaleString('es-CR') %></td>
                                 </tr>
                             <% }) %>
                         </tbody>
@@ -73,21 +105,20 @@
         <form id="formEditarTransporte" method="POST" action="/transporte/editar">
             <div class="form-group">
                 <label>Tipo de Vehículo</label>
-                <input type="text" name="TipoVehiculo" class="form-control" required>
+                <input type="text" name="TipoVehiculo" class="form-control" value="<%= transportista ? transportista.TipoVehiculo || '' : '' %>" required>
             </div>
             <div class="form-group">
                 <label>Placa</label>
-                <input type="text" name="Placa" class="form-control">
+                <input type="text" name="Placa" class="form-control" value="<%= transportista ? transportista.Placa || '' : '' %>">
             </div>
             <div class="form-group">
                 <label>Nombre del Conductor</label>
-                <input type="text" name="NombreConductor" class="form-control" required>
+                <input type="text" name="NombreConductor" class="form-control" value="<%= transportista ? transportista.NombreConductor || '' : '' %>" required>
             </div>
             <div class="form-group">
                 <label>Teléfono</label>
-                <input type="tel" name="Telefono" class="form-control">
+                <input type="tel" name="Telefono" class="form-control" value="<%= transportista ? transportista.Telefono || '' : '' %>">
             </div>
-
             <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('editarTransporteModal')">Cancelar</button>
                 <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -97,10 +128,66 @@
 </div>
 
 <script>
-function openEditModal() {
-    openModal('editarTransporteModal');
+let tipoActivo = 'todos';
+
+function filtrarTransporte() {
+    const texto = document.getElementById('buscadorTransporte').value.toLowerCase();
+    const fechaISO = document.getElementById('filtroFecha').value; // ej: "2026-03-30"
+
+    // Convertir a formato es-CR para comparar con lo que muestra la tabla
+    let fechaFormateada = '';
+    if (fechaISO) {
+        const [y, m, d] = fechaISO.split('-');
+        fechaFormateada = `${parseInt(d)}/${parseInt(m)}/${y}`; // ej: "30/3/2026"
+    }
+
+    const filas = document.querySelectorAll('#tablaTransporte tr');
+    let visibles = 0;
+    let totalIngresos = 0;
+
+    filas.forEach(fila => {
+        const contenido  = fila.innerText.toLowerCase();
+        const tipoFila   = fila.dataset.tipo;
+        const fechaFila  = fila.cells[0] ? fila.cells[0].innerText.trim() : '';
+
+        const pasaTexto = contenido.includes(texto);
+        const pasaTipo  = tipoActivo === 'todos' || tipoFila === tipoActivo;
+        const pasaFecha = !fechaFormateada || fechaFila === fechaFormateada;
+
+        if (pasaTexto && pasaTipo && pasaFecha) {
+            fila.style.display = '';
+            visibles++;
+            const precioCell = fila.cells[4] ? fila.cells[4].innerText.replace(/[₡.,\s]/g, '') : '0';
+            totalIngresos += parseInt(precioCell) || 0;
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+
+    document.getElementById('contadorCitas').textContent = visibles;
+    document.getElementById('totalIngresos').textContent = '₡' + totalIngresos.toLocaleString('es-CR');
 }
 
-function openModal(id) { document.getElementById(id).style.display = 'block'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function filtrarTipo(tipo, btn) {
+    tipoActivo = tipo;
+    document.querySelectorAll('.filtro-tipo').forEach(b => {
+        b.className = 'btn btn-sm btn-secondary filtro-tipo';
+    });
+    btn.className = 'btn btn-sm btn-primary filtro-tipo activo';
+    filtrarTransporte();
+}
+
+function limpiarFiltros() {
+    tipoActivo = 'todos';
+    document.getElementById('buscadorTransporte').value = '';
+    document.getElementById('filtroFecha').value = '';
+    document.querySelectorAll('.filtro-tipo').forEach((b, i) => {
+        b.className = i === 0 ? 'btn btn-sm btn-primary filtro-tipo activo' : 'btn btn-sm btn-secondary filtro-tipo';
+    });
+    filtrarTransporte();
+}
+
+function openEditModal() { openModal('editarTransporteModal'); }
+function openModal(id)   { document.getElementById(id).style.display = 'block'; }
+function closeModal(id)  { document.getElementById(id).style.display = 'none'; }
 </script>

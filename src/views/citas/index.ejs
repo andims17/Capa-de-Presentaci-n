@@ -32,19 +32,8 @@
                 <label>Fecha</label>
                 <input type="date" name="fecha" value="<%= fecha || '' %>" class="form-control">
             </div>
-            <div class="col-md-4">
-                <label>Cliente</label>
-                <select name="clienteId" class="form-control">
-                    <option value="">Todos</option>
-                    <% (clientes || []).forEach(cl => { %>
-                        <option value="<%= cl.Id %>" <%= (clienteId == cl.Id) ? 'selected' : '' %>>
-                            <%= cl.NombreCompleto %>
-                        </option>
-                    <% }) %>
-                </select>
-            </div>
             <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                <button type="submit" class="btn btn-primary w-100">Filtrar por fecha</button>
             </div>
         </form>
     </div>
@@ -54,6 +43,11 @@
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Citas Registradas</h2>
+        <div class="search-box">
+            <input type="text" id="buscadorCitas" class="search-input"
+                placeholder="Buscar por cliente o mascota..." onkeyup="filtrarCitas()">
+            <button class="search-btn"><i class="fas fa-search"></i></button>
+        </div>
     </div>
     <div class="card-body">
         <% if (!citas || citas.length === 0) { %>
@@ -74,7 +68,7 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tablaCitas">
                         <% citas.forEach(c => { %>
                             <tr>
                                 <td><%= c.Fecha || '-' %></td>
@@ -165,38 +159,48 @@
 </div>
 
 <script>
-function openEditModal(button) {
-    const id     = button.getAttribute('data-id');
-    const fecha  = button.getAttribute('data-fecha');
-    const hora   = button.getAttribute('data-hora');
-    const estado = button.getAttribute('data-estado');
-
-    document.getElementById('editarIdCita').value = id;
-    document.getElementById('editarFecha').value  = fecha;
-    document.getElementById('editarHora').value   = hora;
-    document.getElementById('editarEstado').value = estado;
-
-    document.getElementById('formEditarCita').action = '/citas/editar/' + id;
-    openModal('editarCitaModal');
-}
-
-function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-// Muestra el modal de error si viene un mensaje en la URL
-(function() {
-    const params = new URLSearchParams(window.location.search);
-    const error  = params.get('error');
-    if (error) {
-        document.getElementById('errorModalMsg').textContent = decodeURIComponent(error);
-        openModal('errorModal');
-
-        // Limpia el ?error= de la URL sin recargar
-        params.delete('error');
-        const nueva = params.toString()
-            ? `${window.location.pathname}?${params}`
-            : window.location.pathname;
-        window.history.replaceState({}, '', nueva);
+    function filtrarCitas() {
+        const texto = document.getElementById('buscadorCitas').value.toLowerCase();
+        const filas = document.querySelectorAll('#tablaCitas tr');
+        filas.forEach(fila => {
+            const contenido = fila.innerText.toLowerCase();
+            if (contenido.includes(texto)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
     }
-})();
+
+    function openEditModal(button) {
+        const id     = button.getAttribute('data-id');
+        const fecha  = button.getAttribute('data-fecha');
+        const hora   = button.getAttribute('data-hora');
+        const estado = button.getAttribute('data-estado');
+
+        document.getElementById('editarIdCita').value = id;
+        document.getElementById('editarFecha').value  = fecha;
+        document.getElementById('editarHora').value   = hora;
+        document.getElementById('editarEstado').value = estado;
+
+        document.getElementById('formEditarCita').action = '/citas/editar/' + id;
+        openModal('editarCitaModal');
+    }
+
+    function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        const error  = params.get('error');
+        if (error) {
+            document.getElementById('errorModalMsg').textContent = decodeURIComponent(error);
+            openModal('errorModal');
+            params.delete('error');
+            const nueva = params.toString()
+                ? `${window.location.pathname}?${params}`
+                : window.location.pathname;
+            window.history.replaceState({}, '', nueva);
+        }
+    })();
 </script>

@@ -2492,3 +2492,168 @@ BEGIN
 END
 GO
 ---------------------------Nolan Fin 18.03.2026---------------------
+
+
+
+---------------------------Amanda ARREGLOS FINALES comienza 4.04.2026---------------------
+------------------------------------------------------------
+-- SP: Dashboard - Resumen de tarjetas (ventas hoy, citas hoy,
+--     productos bajos en stock, total mascotas)
+------------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_Dashboard_Resumen
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        -- Ventas del día (suma de totales de ventas de hoy)
+        ISNULL(
+            (SELECT SUM(Total) FROM Ventas WHERE CONVERT(date, Fecha) = CONVERT(date, GETDATE())),
+        0) AS VentasHoy,
+
+        -- Citas agendadas para hoy
+        ISNULL(
+            (SELECT COUNT(*) FROM Citas WHERE Fecha = CONVERT(date, GETDATE())),
+        0) AS CitasHoy,
+
+        -- Productos con stock igual o menor al mínimo
+        ISNULL(
+            (SELECT COUNT(*) FROM Productos WHERE Stock <= StockMinimo),
+        0) AS ProductosBajoStock,
+
+        -- Total de mascotas registradas en el sistema
+        ISNULL(
+            (SELECT COUNT(*) FROM Mascotas),
+        0) AS TotalMascotas;
+END
+GO
+
+------------------------------------------------------------
+-- SP: Dashboard - Citas de hoy con detalle para la tabla
+------------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_Dashboard_CitasHoy
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        c.Id,
+        c.Hora,
+        cl.NombreCompleto   AS ClienteNombre,
+        m.Nombre            AS MascotaNombre,
+        m.Especie,
+        c.Servicio,
+        c.Estado
+    FROM Citas c
+    INNER JOIN Mascotas m  ON c.MascotaId  = m.Id
+    INNER JOIN Clientes cl ON m.ClienteId  = cl.Id
+    WHERE c.Fecha = CONVERT(date, GETDATE())
+    ORDER BY c.Hora ASC;
+END
+GO
+
+
+-- ── sp_Citas_Insertar ─────────────────────────────────────────────
+CREATE OR ALTER PROCEDURE sp_Citas_Insertar
+    @MascotaId INT,
+    @UsuarioId INT = 1,
+    @Fecha DATE,
+    @Hora TIME,
+    @Servicio VARCHAR(100) = 'Grooming',
+    @TransporteNecesario BIT = 0,
+    @TipoTransporte VARCHAR(20) = NULL,
+    @TransporteId INT = NULL,
+    @Provincia VARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 1. Validar servicio
+    IF @Servicio <> 'Grooming'
+        RAISERROR('SERVICIO_INVALIDO', 16, 1);
+
+    -- 2. Validar transporte
+    IF @TransporteNecesario = 1
+    BEGIN
+        IF @TransporteId IS NULL OR @TipoTransporte NOT IN ('Ida', 'Vuelta', 'Ambos')
+            RAISERROR('TRANSPORTE_DATOS_INVALIDOS', 16, 1);
+    END
+
+    -- 3. Validar peso mascota
+    DECLARE @Peso DECIMAL(5,2);
+    SELECT @Peso = Peso FROM Mascotas WHERE Id = @MascotaId;
+    IF @Peso IS NULL OR @Peso = 0
+        RAISERROR('MASCOTA_SIN_PESO', 16, 1);
+
+    -- 4. Validar conflicto veterinario (60 min)
+    IF EXISTS (
+        SELECT 1 FROM Citas
+        WHERE UsuarioId = @UsuarioId
+          AND Fecha = @Fecha
+          AND Estado NOT IN ('Cancelada')
+          AND ABS(DATEDIFF(MINUTE, Hora, @Hora)) < 60
+    )
+        RAISERROR('CONFLICTO_VETERINARIO', 16, 1);
+
+    -- 5. Validar conflicto transporte
+    IF @TransporteNecesario = 1
+    BEGIN
+        DECLARE @BloqueoMinutos INT;
+        SET @BloqueoMinutos = CASE
+            WHEN @Provincia IN ('San José', 'Heredia', 'Alajuela', 'Cartago') THEN 60
+            ELSE 150
+        END;
+
+        IF EXISTS (
+            SELECT 1 FROM Citas
+            WHERE TransporteId = @TransporteId
+              AND Fecha = @Fecha
+              AND Estado NOT IN ('Cancelada')
+              AND ABS(DATEDIFF(MINUTE, Hora, @Hora)) < @BloqueoMinutos
+        )
+            RAISERROR('CONFLICTO_TRANSPORTE', 16, 1);
+    END
+
+    -- 6. Calcular costo grooming por peso
+    DECLARE @CostoGrooming DECIMAL(10,2);
+    SET @CostoGrooming = CASE
+        WHEN @Peso <= 5  THEN 7000
+        WHEN @Peso <= 15 THEN 10000
+        WHEN @Peso <= 30 THEN 13000
+        ELSE 20000
+    END;
+
+    -- 7. Calcular costo transporte ── CORREGIDO: Ambos = x2
+    DECLARE @CostoTransporte DECIMAL(10,2) = 0;
+    IF @TransporteNecesario = 1
+    BEGIN
+        IF @Provincia IS NULL
+            RAISERROR('PROVINCIA_REQUERIDA', 16, 1);
+
+        DECLARE @TarifaBase DECIMAL(10,2);
+        SET @TarifaBase = CASE
+            WHEN @Provincia IN ('San José', 'Heredia', 'Alajuela', 'Cartago') THEN 10000
+            ELSE 25000
+        END;
+
+        SET @CostoTransporte = CASE
+            WHEN @TipoTransporte = 'Ambos' THEN @TarifaBase * 2
+            ELSE @TarifaBase
+        END;
+    END
+
+    -- 8. Insertar
+    INSERT INTO Citas (
+        MascotaId, UsuarioId, Fecha, Hora, Servicio, Estado,
+        TransporteNecesario, TipoTransporte, TransporteId,
+        CostoGrooming, CostoTransporte
+    )
+    VALUES (
+        @MascotaId, @UsuarioId, @Fecha, @Hora, @Servicio, 'Pendiente',
+        @TransporteNecesario, @TipoTransporte, @TransporteId,
+        @CostoGrooming, @CostoTransporte
+    );
+END
+GO
+
+---------------------------Amanda Fin 04.04.2026---------------------
