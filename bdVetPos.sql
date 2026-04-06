@@ -480,13 +480,39 @@ CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_Insertar
   @NombreCompleto NVARCHAR(120),
   @Email NVARCHAR(120),
   @PasswordHash NVARCHAR(255),
-  @RolId INT
+    @RolId INT,
+    @PreguntaSeguridad1 NVARCHAR(100) = NULL,
+    @RespuestaSeguridad1 NVARCHAR(255) = NULL,
+    @PreguntaSeguridad2 NVARCHAR(100) = NULL,
+    @RespuestaSeguridad2 NVARCHAR(255) = NULL
 AS
 BEGIN
   SET NOCOUNT ON;
 
-  INSERT INTO dbo.Usuarios (Username, NombreCompleto, Email, PasswordHash, RolId, Activo)
-  VALUES (@Username, @NombreCompleto, @Email, @PasswordHash, @RolId, 1);
+    INSERT INTO dbo.Usuarios (
+        Username,
+        NombreCompleto,
+        Email,
+        PasswordHash,
+        RolId,
+        Activo,
+        PreguntaSeguridad1,
+        RespuestaSeguridad1,
+        PreguntaSeguridad2,
+        RespuestaSeguridad2
+    )
+    VALUES (
+        @Username,
+        @NombreCompleto,
+        @Email,
+        @PasswordHash,
+        @RolId,
+        1,
+        @PreguntaSeguridad1,
+        @RespuestaSeguridad1,
+        @PreguntaSeguridad2,
+        @RespuestaSeguridad2
+    );
 
   SELECT SCOPE_IDENTITY() AS Id;
 END
@@ -2657,3 +2683,188 @@ END
 GO
 
 ---------------------------Amanda Fin 04.04.2026---------------------
+
+
+---------------------------Aaron 6.04.2026 - OLVIDE CONTRASEÑA CON PREGUNTAS SEGURIDAD---------------------
+
+-- 1. Agregar columnas para preguntas de seguridad en Usuarios
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Usuarios') AND name = 'PreguntaSeguridad1')
+BEGIN
+    ALTER TABLE Usuarios ADD PreguntaSeguridad1 VARCHAR(100) NULL;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Usuarios') AND name = 'RespuestaSeguridad1')
+BEGIN
+    ALTER TABLE Usuarios ADD RespuestaSeguridad1 VARCHAR(255) NULL;  -- Hash de la respuesta
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Usuarios') AND name = 'PreguntaSeguridad2')
+BEGIN
+    ALTER TABLE Usuarios ADD PreguntaSeguridad2 VARCHAR(100) NULL;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Usuarios') AND name = 'RespuestaSeguridad2')
+BEGIN
+    ALTER TABLE Usuarios ADD RespuestaSeguridad2 VARCHAR(255) NULL;  -- Hash de la respuesta
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Usuarios') AND name = 'IntentosRecuperacion')
+BEGIN
+    ALTER TABLE Usuarios ADD IntentosRecuperacion INT DEFAULT 0;
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Usuarios') AND name = 'UltimoIntentoRecuperacion')
+BEGIN
+    ALTER TABLE Usuarios ADD UltimoIntentoRecuperacion DATETIME NULL;
+END
+GO
+
+-- 2. SP para validar respuestas de seguridad y permitir reseteo
+CREATE OR ALTER PROCEDURE sp_Usuarios_ValidarRespuestasSeguridad
+    @Username NVARCHAR(50),
+    @Respuesta1 NVARCHAR(255),
+    @Respuesta2 NVARCHAR(255),
+    @Resultado INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @UserId INT;
+    DECLARE @RespuestaHasheada1 VARCHAR(255);
+    DECLARE @RespuestaHasheada2 VARCHAR(255);
+    DECLARE @RespuestaAlmacenada1 VARCHAR(255);
+    DECLARE @RespuestaAlmacenada2 VARCHAR(255);
+    DECLARE @IntentosActuales INT;
+    DECLARE @UltimoIntento DATETIME;
+    DECLARE @TiempoTranscurrido INT;
+
+    -- Buscar usuario
+    SELECT @UserId = Id, 
+           @IntentosActuales = IntentosRecuperacion,
+           @UltimoIntento = UltimoIntentoRecuperacion,
+           @RespuestaAlmacenada1 = RespuestaSeguridad1,
+           @RespuestaAlmacenada2 = RespuestaSeguridad2
+    FROM dbo.Usuarios 
+    WHERE Username = @Username;
+
+    IF @UserId IS NULL
+    BEGIN
+        SET @Resultado = 0;  -- Usuario no existe
+        RETURN;
+    END
+
+    -- Rate limiting: Máx 3 intentos, bloqueo de 15 minutos
+    IF @IntentosActuales >= 3 AND @UltimoIntento IS NOT NULL
+    BEGIN
+        SET @TiempoTranscurrido = DATEDIFF(MINUTE, @UltimoIntento, GETDATE());
+        IF @TiempoTranscurrido < 15
+        BEGIN
+            SET @Resultado = 3;  -- Bloqueado temporalmente
+            RETURN;
+        END
+        ELSE
+        BEGIN
+            UPDATE dbo.Usuarios SET IntentosRecuperacion = 0, UltimoIntentoRecuperacion = NULL WHERE Id = @UserId;
+            SET @IntentosActuales = 0;
+        END
+    END
+
+    -- Normalizar respuestas (minúsculas, sin espacios extras)
+    DECLARE @Resp1Norm NVARCHAR(255) = LOWER(TRIM(@Respuesta1));
+    DECLARE @Resp2Norm NVARCHAR(255) = LOWER(TRIM(@Respuesta2));
+
+    -- Hash simple para comparación (en producción usar bcrypt)
+    SET @RespuestaHasheada1 = LOWER(TRIM(@Respuesta1));
+    SET @RespuestaHasheada2 = LOWER(TRIM(@Respuesta2));
+
+    -- Validar respuestas
+    IF (@RespuestaAlmacenada1 = @RespuestaHasheada1) AND (@RespuestaAlmacenada2 = @RespuestaHasheada2)
+    BEGIN
+        -- Respuestas correctas: resetear intentos y retornar éxito
+        UPDATE dbo.Usuarios SET IntentosRecuperacion = 0, UltimoIntentoRecuperacion = NULL WHERE Id = @UserId;
+        SET @Resultado = 1;  -- Éxito
+        RETURN;
+    END
+    ELSE
+    BEGIN
+        -- Incrementar intentos fallidos
+        UPDATE dbo.Usuarios 
+        SET IntentosRecuperacion = IntentosRecuperacion + 1,
+            UltimoIntentoRecuperacion = GETDATE()
+        WHERE Id = @UserId;
+        SET @Resultado = 2;  -- Respuestas incorrectas
+        RETURN;
+    END
+END
+GO
+
+-- 3. SP para resetear contraseña después de validar preguntas
+CREATE OR ALTER PROCEDURE sp_Usuarios_ResetearContraseña
+    @Username NVARCHAR(50),
+    @NuevaContraseñaHash VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Usuarios 
+    SET PasswordHash = @NuevaContraseñaHash,
+        IntentosRecuperacion = 0,
+        UltimoIntentoRecuperacion = NULL
+    WHERE Username = @Username;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        -- Registrar en auditoría
+        INSERT INTO dbo.LogAuditoria (TipoEventoId, ActorUsuarioId, UsuarioAfectadoId, Detalle, Ip)
+        SELECT 
+            (SELECT Id FROM dbo.TiposEventoLog WHERE Codigo = 'USR_RESET_PASSWORD'),
+            NULL,
+            Id,
+            'Reseteo de contraseña via preguntas de seguridad',
+            NULL
+        FROM dbo.Usuarios WHERE Username = @Username;
+
+        SELECT 1 AS Exitoso;
+    END
+    ELSE
+    BEGIN
+        SELECT 0 AS Exitoso;
+    END
+END
+GO
+
+-- 4. SP para obtener preguntas de seguridad de un usuario
+CREATE OR ALTER PROCEDURE sp_Usuarios_ObtenerPreguntasSeguridad
+    @Username NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        PreguntaSeguridad1,
+        PreguntaSeguridad2
+    FROM dbo.Usuarios 
+    WHERE Username = @Username AND Activo = 1;
+END
+GO
+
+-- 5. Preguntas de seguridad predefinidas (referencia)
+CREATE OR ALTER PROCEDURE sp_ObtenerPreguntasDisponibles
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        'Nombre de tu primera mascota' AS Pregunta,
+        'mascota' AS Tipo
+    UNION ALL
+    SELECT 'Marca de tu primer auto', 'auto';
+END
+GO
+
+---------------------------Aaron Fin 6.04.2026---------------------

@@ -12,7 +12,7 @@ async function findByUsername(username) {
 }
 
 // ===== REGISTRO / ADMIN CREATE =====
-async function createUser({ username, nombreCompleto, email, passwordHash, rolId }) {
+async function createUser({ username, nombreCompleto, email, passwordHash, rolId, preguntaSeguridad1, respuestaSeguridad1, preguntaSeguridad2, respuestaSeguridad2 }) {
   const pool = await getPool();
 
   const result = await pool.request()
@@ -23,7 +23,32 @@ async function createUser({ username, nombreCompleto, email, passwordHash, rolId
     .input('RolId', sql.Int, rolId)
     .execute('dbo.sp_Usuarios_Insertar');
 
-  return result.recordset[0]?.Id;
+  const newId = result.recordset[0]?.Id;
+
+  if (newId && (preguntaSeguridad1 || respuestaSeguridad1 || preguntaSeguridad2 || respuestaSeguridad2)) {
+    await pool.request()
+      .input('Id', sql.Int, newId)
+      .input('PreguntaSeguridad1', sql.NVarChar(100), preguntaSeguridad1 || null)
+      .input('RespuestaSeguridad1', sql.NVarChar(255), respuestaSeguridad1 || null)
+      .input('PreguntaSeguridad2', sql.NVarChar(100), preguntaSeguridad2 || null)
+      .input('RespuestaSeguridad2', sql.NVarChar(255), respuestaSeguridad2 || null)
+      .query(`
+        IF COL_LENGTH('dbo.Usuarios', 'PreguntaSeguridad1') IS NOT NULL
+           AND COL_LENGTH('dbo.Usuarios', 'RespuestaSeguridad1') IS NOT NULL
+           AND COL_LENGTH('dbo.Usuarios', 'PreguntaSeguridad2') IS NOT NULL
+           AND COL_LENGTH('dbo.Usuarios', 'RespuestaSeguridad2') IS NOT NULL
+        BEGIN
+          UPDATE dbo.Usuarios
+          SET PreguntaSeguridad1 = @PreguntaSeguridad1,
+              RespuestaSeguridad1 = @RespuestaSeguridad1,
+              PreguntaSeguridad2 = @PreguntaSeguridad2,
+              RespuestaSeguridad2 = @RespuestaSeguridad2
+          WHERE Id = @Id;
+        END
+      `);
+  }
+
+  return newId;
 }
 
 // ===== VALIDACIONES =====

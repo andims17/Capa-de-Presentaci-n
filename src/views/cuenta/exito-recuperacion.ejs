@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title || 'Contraseña Actualizada - VetPost' %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-cyan: #7DD3FC;
+            --primary-dark: #0EA5E9;
+            --primary-light: #E0F2FE;
+            --success: #10B981;
+            --success-light: #ECFDF5;
+            --danger: #EF4444;
+            --gray-dark: #64748B;
+            --text-dark: #1E293B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-cyan));
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .success-badge {
+            width: 80px;
+            height: 80px;
+            background-color: var(--success-light);
+            border: 3px solid var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            animation: slideDown 0.5s ease;
+        }
+
+        .success-icon {
+            font-size: 45px;
+            color: var(--success);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            color: var(--gray-dark);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .message-box {
+            background-color: var(--success-light);
+            border-left: 4px solid var(--success);
+            padding: 16px;
+            border-radius: 6px;
+            margin: 25px 0;
+            font-size: 14px;
+            color: #065F46;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-login:hover {
+            background-color: #0284C7;
+        }
+
+        .countdown {
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--gray-dark);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-badge">
+            <i class="fas fa-check success-icon"></i>
+        </div>
+
+        <div class="header">
+            <h1>¡Contraseña Actualizada!</h1>
+            <p>Tu contraseña ha sido actualizada exitosamente</p>
+        </div>
+
+        <div class="message-box">
+            <i class="fas fa-shield-alt" style="margin-right: 8px;"></i>
+            Ya puedes iniciar sesión con tu nueva contraseña
+        </div>
+
+        <a href="/cuenta/login" class="btn-login">
+            <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>
+            Ir a Iniciar Sesión
+        </a>
+
+        <div class="countdown">
+            Serás redirigido en <span id="timer">5</span> segundos...
+        </div>
+    </div>
+
+    <script>
+        let seconds = 5;
+        const timer = document.getElementById('timer');
+
+        const countdown = setInterval(() => {
+            seconds--;
+            timer.textContent = seconds;
+
+            if (seconds <= 0) {
+                clearInterval(countdown);
+                window.location.href = '/cuenta/login';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

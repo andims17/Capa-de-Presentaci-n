@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title || 'Preguntas de Seguridad - VetPost' %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-cyan: #7DD3FC;
+            --primary-dark: #0EA5E9;
+            --primary-light: #E0F2FE;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gray-light: #F8FAFC;
+            --gray-medium: #E2E8F0;
+            --gray-dark: #64748B;
+            --text-dark: #1E293B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-cyan));
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--gray-dark);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .question-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px;
+            background-color: var(--primary-light);
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-dark);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--gray-medium);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-dark);
+        }
+
+        .error-message {
+            background-color: #FEE2E2;
+            color: var(--danger);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-left: 4px solid var(--danger);
+        }
+
+        .info-message {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border-left: 4px solid var(--primary-dark);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-submit, .btn-back {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit {
+            background-color: var(--primary-dark);
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background-color: #0284C7;
+        }
+
+        .btn-back {
+            background-color: var(--gray-medium);
+            color: var(--text-dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-back:hover {
+            background-color: #CBD5E1;
+        }
+
+        .icon {
+            font-size: 40px;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <i class="fas fa-question-circle icon"></i>
+            <h1>Preguntas de Seguridad</h1>
+            <p>Responde tus preguntas de seguridad para continuar</p>
+        </div>
+
+        <% if (error) { %>
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                <%= error %>
+            </div>
+        <% } %>
+
+        <div class="info-message">
+            <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+            Las respuestas no distinguen entre mayúsculas y minúsculas
+        </div>
+
+        <form method="POST" action="/cuenta/preguntas-seguridad">
+            <div class="form-group">
+                <label class="question-label">
+                    <i class="fas fa-circle-question" style="margin-right: 8px;"></i>
+                    Pregunta 1: ¿Nombre de tu primera mascota?
+                </label>
+                <input 
+                    type="text" 
+                    name="respuesta1" 
+                    required 
+                    placeholder="Escribe tu respuesta..."
+                    autofocus
+                />
+            </div>
+
+            <div class="form-group">
+                <label class="question-label">
+                    <i class="fas fa-circle-question" style="margin-right: 8px;"></i>
+                    Pregunta 2: ¿Marca de tu primer auto?
+                </label>
+                <input 
+                    type="text" 
+                    name="respuesta2" 
+                    required 
+                    placeholder="Escribe tu respuesta..."
+                />
+            </div>
+
+            <div class="btn-group">
+                <a href="/cuenta/olvide-contrasena" class="btn-back">
+                    <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>
+                    Atrás
+                </a>
+                <button type="submit" class="btn-submit">
+                    Validar
+                    <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
