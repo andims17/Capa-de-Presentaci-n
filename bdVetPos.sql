@@ -467,6 +467,7 @@ BEGIN
   SET NOCOUNT ON;
 
   SELECT u.Id, u.Username, u.NombreCompleto, u.Email, u.PasswordHash, u.RolId, u.Activo,
+         u.PreguntasConfiguradas,
          r.Nombre AS RolNombre
   FROM dbo.Usuarios u
   INNER JOIN dbo.Roles r ON r.Id = u.RolId
@@ -2724,6 +2725,12 @@ BEGIN
 END
 GO
 
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Usuarios') AND name = 'PreguntasConfiguradas')
+BEGIN
+    ALTER TABLE Usuarios ADD PreguntasConfiguradas BIT DEFAULT 0;
+END
+GO
+
 -- 2. SP para validar respuestas de seguridad y permitir reseteo
 CREATE OR ALTER PROCEDURE sp_Usuarios_ValidarRespuestasSeguridad
     @Username NVARCHAR(50),
@@ -2864,6 +2871,38 @@ BEGIN
         'mascota' AS Tipo
     UNION ALL
     SELECT 'Marca de tu primer auto', 'auto';
+END
+GO
+
+-- 6. SP para guardar/actualizar preguntas de seguridad
+CREATE OR ALTER PROCEDURE sp_Usuarios_GuardarPreguntasSeguridad
+    @UserId INT,
+    @Respuesta1 NVARCHAR(255),
+    @Respuesta2 NVARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @Respuesta1Norm VARCHAR(255) = LOWER(TRIM(@Respuesta1));
+    DECLARE @Respuesta2Norm VARCHAR(255) = LOWER(TRIM(@Respuesta2));
+
+    UPDATE dbo.Usuarios 
+    SET 
+        PreguntaSeguridad1 = 'Nombre de tu primera mascota',
+        RespuestaSeguridad1 = @Respuesta1Norm,
+        PreguntaSeguridad2 = 'Marca de tu primer auto',
+        RespuestaSeguridad2 = @Respuesta2Norm,
+        PreguntasConfiguradas = 1
+    WHERE Id = @UserId;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        SELECT 1 AS Exitoso;
+    END
+    ELSE
+    BEGIN
+        SELECT 0 AS Exitoso;
+    END
 END
 GO
 

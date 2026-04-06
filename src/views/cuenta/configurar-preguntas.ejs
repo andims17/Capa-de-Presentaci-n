@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title || 'Configurar Preguntas de Seguridad - VetPost' %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-cyan: #7DD3FC;
+      --primary-dark: #0EA5E9;
+      --primary-light: #E0F2FE;
+      --gray-light: #F8FAFC;
+      --gray-medium: #E2E8F0;
+      --gray-dark: #64748B;
+      --text-dark: #1E293B;
+      --bg-secondary: #ffffff;
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --warning: #F59E0B;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary-cyan));
+      min-height: 100vh; display:flex; align-items:center; justify-content:center; padding: 20px;
+    }
+
+    .box {
+      background: var(--bg-secondary);
+      border-radius: 15px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 550px;
+      padding: 2.2rem;
+    }
+
+    h1 { font-size: 2rem; color: var(--text-primary); margin-bottom: 0.5rem; text-align:center; }
+    .subtitle { color: var(--text-secondary); text-align:center; margin-bottom: 1.5rem; font-size: 0.95rem; }
+    
+    .alert {
+      padding: 1rem; 
+      border-radius: 8px; 
+      margin-bottom: 1.5rem; 
+      border-left: 4px solid var(--warning);
+      background: rgba(245, 158, 11, 0.1);
+      color: #92400e;
+    }
+
+    .info-box {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-dark);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .info-box i { color: var(--primary-dark); margin-right: 0.5rem; }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display:block; margin-bottom:0.5rem; font-weight:600; color: var(--text-primary); }
+    .form-label .question { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; display: block; margin-top: 0.2rem; }
+    
+    .input-with-icon { position:relative; }
+    .input-icon { position:absolute; left:1rem; top:50%; transform:translateY(-50%); color: var(--text-secondary); }
+    
+    .form-control {
+      width:100%;
+      padding:0.8rem 1rem 0.8rem 3rem;
+      border: 1px solid var(--gray-medium);
+      border-radius: 6px;
+      font-size:1rem;
+      transition: border 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-dark);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    .btn { 
+      width:100%; 
+      padding:0.85rem; 
+      border-radius:6px; 
+      border:none; 
+      font-weight:700; 
+      cursor:pointer; 
+      font-size:1.05rem;
+      transition: all 0.2s;
+    }
+
+    .btn-primary { 
+      background: var(--primary-dark); 
+      color:white; 
+    }
+
+    .btn-primary:hover { 
+      background: var(--primary-cyan);
+      transform: translateY(-2px);
+    }
+
+    .btn-block { margin-top: 1rem; }
+
+    .help-text {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 0.3rem;
+      margin-left: 3rem;
+    }
+
+    .step-indicator {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .step-indicator i { color: var(--primary-dark); }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1><i class="fas fa-shield-alt"></i> Seguridad</h1>
+    <p class="subtitle">Configura tus preguntas de seguridad para recuperar tu contraseña</p>
+
+    <div class="alert">
+      <i class="fas fa-exclamation-triangle"></i> <strong>Importantes:</strong> Las respuestas deben ser precisas y fáciles de recordar. No distinguen mayúsculas de minúsculas.
+    </div>
+
+    <div class="info-box">
+      <i class="fas fa-info-circle"></i>
+      <strong>¿Por qué?</strong> Si alguna vez olvidas tu contraseña, solo necesitarás responder estas 2 preguntas para recuperar acceso a tu cuenta.
+    </div>
+
+    <% if (error) { %>
+      <div class="alert" style="background: rgba(239, 68, 68, 0.1); border-left-color: #EF4444; color: #991B1B;">
+        <i class="fas fa-times-circle"></i> <%= error %>
+      </div>
+    <% } %>
+
+    <form method="POST" action="/cuenta/configurar-preguntas">
+      <div class="form-group">
+        <label class="form-label" for="respuesta1">
+          <i class="fas fa-paw"></i> ¿Nombre de tu primera mascota?
+          <span class="question">Ejemplo: "Firulais", "Pelusa", "Misi"</span>
+        </label>
+        <div class="input-with-icon">
+          <i class="fas fa-font input-icon"></i>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="respuesta1" 
+            name="respuesta1" 
+            placeholder="Escribe el nombre" 
+            required 
+            minlength="2"
+            maxlength="100"
+          />
+        </div>
+        <div class="help-text">Min. 2 caracteres, sin números special</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="respuesta2">
+          <i class="fas fa-car"></i> ¿Marca de tu primer auto?
+          <span class="question">Ejemplo: "Toyota", "Ford", "Chevrolet"</span>
+        </label>
+        <div class="input-with-icon">
+          <i class="fas fa-font input-icon"></i>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="respuesta2" 
+            name="respuesta2" 
+            placeholder="Escribe la marca" 
+            required 
+            minlength="2"
+            maxlength="100"
+          />
+        </div>
+        <div class="help-text">Min. 2 caracteres, sin números especiales</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        <i class="fas fa-check-circle"></i> Guardar Preguntas de Seguridad
+      </button>
+    </form>
+  </div>
+</body>
+</html>

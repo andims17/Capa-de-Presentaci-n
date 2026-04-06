@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title || 'Configuración Completada - VetPost' %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary-cyan: #7DD3FC;
+      --primary-dark: #0EA5E9;
+      --primary-light: #E0F2FE;
+      --gray-light: #F8FAFC;
+      --gray-medium: #E2E8F0;
+      --gray-dark: #64748B;
+      --text-dark: #1E293B;
+      --bg-secondary: #ffffff;
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --success: #10B981;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary-cyan));
+      height: 100vh; 
+      display:flex; 
+      align-items:center; 
+      justify-content:center;
+    }
+
+    .box {
+      background: var(--bg-secondary);
+      border-radius: 15px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 500px;
+      padding: 3rem 2.2rem;
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 2px solid var(--success);
+      border-radius: 50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin: 0 auto 1.5rem;
+      font-size: 2.5rem;
+      color: var(--success);
+      animation: scaleIn 0.5s ease-out;
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.3); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    h1 { font-size: 1.8rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+    p { color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.05rem; line-height: 1.6; }
+
+    .countdown {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .countdown strong { color: var(--primary-dark); font-weight: 700; }
+
+    .btn {
+      display: inline-block;
+      padding: 0.85rem 2rem;
+      background: var(--primary-dark);
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-cyan);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="success-icon">
+      <i class="fas fa-check"></i>
+    </div>
+    <h1>¡Excelente!</h1>
+    <p>Tus preguntas de seguridad han sido configuradas exitosamente.</p>
+    <p style="font-size: 0.95rem; color: #64748B;">Ahora puedes recuperar tu contraseña en caso de que la olvides.</p>
+
+    <div class="countdown">
+      Redirigiendo en <strong id="seconds">3</strong> segundos...
+    </div>
+
+    <a href="/inicio" class="btn">
+      <i class="fas fa-home"></i> Ir al Inicio
+    </a>
+  </div>
+
+  <script>
+    let seconds = 3;
+    const secondsEl = document.getElementById('seconds');
+
+    const interval = setInterval(() => {
+      seconds--;
+      secondsEl.textContent = seconds;
+
+      if (seconds <= 0) {
+        clearInterval(interval);
+        window.location.href = '/inicio';
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

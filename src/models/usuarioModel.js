@@ -42,7 +42,8 @@ async function createUser({ username, nombreCompleto, email, passwordHash, rolId
           SET PreguntaSeguridad1 = @PreguntaSeguridad1,
               RespuestaSeguridad1 = @RespuestaSeguridad1,
               PreguntaSeguridad2 = @PreguntaSeguridad2,
-              RespuestaSeguridad2 = @RespuestaSeguridad2
+              RespuestaSeguridad2 = @RespuestaSeguridad2,
+              PreguntasConfiguradas = 1
           WHERE Id = @Id;
         END
       `);

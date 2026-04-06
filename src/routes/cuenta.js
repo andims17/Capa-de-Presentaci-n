@@ -64,12 +64,12 @@ router.post('/login', async (req, res) => {
       });
     }
 
-      req.session.user = {
-    id: user.Id,
-    username: user.Username,
-    rolId: user.RolId,
-    rolNombre: user.RolNombre
-  };
+    req.session.user = {
+      id: user.Id,
+      username: user.Username,
+      rolId: user.RolId,
+      rolNombre: user.RolNombre
+    };
 
     await registrarEvento({
       codigoEvento: 'USR_LOGIN',
@@ -79,6 +79,11 @@ router.post('/login', async (req, res) => {
       ip: obtenerIp(req),
       datos: { username: user.Username, rol: user.RolNombre }
     });
+
+    // Chequear si el usuario tiene preguntas de seguridad configuradas
+    if (!user.PreguntasConfiguradas) {
+      return res.redirect('/cuenta/configurar-preguntas');
+    }
 
     return res.redirect('/inicio');
   } catch (error) {
@@ -431,6 +436,91 @@ router.post('/nueva-contrasena', async (req, res) => {
     console.error(error);
     return res.status(500).render('cuenta/nueva-contrasena', {
       title: 'Nueva Contraseña - VetPost',
+      error: 'Error al procesar tu solicitud.',
+      layout: false
+    });
+  }
+});
+
+// ===== CONFIGURAR PREGUNTAS DE SEGURIDAD =====
+router.get('/configurar-preguntas', (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/cuenta/login');
+  }
+
+  res.render('cuenta/configurar-preguntas', {
+    title: 'Configurar Preguntas de Seguridad - VetPost',
+    error: null,
+    layout: false
+  });
+});
+
+router.post('/configurar-preguntas', async (req, res) => {
+  const { respuesta1, respuesta2 } = req.body;
+  const userId = req.session.user?.id;
+
+  try {
+    if (!userId) {
+      return res.redirect('/cuenta/login');
+    }
+
+    if (!respuesta1 || !respuesta2) {
+      return res.status(400).render('cuenta/configurar-preguntas', {
+        title: 'Configurar Preguntas de Seguridad - VetPost',
+        error: 'Por favor responde ambas preguntas.',
+        layout: false
+      });
+    }
+
+    if (respuesta1.length < 2 || respuesta2.length < 2) {
+      return res.status(400).render('cuenta/configurar-preguntas', {
+        title: 'Configurar Preguntas de Seguridad - VetPost',
+        error: 'Las respuestas deben tener al menos 2 caracteres.',
+        layout: false
+      });
+    }
+
+    // Normalizar respuestas
+    const respuesta1Norm = respuesta1.toLowerCase().trim();
+    const respuesta2Norm = respuesta2.toLowerCase().trim();
+
+    // Ejecutar SP para guardar preguntas
+    const pool = await getPool();
+    const result = await pool.request()
+      .input('UserId', userId)
+      .input('Respuesta1', respuesta1Norm)
+      .input('Respuesta2', respuesta2Norm)
+      .execute('sp_Usuarios_GuardarPreguntasSeguridad');
+
+    if (result.recordsets[0][0]?.Exitoso) {
+      // Actualizar sesión para marcar que está configurado
+      req.session.user.preguntasConfiguradas = true;
+
+      // Registrar evento
+      await registrarEvento({
+        codigoEvento: 'USR_CONFIG_SEGURIDAD',
+        actorUsuarioId: userId,
+        usuarioAfectadoId: userId,
+        detalle: `Usuario configuró preguntas de seguridad`,
+        ip: obtenerIp(req),
+        datos: { username: req.session.user.username }
+      });
+
+      return res.render('cuenta/exito-configuracion', {
+        title: 'Configuración Completada - VetPost',
+        layout: false
+      });
+    } else {
+      return res.status(500).render('cuenta/configurar-preguntas', {
+        title: 'Configurar Preguntas de Seguridad - VetPost',
+        error: 'Error al guardar las preguntas. Intenta nuevamente.',
+        layout: false
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).render('cuenta/configurar-preguntas', {
+      title: 'Configurar Preguntas de Seguridad - VetPost',
       error: 'Error al procesar tu solicitud.',
       layout: false
     });
