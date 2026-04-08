@@ -30,6 +30,12 @@
         margin-right: 5px;
     }
     .cart-item-info { flex: 1; }
+    .grooming-cart-detail {
+        font-size: 0.78em;
+        color: var(--text-secondary, #64748B);
+        margin-top: 2px;
+        line-height: 1.4;
+    }
 </style>
 
 <div class="page-header">
@@ -112,10 +118,11 @@
     </div>
 </div>
 
+<!-- Modal Grooming -->
 <div id="modalGrooming" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title">Programar Servicio de Grooming</h3>
+            <h3 class="modal-title"><i class="fas fa-cut"></i> Programar Servicio de Grooming</h3>
             <button class="close" onclick="closeGroomingModal()">&times;</button>
         </div>
         <div class="form-group">
@@ -124,7 +131,7 @@
         </div>
         <div class="form-group">
             <label class="form-label">2. Seleccionar Mascota</label>
-            <select id="citaMascotaId" class="form-control"><option value="">-- Seleccione la mascota --</option></select>
+            <select id="citaMascotaId" class="form-control" onchange="actualizarPrecioGrooming()"><option value="">-- Seleccione la mascota --</option></select>
         </div>
         <div class="two-cols">
             <div class="form-group"><label class="form-label">Fecha</label><input id="citaFecha" type="date" class="form-control" required></div>
@@ -133,7 +140,7 @@
         <div class="two-cols">
             <div class="form-group"><label class="form-label">Servicio</label><input id="citaServicio" type="text" class="form-control" value="Grooming" readonly></div>
             <div class="form-group"><label class="form-label">Provincia</label>
-                <select id="citaProvincia" class="form-control">
+                <select id="citaProvincia" class="form-control" onchange="actualizarPrecioGrooming()">
                     <option value="San José">San José</option><option value="Alajuela">Alajuela</option>
                     <option value="Cartago">Cartago</option><option value="Heredia">Heredia</option>
                 </select>
@@ -142,18 +149,59 @@
         <div class="form-group"><label><input type="checkbox" id="citaTransporte" onchange="toggleTransporteOptions()"> ¿Requiere Transporte?</label></div>
         <div id="opcionesTransporte" style="display:none;">
             <div class="form-group"><label class="form-label">Tipo de Transporte</label>
-                <select id="citaTipoTransporte" class="form-control">
-                    <option value="Solo Ida">Solo Ida</option><option value="Solo Vuelta">Solo Vuelta</option><option value="Ida y Vuelta">Ida y Vuelta</option>
+                <select id="citaTipoTransporte" class="form-control" onchange="actualizarPrecioGrooming()">
+                    <option value="Solo Ida">Solo Ida</option>
+                    <option value="Solo Vuelta">Solo Vuelta</option>
+                    <option value="Ida y Vuelta">Ida y Vuelta</option>
                 </select>
             </div>
         </div>
+
+        <!-- Caja de precio en tiempo real -->
+        <div id="groomingPrecioBox" class="purchase-card" style="display:none; margin-top:0.5rem;">
+            <div class="purchase-header" style="margin-bottom:0.5rem;">
+                <div class="purchase-info">
+                    <h3 style="font-size:0.95rem;"><i class="fas fa-tag" style="color:var(--primary-dark,#0EA5E9);"></i> Desglose de Precio</h3>
+                </div>
+            </div>
+            <div class="purchase-details">
+                <div class="detail-item">
+                    <span class="detail-label">Peso de la mascota</span>
+                    <span class="detail-value" id="groomingPeso">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Servicio de Grooming</span>
+                    <span class="detail-value" id="groomingCostoBase">-</span>
+                </div>
+                <div class="detail-item" id="groomingTransporteRow" style="display:none;">
+                    <span class="detail-label">Transporte (<span id="groomingTipoTransporte"></span>)</span>
+                    <span class="detail-value" id="groomingCostoTransporte">-</span>
+                </div>
+            </div>
+            <div class="purchase-header" style="margin-bottom:0; border-top:1px solid var(--border-color,#E2E8F0); padding-top:0.75rem;">
+                <span class="detail-label" style="font-weight:600;">Total del Servicio</span>
+                <div class="purchase-amount">
+                    <div class="purchase-total" id="groomingTotal">-</div>
+                </div>
+            </div>
+        </div>
+        <div id="groomingPrecioError" style="display:none; margin-top:0.5rem;" class="purchase-card">
+            <div class="detail-item">
+                <span style="color:var(--warning,#F59E0B);"><i class="fas fa-exclamation-triangle"></i></span>
+                <span class="detail-value" id="groomingPrecioErrorMsg" style="color:var(--warning,#F59E0B);"></span>
+            </div>
+        </div>
+
         <div class="modal-actions">
             <button type="button" class="btn btn-plain" onclick="closeGroomingModal()">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="confirmGroomingAdd()">Agregar al Carrito</button>
+            <button type="button" class="btn btn-primary" id="btnConfirmarGrooming" onclick="confirmGroomingAdd()" disabled>
+                <i class="fas fa-cart-plus"></i> Agregar al Carrito
+            </button>
         </div>
     </div>
 </div>
 
+<!-- Modal Seleccionar Cliente -->
 <div id="seleccionarClienteModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -175,6 +223,7 @@
     var currentCustomer = { id: null, name: 'Venta General', code: '' };
     let tempGroomingData = null;
     var currentCategory = 'all';
+    let groomingPrecioActual = 0; 
 
     function setCategory(category, element) {
         currentCategory = category;
@@ -194,6 +243,7 @@
     function toggleTransporteOptions() {
         const check = document.getElementById('citaTransporte').checked;
         document.getElementById('opcionesTransporte').style.display = check ? 'block' : 'none';
+        actualizarPrecioGrooming();
     }
 
     async function cargarClientesDropdown() {
@@ -235,9 +285,75 @@
         } catch (error) { console.error(error); }
     }
 
+    async function actualizarPrecioGrooming() {
+        const mascotaId = document.getElementById('citaMascotaId').value;
+        const requiereTransporte = document.getElementById('citaTransporte').checked;
+        const provincia = document.getElementById('citaProvincia').value;
+        const tipoTransporte = document.getElementById('citaTipoTransporte').value;
+
+        const boxPrecio = document.getElementById('groomingPrecioBox');
+        const boxError = document.getElementById('groomingPrecioError');
+        const btnConfirmar = document.getElementById('btnConfirmarGrooming');
+
+        boxPrecio.style.display = 'none';
+        boxError.style.display = 'none';
+        btnConfirmar.disabled = true;
+        groomingPrecioActual = 0;
+
+        if (!mascotaId) return;
+
+        try {
+            const params = new URLSearchParams({
+                mascotaId,
+                transporte: requiereTransporte ? '1' : '0',
+                provincia,
+                tipoTransporte
+            });
+            const res = await fetch(`/ventas/grooming/precio?${params}`);
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                document.getElementById('groomingPrecioErrorMsg').textContent = data.error || 'Error al calcular precio';
+                boxError.style.display = 'block';
+                return;
+            }
+
+            // Mostrar desglose
+            document.getElementById('groomingPeso').textContent = `${data.peso} kg`;
+            document.getElementById('groomingCostoBase').textContent = `₡${data.costoGrooming.toLocaleString()}`;
+
+            const rowTransporte = document.getElementById('groomingTransporteRow');
+            if (data.costoTransporte > 0) {
+                document.getElementById('groomingTipoTransporte').textContent = tipoTransporte;
+                document.getElementById('groomingCostoTransporte').textContent = `₡${data.costoTransporte.toLocaleString()}`;
+                rowTransporte.style.display = 'flex';
+            } else {
+                rowTransporte.style.display = 'none';
+            }
+
+            document.getElementById('groomingTotal').textContent = `₡${data.total.toLocaleString()}`;
+
+            groomingPrecioActual = data.total;
+            boxPrecio.style.display = 'block';
+            btnConfirmar.disabled = false;
+
+        } catch (err) {
+            document.getElementById('groomingPrecioErrorMsg').textContent = 'No se pudo conectar al servidor.';
+            boxError.style.display = 'block';
+        }
+    }
+
     function abrirModalGrooming() {
-        cargarClientesDropdown(); 
-        cargarTodasLasMascotas();  
+        // Reset estado del modal
+        document.getElementById('groomingPrecioBox').style.display = 'none';
+        document.getElementById('groomingPrecioError').style.display = 'none';
+        document.getElementById('btnConfirmarGrooming').disabled = true;
+        document.getElementById('citaTransporte').checked = false;
+        document.getElementById('opcionesTransporte').style.display = 'none';
+        groomingPrecioActual = 0;
+
+        cargarClientesDropdown();
+        cargarTodasLasMascotas();
         document.getElementById('modalGrooming').style.display = 'flex';
     }
 
@@ -260,7 +376,7 @@
                 groomingCard.innerHTML = `
                     <div class="product-icon"><i class="fas fa-cut"></i></div>
                     <div class="product-name">Servicio de Grooming</div>
-                    <div class="product-price">₡0</div>
+                    <div class="product-price" style="color:#28a745;">Precio según mascota</div>
                     <div class="product-stock">Programar Cita</div>
                 `;
                 grid.appendChild(groomingCard);
@@ -319,17 +435,26 @@
         const hora = document.getElementById('citaHora').value;
         const provincia = document.getElementById('citaProvincia').value;
         const requiereTransporte = document.getElementById('citaTransporte').checked;
+        const tipoTransporte = document.getElementById('citaTipoTransporte').value;
 
         if (!mascotaId || !fecha || !hora) return alert("Seleccione mascota, fecha y hora");
+        if (groomingPrecioActual <= 0) return alert("Espere a que se calcule el precio del servicio");
+
+        // Texto de detalle para mostrar en carrito
+        const mascotaSelect = document.getElementById('citaMascotaId');
+        const mascotaNombre = mascotaSelect.options[mascotaSelect.selectedIndex]?.text || '';
+        let detalle = `Mascota: ${mascotaNombre} | ${fecha} ${hora}`;
+        if (requiereTransporte) detalle += ` | Transporte ${tipoTransporte} (${provincia})`;
 
         const uniqueId = "groom_" + Date.now();
         cart.push({
             id: uniqueId,
             nombre: "Servicio de Grooming",
-            precio: tempGroomingData.precio || 0,
+            precio: groomingPrecioActual,
             quantity: 1,
             isGrooming: true,
             descuentoManual: 0,
+            detalle: detalle,
             spData: {
                 MascotaId: mascotaId,
                 ClienteId: clienteId, 
@@ -337,7 +462,7 @@
                 Hora: hora,
                 Servicio: 'Grooming',
                 TransporteNecesario: requiereTransporte,
-                TipoTransporte: requiereTransporte ? document.getElementById('citaTipoTransporte').value : null,
+                TipoTransporte: requiereTransporte ? tipoTransporte : null,
                 Provincia: provincia
             }
         });
@@ -372,12 +497,11 @@
             row.innerHTML = `
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.nombre}</div>
-                    <div style="font-size:0.8em; color:gray;">${item.isGrooming ? item.detalle : ''}</div>
+                    ${item.isGrooming && item.detalle ? `<div class="grooming-cart-detail"><i class="fas fa-info-circle"></i> ${item.detalle}</div>` : ''}
                     <div class="cart-item-price">
                         ${desc > 0 ? `<span class="price-old">₡${item.precio.toLocaleString()}</span>` : ''}
                         ₡${precioFinal.toLocaleString()}
                     </div>
-                    
                     <div class="manual-discounts">
                         <button class="btn-desc ${desc === 0.05 ? 'active' : ''}" onclick="aplicarDescuento('${item.id}', 0.05)">5%</button>
                         <button class="btn-desc ${desc === 0.10 ? 'active' : ''}" onclick="aplicarDescuento('${item.id}', 0.10)">10%</button>
@@ -404,6 +528,7 @@
         actualizarEtiqueta('total', "₡" + (subtotal + iva).toLocaleString());
         actualizarEtiqueta('totalBtn', (subtotal + iva).toLocaleString());
     }
+
     window.changeQty = function (id, delta) {
         const item = cart.find(i => i.id == id);
         if (item && !item.isGrooming) { 
@@ -421,6 +546,7 @@
         const el = document.getElementById(id);
         if (el) el.innerHTML = valor;
     }
+
     window.processSale = async function () {
         if (cart.length === 0) return alert('El carrito está vacío');
         const subtotal = cart.reduce((acc, item) => {
@@ -441,84 +567,80 @@
         };
 
         try {
-        const response = await fetch('/ventas/pagar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(saleData)
-        });
-        const result = await response.json();
+            const response = await fetch('/ventas/pagar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saleData)
+            });
+            const result = await response.json();
 
-        if (result.success) {
-            await generarPDFFactura(result.ventaId, saleData);
-            
-            alert("Venta procesada y PDF generado.");
-            location.reload();
-        } else {
-            alert("Error: " + result.message);
-        }
-    } catch (e) { console.error(e); }
+            if (result.success) {
+                await generarPDFFactura(result.ventaId, saleData);
+                alert("Venta procesada y PDF generado.");
+                location.reload();
+            } else {
+                alert("Error: " + result.message);
+            }
+        } catch (e) { console.error(e); }
     };
 
     async function generarPDFFactura(ventaId, saleData) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("COMPROBANTE DE VENTA", 105, 20, { align: 'center' });
-    doc.setFontSize(10);
-    doc.text("Animales Fantasticos tienda de mascotas y Grooming", 10, 30);
-    doc.text("Dirección: Moravia, San José, Costa Rica", 10, 40);
-    doc.text(`Factura #: ${ventaId}`, 140, 30);
-    doc.text(`Fecha: ${new Date().toLocaleString()}`, 140, 35);
-    doc.text(`Cajero: Administrador`, 140, 40);
-    
-    doc.line(10, 50, 200, 50);
-    doc.text(`Cliente: ${currentCustomer.name || "Venta General"}`, 10, 60);
-    const columnas = ["Cant.", "Detalle", "Precio Unit.", "Desc.", "Total"];
-    const filas = cart.map(p => {
-        const descPorcentaje = (p.descuentoManual || 0) * 100;
-        const precioConDesc = p.precio * (1 - (p.descuentoManual || 0));
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text("COMPROBANTE DE VENTA", 105, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text("Animales Fantasticos tienda de mascotas y Grooming", 10, 30);
+        doc.text("Dirección: Moravia, San José, Costa Rica", 10, 40);
+        doc.text(`Factura #: ${ventaId}`, 140, 30);
+        doc.text(`Fecha: ${new Date().toLocaleString()}`, 140, 35);
+        doc.text(`Cajero: Administrador`, 140, 40);
         
-        return [
-            p.quantity,
-            p.nombre,
-            `₡${p.precio.toLocaleString()}`, 
-            `${descPorcentaje}%`,
-            `₡${(precioConDesc * p.quantity).toLocaleString()}`
-        ];
-    });
+        doc.line(10, 50, 200, 50);
+        doc.text(`Cliente: ${currentCustomer.name || "Venta General"}`, 10, 60);
+        const columnas = ["Cant.", "Detalle", "Precio Unit.", "Desc.", "Total"];
+        const filas = cart.map(p => {
+            const descPorcentaje = (p.descuentoManual || 0) * 100;
+            const precioConDesc = p.precio * (1 - (p.descuentoManual || 0));
+            return [
+                p.quantity,
+                p.isGrooming ? `${p.nombre}${p.detalle ? '\n' + p.detalle : ''}` : p.nombre,
+                `₡${p.precio.toLocaleString()}`, 
+                `${descPorcentaje}%`,
+                `₡${(precioConDesc * p.quantity).toLocaleString()}`
+            ];
+        });
 
-    doc.autoTable({
-        startY: 70,
-        head: [columnas],
-        body: filas,
-        theme: 'grid',
-        headStyles: { fillColor: [40, 167, 69] },
-        styles: { fontSize: 9 }
-    });
-    const finalY = doc.lastAutoTable.finalY + 10;
-    const obtenerMontoLimpio = (id) => {
-        const el = document.getElementById(id);
-        if (!el) return "0";
-        const soloNumero = el.innerText.replace(/[^\d.,]/g, '').trim();
-        return soloNumero;
-    };
+        doc.autoTable({
+            startY: 70,
+            head: [columnas],
+            body: filas,
+            theme: 'grid',
+            headStyles: { fillColor: [40, 167, 69] },
+            styles: { fontSize: 9 }
+        });
+        const finalY = doc.lastAutoTable.finalY + 10;
+        const obtenerMontoLimpio = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return "0";
+            return el.innerText.replace(/[^\d.,]/g, '').trim();
+        };
 
-    const subtotal = obtenerMontoLimpio('subtotal');
-    const iva = obtenerMontoLimpio('tax-display');
-    const total = obtenerMontoLimpio('total');
+        const subtotalPDF = obtenerMontoLimpio('subtotal');
+        const ivaPDF = obtenerMontoLimpio('tax-display');
+        const totalPDF = obtenerMontoLimpio('total');
 
-    doc.setFont("helvetica", "normal");
-    doc.text(`Subtotal: ₡${subtotal}`, 140, finalY);
-    doc.text(`IVA (13%): ₡${iva}`, 140, finalY + 5);
-    
-    doc.setFont("helvetica", "bold");
-    doc.text(`TOTAL FINAL: ₡${total}`, 140, finalY + 12);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text("Términos: Este documento es un comprobante de pago oficial.", 10, finalY + 30);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Subtotal: ₡${subtotalPDF}`, 140, finalY);
+        doc.text(`IVA (13%): ₡${ivaPDF}`, 140, finalY + 5);
+        doc.setFont("helvetica", "bold");
+        doc.text(`TOTAL FINAL: ₡${totalPDF}`, 140, finalY + 12);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text("Términos: Este documento es un comprobante de pago oficial.", 10, finalY + 30);
 
-    doc.save(`Factura_${ventaId}.pdf`);
-}
+        doc.save(`Factura_${ventaId}.pdf`);
+    }
 
     window.openModal = (id) => document.getElementById(id).style.display = 'flex';
     window.closeModal = (id) => document.getElementById(id).style.display = 'none';

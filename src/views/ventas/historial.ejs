@@ -5,201 +5,143 @@
     <p class="page-subtitle">Registro completo de todas las ventas</p>
 </div>
 
-<div class="filters-row">
-    <div class="form-group">
-        <label class="form-label">Fecha Desde</label>
-        <input type="date" class="form-control" value="2024-10-01">
+<!-- Filtros -->
+<form method="GET" action="/ventas/historial">
+    <div class="filters-row">
+        <div class="form-group">
+            <label class="form-label">Fecha Desde</label>
+            <input type="date" name="desde" class="form-control" value="<%= filtros.desde %>">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Fecha Hasta</label>
+            <input type="date" name="hasta" class="form-control" value="<%= filtros.hasta %>">
+        </div>
+        <div class="form-group filters-row-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+            <a href="/ventas/historial" class="btn btn-plain">
+                <i class="fas fa-times"></i> Limpiar
+            </a>
+        </div>
     </div>
+</form>
 
-    <div class="form-group">
-        <label class="form-label">Fecha Hasta</label>
-        <input type="date" class="form-control" value="2024-10-15">
-    </div>
-
-    <div class="form-group">
-        <label class="form-label">Estado</label>
-        <select class="form-control">
-            <option>Todos</option>
-            <option>Completadas</option>
-            <option>Pendientes</option>
-            <option>Canceladas</option>
-        </select>
-    </div>
-
-    <div class="form-group filters-row-actions">
-        <button class="btn btn-primary">
-            <i class="fas fa-filter"></i> Filtrar
-        </button>
-    </div>
-</div>
-
+<!-- Lista de ventas -->
 <div class="card">
     <div class="card-header card-header-actions">
         <h2 class="card-title">Todas las Ventas</h2>
         <div class="card-header-buttons">
-            <button class="btn btn-success">
+            <button class="btn btn-success" onclick="exportarCSV()">
                 <i class="fas fa-file-export"></i> Exportar
             </button>
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" onclick="window.print()">
                 <i class="fas fa-print"></i> Imprimir
             </button>
         </div>
     </div>
 
+    <% if (ventas.length === 0) { %>
+        <div style="text-align:center; padding: 40px; color: #888;">
+            <i class="fas fa-receipt" style="font-size:2.5rem; margin-bottom:12px; display:block;"></i>
+            <p>No hay ventas en el período seleccionado.</p>
+        </div>
+    <% } %>
+
+    <% ventas.forEach(function(v) {
+        const fecha = new Date(v.Fecha);
+        const fechaStr = fecha.toLocaleDateString('es-CR');
+        const horaStr  = fecha.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+    %>
     <div class="sale-details">
         <div class="sale-header">
             <div>
-                <strong>Venta #V-001</strong>
-                <div class="sale-date">15/10/2024 10:30</div>
+                <strong>Venta #V-<%= String(v.VentaId).padStart(3,'0') %></strong>
+                <div class="sale-date"><%= fechaStr %> <%= horaStr %></div>
             </div>
             <div class="sale-status-amount">
                 <div class="status-completed">Completada</div>
-                <div class="sale-amount">$43.00</div>
+                <div class="sale-amount">₡<%= parseFloat(v.Total).toLocaleString('es-CR') %></div>
             </div>
         </div>
 
         <div class="sale-row">
-            <strong>Cliente:</strong> <span>María González (CLI-001)</span>
+            <strong>Cliente:</strong>
+            <span><%= v.ClienteNombre %></span>
         </div>
         <div class="sale-row">
-            <strong>Vendedor:</strong> <span>Admin</span>
-        </div>
-        <div class="sale-row">
-            <strong>Método de pago:</strong>
-            <span class="badge badge-success">Efectivo</span>
+            <strong>Vendedor:</strong>
+            <span><%= v.VendedorNombre %></span>
         </div>
 
         <div class="sale-products">
             <strong>Productos:</strong>
-            <div class="product-row">
-                <span>Antipulgas para perros grandes</span>
-                <span>1 x $25.00 = $25.00</span>
-            </div>
-            <div class="product-row">
-                <span>Alimento para perros 5kg</span>
-                <span>1 x $18.00 = $18.00</span>
-            </div>
+            <% if (v.Productos.length === 0) { %>
+                <div class="product-row" style="color:#888; font-style:italic;">
+                    <span>Servicio de Grooming (sin productos físicos)</span>
+                </div>
+            <% } else { %>
+                <% v.Productos.forEach(function(p) { %>
+                <div class="product-row">
+                    <span><%= p.ProductoNombre %></span>
+                    <span><%= p.Cantidad %> x ₡<%= parseFloat(p.PrecioUnitario).toLocaleString('es-CR') %> = ₡<%= parseFloat(p.Subtotal).toLocaleString('es-CR') %></span>
+                </div>
+                <% }); %>
+            <% } %>
         </div>
 
         <div class="sale-total">
-            Total: $43.00
+            Total: ₡<%= parseFloat(v.Total).toLocaleString('es-CR') %>
         </div>
     </div>
-
-    <div class="sale-details">
-        <div class="sale-header">
-            <div>
-                <strong>Venta #V-002</strong>
-                <div class="sale-date">15/10/2024 11:15</div>
-            </div>
-            <div class="sale-status-amount">
-                <div class="status-completed">Completada</div>
-                <div class="sale-amount">$65.50</div>
-            </div>
-        </div>
-
-        <div class="sale-row">
-            <strong>Cliente:</strong> <span>Carlos López (CLI-002)</span>
-        </div>
-        <div class="sale-row">
-            <strong>Vendedor:</strong> <span>Admin</span>
-        </div>
-        <div class="sale-row">
-            <strong>Método de pago:</strong>
-            <span class="badge badge-info">Tarjeta</span>
-        </div>
-
-        <div class="sale-products">
-            <strong>Productos:</strong>
-            <div class="product-row">
-                <span>Vacuna triple felina</span>
-                <span>1 x $35.00 = $35.00</span>
-            </div>
-            <div class="product-row">
-                <span>Arena para gatos 4kg</span>
-                <span>1 x $12.00 = $12.00</span>
-            </div>
-            <div class="product-row">
-                <span>Juguete para gatos</span>
-                <span>1 x $8.00 = $8.00</span>
-            </div>
-            <div class="product-row">
-                <span>Shampoo medicado</span>
-                <span>1 x $10.50 = $10.50</span>
-            </div>
-        </div>
-
-        <div class="sale-total">
-            Total: $65.50
-        </div>
-    </div>
-
-    <div class="sale-details">
-        <div class="sale-header">
-            <div>
-                <strong>Venta #V-003</strong>
-                <div class="sale-date">14/10/2024 14:20</div>
-            </div>
-            <div class="sale-status-amount">
-                <div class="status-completed">Completada</div>
-                <div class="sale-amount">$28.50</div>
-            </div>
-        </div>
-
-        <div class="sale-row">
-            <strong>Cliente:</strong> <span>Venta General</span>
-        </div>
-        <div class="sale-row">
-            <strong>Vendedor:</strong> <span>Admin</span>
-        </div>
-        <div class="sale-row">
-            <strong>Método de pago:</strong>
-            <span class="badge badge-success">Efectivo</span>
-        </div>
-
-        <div class="sale-products">
-            <strong>Productos:</strong>
-            <div class="product-row">
-                <span>Correa para perros</span>
-                <span>1 x $12.00 = $12.00</span>
-            </div>
-            <div class="product-row">
-                <span>Alimento para gatos 2kg</span>
-                <span>1 x $15.00 = $15.00</span>
-            </div>
-            <div class="product-row">
-                <span>Shampoo medicado</span>
-                <span>1 x $1.50 = $1.50</span>
-            </div>
-        </div>
-
-        <div class="sale-total">
-            Total: $28.50
-        </div>
-    </div>
+    <% }); %>
 </div>
 
+<!-- Resumen -->
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Resumen de Ventas</h2>
     </div>
-
     <div class="sales-summary-grid">
         <div class="sales-summary-item">
-            <div class="sales-summary-number sales-summary-number-primary">3</div>
+            <div class="sales-summary-number sales-summary-number-primary"><%= resumen.totalVentas %></div>
             <div class="sales-summary-label">Ventas Totales</div>
         </div>
         <div class="sales-summary-item">
-            <div class="sales-summary-number sales-summary-number-success">$136.00</div>
+            <div class="sales-summary-number sales-summary-number-success">₡<%= resumen.ingresos.toLocaleString('es-CR') %></div>
             <div class="sales-summary-label">Ingresos Totales</div>
         </div>
         <div class="sales-summary-item">
-            <div class="sales-summary-number sales-summary-number-warning">2</div>
+            <div class="sales-summary-number sales-summary-number-warning"><%= resumen.clientesAtendidos %></div>
             <div class="sales-summary-label">Clientes Atendidos</div>
         </div>
         <div class="sales-summary-item">
-            <div class="sales-summary-number sales-summary-number-purple">8</div>
+            <div class="sales-summary-number sales-summary-number-purple"><%= resumen.productosVendidos %></div>
             <div class="sales-summary-label">Productos Vendidos</div>
         </div>
     </div>
 </div>
+
+<script>
+function exportarCSV() {
+    const ventas = <%- JSON.stringify(ventas) %>;
+    let csv = 'VentaId,Fecha,Cliente,Vendedor,Total,Producto,Cantidad,PrecioUnitario,Subtotal\n';
+    ventas.forEach(v => {
+        const fecha = new Date(v.Fecha).toLocaleString('es-CR');
+        if (v.Productos.length === 0) {
+            csv += `${v.VentaId},"${fecha}","${v.ClienteNombre}","${v.VendedorNombre}",${v.Total},Grooming,1,${v.Total},${v.Total}\n`;
+        } else {
+            v.Productos.forEach(p => {
+                csv += `${v.VentaId},"${fecha}","${v.ClienteNombre}","${v.VendedorNombre}",${v.Total},"${p.ProductoNombre}",${p.Cantidad},${p.PrecioUnitario},${p.Subtotal}\n`;
+            });
+        }
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = 'historial_ventas.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>

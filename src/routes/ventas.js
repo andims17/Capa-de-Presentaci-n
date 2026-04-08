@@ -4,7 +4,9 @@ const {
     buscarProductos, 
     procesarVenta, 
     listarClientesPOS,
-    agendarCitaDesdePOS
+    agendarCitaDesdePOS,
+    calcularPrecioGrooming,
+    listarHistorialVentas
 } = require('../models/ventaModel');
 const clientesModel = require('../models/clientesModel');
 const MascotasModel = require('../models/mascotasModel');
@@ -80,8 +82,47 @@ router.post('/pagar', async (req, res) => {
     }
 });
 
-router.get('/historial', (req, res) => {
-    res.render('ventas/historial', { title: 'Historial de Ventas' });
+router.get('/grooming/precio', async (req, res) => {
+    try {
+        const { mascotaId, transporte, provincia, tipoTransporte } = req.query;
+        if (!mascotaId) return res.status(400).json({ error: 'Falta mascotaId' });
+
+        const precios = await calcularPrecioGrooming(
+            mascotaId,
+            transporte === '1',
+            provincia || null,
+            tipoTransporte || null
+        );
+        res.json(precios);
+    } catch (e) {
+        res.status(400).json({ error: e.message });
+    }
+});
+
+router.get('/historial', async (req, res) => {
+    try {
+        const { desde, hasta } = req.query;
+        const ventas = await listarHistorialVentas(desde || null, hasta || null);
+        const totalVentas   = ventas.length;
+        const ingresos      = ventas.reduce((s, v) => s + parseFloat(v.Total || 0), 0);
+        const clientesSet   = new Set(ventas.filter(v => v.ClienteNombre !== 'Venta General').map(v => v.ClienteNombre));
+        const productosVend = ventas.reduce((s, v) => s + v.Productos.reduce((ss, p) => ss + p.Cantidad, 0), 0);
+
+        res.render('ventas/historial', {
+            title: 'Historial de Ventas',
+            ventas,
+            resumen: {
+                totalVentas,
+                ingresos,
+                clientesAtendidos: clientesSet.size,
+                productosVendidos: productosVend
+            },
+            filtros: { desde: desde || '', hasta: hasta || '' }
+        });
+    } catch (e) {
+        console.error('Error historial ventas:', e.message);
+        res.status(500).send('Error al cargar historial de ventas');
+    }
 });
 
 module.exports = router;

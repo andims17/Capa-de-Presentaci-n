@@ -3259,3 +3259,43 @@ GO
 
 
 ---------------------------Andres Fin 7.04.2026---------------------
+
+---------------------------Nolan Empieza 7.04.2026---------------------
+
+CREATE OR ALTER PROCEDURE dbo.sp_Ventas_Historial
+    @FechaDesde DATE = NULL,
+    @FechaHasta DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Cabeceras de ventas
+    SELECT
+        v.Id                                        AS VentaId,
+        v.Fecha,
+        v.Total,
+        ISNULL(c.NombreCompleto, 'Venta General')  AS ClienteNombre,
+        u.NombreCompleto                            AS VendedorNombre
+    FROM dbo.Ventas v
+    LEFT  JOIN dbo.Clientes  c ON v.ClienteId = c.Id
+    INNER JOIN dbo.Usuarios  u ON v.UsuarioId = u.Id
+    WHERE (@FechaDesde IS NULL OR CAST(v.Fecha AS DATE) >= @FechaDesde)
+      AND (@FechaHasta IS NULL OR CAST(v.Fecha AS DATE) <= @FechaHasta)
+    ORDER BY v.Fecha DESC;
+
+    -- Detalle de productos de todas esas ventas
+    SELECT
+        vd.VentaId,
+        p.Nombre        AS ProductoNombre,
+        vd.Cantidad,
+        vd.PrecioUnitario,
+        vd.Subtotal
+    FROM dbo.VentasDetalle vd
+    INNER JOIN dbo.Productos p ON vd.ProductoId = p.Id
+    INNER JOIN dbo.Ventas    v ON vd.VentaId    = v.Id
+    WHERE (@FechaDesde IS NULL OR CAST(v.Fecha AS DATE) >= @FechaDesde)
+      AND (@FechaHasta IS NULL OR CAST(v.Fecha AS DATE) <= @FechaHasta)
+    ORDER BY vd.VentaId DESC;
+END
+GO
+---------------------------Nolan Fin 7.04.2026---------------------
