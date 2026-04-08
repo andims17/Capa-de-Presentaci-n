@@ -3299,3 +3299,195 @@ BEGIN
 END
 GO
 ---------------------------Nolan Fin 7.04.2026---------------------
+
+
+---------------------------Nolan Empieza 8.04.2026---------------------
+
+ -- ── 1. Resumen general de ventas ──────────────────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Reportes_ResumenVentas
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    SELECT
+        COUNT(*) AS TotalVentas,
+        ISNULL(SUM(Total), 0) AS IngresosTotales,
+        SUM(CASE WHEN MONTH(Fecha) = MONTH(GETDATE())
+                  AND YEAR(Fecha)  = YEAR(GETDATE())
+                 THEN 1 ELSE 0 END) AS VentasMes,
+        ISNULL(SUM(CASE WHEN MONTH(Fecha) = MONTH(GETDATE())
+                         AND YEAR(Fecha)  = YEAR(GETDATE())
+                        THEN Total ELSE 0 END), 0) AS IngresosMes
+    FROM dbo.Ventas;
+END
+GO
+ 
+-- ── 2. Top 5 productos más vendidos ───────────────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Reportes_TopProductos
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    SELECT TOP 5
+        p.Nombre,
+        c.Nombre AS Categoria,
+        SUM(vd.Cantidad) AS UnidadesVendidas,
+        ISNULL(SUM(vd.Subtotal), 0) AS Ingresos
+    FROM dbo.VentasDetalle vd
+    INNER JOIN dbo.Productos  p ON vd.ProductoId = p.Id
+    INNER JOIN dbo.Categorias c ON p.CategoriaId = c.Id
+    GROUP BY p.Nombre, c.Nombre
+    ORDER BY UnidadesVendidas DESC;
+END
+GO
+ 
+-- ── 3. Top 5 clientes por total gastado ───────────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Reportes_TopClientes
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    SELECT TOP 5
+        ISNULL(c.NombreCompleto, 'Venta General') AS Cliente,
+        COUNT(v.Id) AS Compras,
+        ISNULL(SUM(v.Total), 0) AS TotalGastado
+    FROM dbo.Ventas v
+    LEFT JOIN dbo.Clientes c ON v.ClienteId = c.Id
+    GROUP BY c.NombreCompleto
+    ORDER BY TotalGastado DESC;
+END
+GO
+ 
+-- ── 4. Ventas por día (últimos 7 días) ────────────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Reportes_VentasPorDia
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    SELECT
+        CONVERT(DATE, Fecha) AS Dia,
+        COUNT(*) AS Ventas,
+        ISNULL(SUM(Total), 0) AS Total
+    FROM dbo.Ventas
+    WHERE Fecha >= DATEADD(DAY, -6, CONVERT(DATE, GETDATE()))
+    GROUP BY CONVERT(DATE, Fecha)
+    ORDER BY Dia ASC;
+END
+GO
+ 
+-- ── 5. Estado de citas (totales por estado) ───────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Reportes_EstadoCitas
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    SELECT
+        COUNT(*) AS TotalCitas,
+        SUM(CASE WHEN Estado = 'Pendiente'  THEN 1 ELSE 0 END) AS Pendientes,
+        SUM(CASE WHEN Estado = 'Confirmada' THEN 1 ELSE 0 END) AS Confirmadas,
+        SUM(CASE WHEN Estado = 'Cancelada'  THEN 1 ELSE 0 END) AS Canceladas
+    FROM dbo.Citas;
+END
+GO
+ 
+-- ── 6. Productos bajo stock mínimo ────────────────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Reportes_ProductosBajoStock
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    SELECT COUNT(*) AS ProductosBajoStock
+    FROM dbo.Productos
+    WHERE Stock <= StockMinimo;
+END
+GO
+ 
+PRINT 'SPs de Reportes creados exitosamente.';
+GO
+ 
+-- STORED PROCEDURES PARA MOVIMIENTOS DE INVENTARIO
+ 
+USE VetPostDB;
+GO
+ 
+-- ── 1. Obtener stock actual de un producto ────────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_ObtenerStock
+    @ProductoId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    SELECT Id, Nombre, Stock
+    FROM dbo.Productos
+    WHERE Id = @ProductoId;
+END
+GO
+ 
+-- ── 2. Insertar movimiento de inventario ──────────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Movimientos_Insertar
+    @Tipo VARCHAR(50),
+    @ProductoId INT,
+    @Cantidad INT,
+    @UsuarioId INT = NULL,
+    @Detalle NVARCHAR(250) = NULL,
+    @StockPrevio INT = NULL,
+    @StockNuevo INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO dbo.Movimientos
+    (
+        Fecha,
+        Tipo,
+        ProductoId,
+        Cantidad,
+        UsuarioId,
+        Detalle,
+        StockPrevio,
+        StockNuevo
+    )
+    VALUES
+    (
+        GETDATE(),
+        @Tipo,
+        @ProductoId,
+        @Cantidad,
+        @UsuarioId,
+        @Detalle,
+        @StockPrevio,
+        @StockNuevo
+    );
+END
+GO
+ 
+-- ── 3. Listar movimientos con filtros ─────────────────────────
+CREATE OR ALTER PROCEDURE dbo.sp_Movimientos_Listar
+    @ProductoId INT = NULL,
+    @FechaDesde DATE = NULL,
+    @FechaHasta DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    SELECT
+        m.Fecha,
+        m.Tipo AS Accion,
+        m.Cantidad,
+        p.Id AS ProductoId,
+        p.Nombre AS Producto,
+        u.NombreCompleto AS Usuario,
+        m.Detalle AS Referencia,
+        m.StockPrevio,
+        m.StockNuevo
+    FROM dbo.Movimientos m
+    INNER JOIN dbo.Productos p ON m.ProductoId = p.Id
+    LEFT JOIN dbo.Usuarios u ON m.UsuarioId  = u.Id
+    WHERE (@ProductoId IS NULL OR m.ProductoId = @ProductoId)
+      AND (@FechaDesde IS NULL OR CONVERT(date, m.Fecha) >= @FechaDesde)
+      AND (@FechaHasta IS NULL OR CONVERT(date, m.Fecha) <= @FechaHasta)
+    ORDER BY m.Fecha DESC;
+END
+GO
+PRINT 'SPs de Movimientos creados exitosamente.';
+GO
+---------------------------Nolan Fin 8.04.2026---------------------
