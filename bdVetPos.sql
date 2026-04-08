@@ -2907,3 +2907,60 @@ END
 GO
 
 ---------------------------Aaron Fin 6.04.2026---------------------
+
+
+
+
+---------------------------Amanda FIX recuperar contraseña 7/4/2026-------
+
+-- ============================================================
+-- PARCHE: corregir PreguntasConfiguradas = NULL en usuarios
+-- existentes que ya tienen las respuestas guardadas.
+--
+-- Ejecutar UNA sola vez en la base de datos de produccion.
+-- ============================================================
+
+-- 1. Marcar como configurados los usuarios que YA tienen
+--    ambas respuestas de seguridad registradas pero su flag
+--    quedo en NULL (creados antes del ALTER TABLE).
+UPDATE dbo.Usuarios
+SET PreguntasConfiguradas = 1
+WHERE PreguntasConfiguradas IS NULL
+  AND RespuestaSeguridad1 IS NOT NULL AND RespuestaSeguridad1 <> ''
+  AND RespuestaSeguridad2 IS NOT NULL AND RespuestaSeguridad2 <> '';
+
+-- 2. Los que no tienen respuestas: dejarlos en 0 (no NULL)
+--    para que el chequeo de JS funcione de forma consistente.
+UPDATE dbo.Usuarios
+SET PreguntasConfiguradas = 0
+WHERE PreguntasConfiguradas IS NULL;
+
+-- Verificar resultado:
+SELECT Id, Username, PreguntasConfiguradas,
+       CASE WHEN RespuestaSeguridad1 IS NOT NULL THEN 'Si' ELSE 'No' END AS TieneRespuesta1,
+       CASE WHEN RespuestaSeguridad2 IS NOT NULL THEN 'Si' ELSE 'No' END AS TieneRespuesta2
+FROM dbo.Usuarios
+ORDER BY Id;--------------
+
+
+-- Volver a crear el SP con la columna PreguntasConfiguradas incluida.
+-- El SP existente en la BD fue creado antes de que se agregara esa columna
+-- y nunca se actualizo, por eso devuelve undefined en Node.js.
+ 
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_ObtenerPorUsername
+  @Username NVARCHAR(50)
+AS
+BEGIN
+  SET NOCOUNT ON;
+ 
+  SELECT u.Id, u.Username, u.NombreCompleto, u.Email, u.PasswordHash, u.RolId, u.Activo,
+         ISNULL(u.PreguntasConfiguradas, 0) AS PreguntasConfiguradas,
+         r.Nombre AS RolNombre
+  FROM dbo.Usuarios u
+  INNER JOIN dbo.Roles r ON r.Id = u.RolId
+  WHERE u.Username = @Username;
+END
+GO
+ 
+
+---------------------------Amanda FINALIZA 7/4/2026-------
