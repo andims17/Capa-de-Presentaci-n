@@ -2458,3 +2458,49 @@ a:hover {
 .btn-view.active {
     background: #3498db;
 }
+
+.stat-card-filter {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stat-card-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+}
+
+.stat-card-filter.active {
+    outline: 2px solid #60A5FA;
+    transform: translateY(-2px);
+}
+
+.stat-card-filter {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stat-card-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+}
+
+.stat-card-filter.active {
+    outline: 2px solid #60A5FA;
+    transform: translateY(-2px);
+}
+
+.stat-card-filter {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.stat-card-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+}
+
+.stat-card-filter.active {
+    outline: 2px solid #60A5FA;
+    transform: translateY(-2px);
+}
+

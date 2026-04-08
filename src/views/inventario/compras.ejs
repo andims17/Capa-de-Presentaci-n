@@ -12,147 +12,137 @@
     </div>
 
     <div class="purchases-grid">
-        <div class="purchase-card">
-            <div class="purchase-header">
-                <div class="purchase-info">
-                    <h3>Compra #C-001</h3>
-                    <p>Factura: F-2024-001</p>
+    <% if (compras && compras.length > 0) { %>
+        <% compras.forEach(c => { %>
+            <div class="purchase-card" data-activo="<%= c.Activo ? '1' : '0' %>">
+                <div class="purchase-header">
+                    <div class="purchase-info">
+                        <h3>Compra #<%= c.Id %></h3>
+                        <p>Proveedor: <%= c.Proveedor %></p>
+                    </div>
+                    <div class="purchase-amount">
+                        <div class="purchase-total">₡<%= c.Total %></div>
+                        <div class="purchase-date">
+                            <%= new Date(c.Fecha).toLocaleDateString() %>
+                        </div>
+                    </div>
                 </div>
-                <div class="purchase-amount">
-                    <div class="purchase-total">$450.00</div>
-                    <div class="purchase-date">10/10/2024</div>
-                </div>
-            </div>
-            <div class="purchase-details">
-                <div class="detail-item">
-                    <span class="detail-label">Proveedor:</span>
-                    <span class="supplier-badge">PetSupplies S.A.</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Productos:</span>
-                    <span class="detail-value">5 productos</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Estado:</span>
-                    <span class="status-received">Recibida</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Registrado por:</span>
-                    <span class="detail-value">Admin</span>
-                </div>
-            </div>
-            <div class="purchase-actions">
-                <button class="btn btn-primary btn-sm">
-                    <i class="fas fa-eye"></i> Ver Detalles
-                </button>
-                <button class="btn btn-sm btn-gray">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-            </div>
-        </div>
 
-        <div class="purchase-card">
-            <div class="purchase-header">
-                <div class="purchase-info">
-                    <h3>Compra #C-002</h3>
-                    <p>Factura: F-2024-002</p>
-                </div>
-                <div class="purchase-amount">
-                    <div class="purchase-total">$320.50</div>
-                    <div class="purchase-date">05/10/2024</div>
-                </div>
-            </div>
-            <div class="purchase-details">
-                <div class="detail-item">
-                    <span class="detail-label">Proveedor:</span>
-                    <span class="supplier-badge">VetProducts Corp</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Productos:</span>
-                    <span class="detail-value">3 productos</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Estado:</span>
-                    <span class="status-received">Recibida</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Registrado por:</span>
-                    <span class="detail-value">Admin</span>
-                </div>
-            </div>
-            <div class="purchase-actions">
-                <button class="btn btn-primary btn-sm">
-                    <i class="fas fa-eye"></i> Ver Detalles
-                </button>
-                <button class="btn btn-sm btn-gray">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-            </div>
-        </div>
+                <div class="purchase-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Proveedor:</span>
+                        <span class="supplier-badge"><%= c.Proveedor %></span>
+                    </div>
 
-        <div class="purchase-card">
-            <div class="purchase-header">
-                <div class="purchase-info">
-                    <h3>Compra #C-003</h3>
-                    <p>Factura: F-2024-003</p>
+                    <div class="detail-item">
+                        <span class="detail-label">Estado:</span>
+                        <% if (c.Activo) { %>
+                            <span class="status-received">Activa</span>
+                        <% } else { %>
+                            <span style="color:#EF4444;">Desactivada</span>
+                        <% } %>
+                    </div>
+
+                    <div class="detail-item">
+                        <span class="detail-label">Registrado por:</span>
+                        <span class="detail-value"><%= c.Usuario %></span>
+                    </div>
                 </div>
-                <div class="purchase-amount">
-                    <div class="purchase-total">$180.00</div>
-                    <div class="purchase-date">01/10/2024</div>
+
+                <div class="purchase-actions">
+                    <% if (c.Activo) { %>
+                        <form method="POST" action="/compras/<%= c.Id %>/desactivar">
+                            <button class="btn btn-danger btn-sm">
+                                <i class="fas fa-times"></i> Desactivar
+                            </button>
+                        </form>
+                    <% } else { %>
+                        <form method="POST" action="/compras/<%= c.Id %>/activar">
+                            <button class="btn btn-success btn-sm">
+                                <i class="fas fa-check"></i> Activar
+                            </button>
+                        </form>
+                    <% } %>
                 </div>
             </div>
-            <div class="purchase-details">
-                <div class="detail-item">
-                    <span class="detail-label">Proveedor:</span>
-                    <span class="supplier-badge">AnimalCare Ltd</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Productos:</span>
-                    <span class="detail-value">4 productos</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Estado:</span>
-                    <span class="status-received">Recibida</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Registrado por:</span>
-                    <span class="detail-value">Admin</span>
-                </div>
-            </div>
-            <div class="purchase-actions">
-                <button class="btn btn-primary btn-sm">
-                    <i class="fas fa-eye"></i> Ver Detalles
-                </button>
-                <button class="btn btn-sm btn-gray">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-            </div>
-        </div>
-    </div>
+        <% }) %>
+    <% } else { %>
+        <p>No hay compras registradas.</p>
+    <% } %>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Resumen de Compras - Octubre 2024</h2>
+<style>
+    .productos-compra-header,
+    .producto-compra-row {
+        display: grid;
+        grid-template-columns: 1.1fr 1.6fr 0.8fr 0.9fr 1fr 52px;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .productos-compra-header {
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+
+    .producto-compra-row {
+        margin-bottom: 0.75rem;
+    }
+
+    .producto-compra-nombre {
+        background-color: rgba(255,255,255,0.08);
+        color: #fff;
+    }
+
+    .producto-compra-subtotal {
+        background-color: rgba(255,255,255,0.08);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .producto-compra-row .btn-danger {
+        width: 100%;
+        min-width: 0;
+        padding: 0.65rem 0.5rem;
+    }
+
+    @media (max-width: 900px) {
+        .productos-compra-header {
+            display: none;
+        }
+
+        .producto-compra-row {
+            grid-template-columns: 1fr;
+            background: rgba(255,255,255,0.03);
+            padding: 0.75rem;
+            border-radius: 10px;
+        }
+    }
+</style>
+
+<div class="stats-grid">
+    <div class="stat-card stat-card-filter active" onclick="filtrarComprasPorEstado('todos', this)">
+        <div class="stat-icon bg-cyan"><i class="fas fa-shopping-cart"></i></div>
+        <div class="stat-value"><%= resumenCompras.TotalCompras || 0 %></div>
+        <div class="stat-label">Todas</div>
     </div>
 
-    <div class="purchases-summary">
-        <div class="summary-card summary-count">
-            <div class="summary-value">3</div>
-            <div class="summary-label">Compras Realizadas</div>
-        </div>
-        <div class="summary-card summary-total">
-            <div class="summary-value">$950.50</div>
-            <div class="summary-label">Total Invertido</div>
-        </div>
-        <div class="summary-card summary-products">
-            <div class="summary-value">12</div>
-            <div class="summary-label">Productos Comprados</div>
-        </div>
-        <div class="summary-card summary-suppliers">
-            <div class="summary-value">3</div>
-            <div class="summary-label">Proveedores</div>
-        </div>
+    <div class="stat-card stat-card-filter" onclick="filtrarComprasPorEstado('activas', this)">
+        <div class="stat-icon bg-green"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-value"><%= resumenCompras.ComprasActivas || 0 %></div>
+        <div class="stat-label">Activas</div>
+    </div>
+
+    <div class="stat-card stat-card-filter" onclick="filtrarComprasPorEstado('desactivadas', this)">
+        <div class="stat-icon bg-red"><i class="fas fa-times-circle"></i></div>
+        <div class="stat-value"><%= resumenCompras.ComprasDesactivadas || 0 %></div>
+        <div class="stat-label">Desactivadas</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon bg-orange"><i class="fas fa-coins"></i></div>
+        <div class="stat-value">₡<%= Number(resumenCompras.TotalInvertido || 0).toLocaleString() %></div>
+        <div class="stat-label">Total Invertido</div>
     </div>
 </div>
 
@@ -163,15 +153,17 @@
             <button class="close" onclick="closeModal('nuevaCompraModal')">&times;</button>
         </div>
 
-        <form>
+        <form method="POST" action="/inventario/compras/crear" onsubmit="prepararCompra(event)">
             <div class="two-cols">
                 <div class="form-group">
                     <label class="form-label">Proveedor</label>
-                    <select class="form-control">
-                        <option>Seleccionar proveedor</option>
-                        <option>PetSupplies S.A.</option>
-                        <option>VetProducts Corp</option>
-                        <option>AnimalCare Ltd</option>
+                    <select class="form-control" name="ProveedorId" required>
+                        <option value="">Seleccionar proveedor</option>
+                        <% if (proveedores && proveedores.length > 0) { %>
+                            <% proveedores.forEach(proveedor => { %>
+                                <option value="<%= proveedor.Id %>"><%= proveedor.Nombre %></option>
+                            <% }) %>
+                        <% } %>
                     </select>
                 </div>
 
@@ -198,9 +190,10 @@
 
                 <div class="productos-compra-box">
                     <div class="productos-compra-header">
-                        <div>Producto</div>
+                        <div>Código</div>
+                        <div>Nombre</div>
                         <div>Cantidad</div>
-                        <div>Precio Unit.</div>
+                        <div>Costo Unit.</div>
                         <div>Subtotal</div>
                         <div></div>
                     </div>
@@ -234,6 +227,7 @@
                 <button type="button" class="btn" onclick="closeModal('nuevaCompraModal')">
                     Cancelar
                 </button>
+                <input type="hidden" name="DetalleJSON" id="detalleJSON">
                 <button type="submit" class="btn btn-primary">
                     Registrar Compra
                 </button>
@@ -241,6 +235,42 @@
         </form>
     </div>
 </div>
+
+<script>
+    let filtroCompraActual = 'todos';
+
+    function filtrarComprasPorEstado(estado, cardSeleccionada = null) {
+        filtroCompraActual = estado;
+
+        document.querySelectorAll('.stat-card-filter').forEach(card => {
+            card.classList.remove('active');
+        });
+
+        if (cardSeleccionada) {
+            cardSeleccionada.classList.add('active');
+        }
+
+        aplicarFiltroCompras();
+    }
+
+    function aplicarFiltroCompras() {
+        const cards = document.querySelectorAll('.purchase-card');
+
+        cards.forEach(card => {
+            const activo = card.dataset.activo === '1';
+
+            let mostrar = true;
+
+            if (filtroCompraActual === 'activas') {
+                mostrar = activo;
+            } else if (filtroCompraActual === 'desactivadas') {
+                mostrar = !activo;
+            }
+
+            card.style.display = mostrar ? '' : 'none';
+        });
+    }
+</script>
 
 <script>
     let productoCount = 0;
@@ -252,16 +282,11 @@
         const row = document.createElement('div');
         row.className = 'producto-compra-row';
         row.innerHTML = `
-            <select class="form-control producto-compra-nombre">
-                <option>Seleccionar producto</option>
-                <option>Antipulgas para perros grandes</option>
-                <option>Alimento para perros adulto 5kg</option>
-                <option>Arena para gatos absorbente 4kg</option>
-                <option>Vacuna triple felina</option>
-            </select>
+            <input type="text" class="form-control producto-compra-codigo" placeholder="Código" onblur="buscarProductoPorCodigo(this)">
+            <input type="text" class="form-control producto-compra-nombre" placeholder="Nombre del producto" readonly>
             <input type="number" class="form-control producto-compra-cantidad" value="1" min="1">
-            <input type="number" class="form-control producto-compra-precio" value="0.00" step="0.01">
-            <input type="text" class="form-control producto-compra-subtotal" value="$0.00" readonly>
+            <input type="number" class="form-control producto-compra-precio" value="0.00" step="0.01" min="0">
+            <input type="text" class="form-control producto-compra-subtotal" value="₡0.00" readonly>
             <button type="button" class="btn btn-danger btn-xs" onclick="removerProductoCompra(this)">
                 <i class="fas fa-times"></i>
             </button>
@@ -278,6 +303,42 @@
         actualizarTotalesCompra();
     }
 
+    async function buscarProductoPorCodigo(input) {
+        const codigo = input.value.trim();
+        const row = input.closest('.producto-compra-row');
+        const nombreInput = row.querySelector('.producto-compra-nombre');
+        const precioInput = row.querySelector('.producto-compra-precio');
+
+        if (!codigo) {
+            nombreInput.value = '';
+            precioInput.value = '0.00';
+            actualizarTotalesCompra();
+            return;
+        }
+
+        try {
+            const res = await fetch(`/inventario/producto-por-codigo/${encodeURIComponent(codigo)}`);
+
+            if (!res.ok) {
+                throw new Error('Producto no encontrado');
+            }
+
+            const producto = await res.json();
+
+            nombreInput.value = producto.Nombre || '';
+            nombreInput.title = producto.Nombre || '';
+            precioInput.value = producto.Precio || 0;
+
+            actualizarTotalesCompra();
+        } catch (error) {
+            nombreInput.value = '';
+            nombreInput.title = '';
+            precioInput.value = '0.00';
+            actualizarTotalesCompra();
+            alert('Producto no encontrado. Regístrelo primero en inventario.');
+        }
+    }
+
     function removerProductoCompra(button) {
         const row = button.closest('.producto-compra-row');
         row.remove();
@@ -292,11 +353,53 @@
             const cantidad = parseFloat(row.querySelector('.producto-compra-cantidad').value) || 0;
             const precio = parseFloat(row.querySelector('.producto-compra-precio').value) || 0;
             const sub = cantidad * precio;
-            row.querySelector('.producto-compra-subtotal').value = `$${sub.toFixed(2)}`;
+
+            row.querySelector('.producto-compra-subtotal').value = `₡${sub.toFixed(2)}`;
             subtotal += sub;
         });
 
-        document.getElementById('subtotalCompra').value = `$${subtotal.toFixed(2)}`;
-        document.getElementById('totalCompra').value = `$${subtotal.toFixed(2)}`;
+        document.getElementById('subtotalCompra').value = `₡${subtotal.toFixed(2)}`;
+        document.getElementById('totalCompra').value = `₡${subtotal.toFixed(2)}`;
     }
+</script>
+
+<script>
+function prepararCompra(e) {
+    const rows = document.querySelectorAll('.producto-compra-row');
+
+    if (rows.length === 0) {
+        alert('Debe agregar al menos un producto');
+        e.preventDefault();
+        return;
+    }
+
+    const detalle = [];
+
+    for (let row of rows) {
+        const codigo = row.querySelector('.producto-compra-codigo').value.trim();
+        const nombre = row.querySelector('.producto-compra-nombre').value.trim();
+        const cantidad = parseFloat(row.querySelector('.producto-compra-cantidad').value) || 0;
+        const precio = parseFloat(row.querySelector('.producto-compra-precio').value) || 0;
+
+        if (!codigo || !nombre) {
+            alert('Hay productos sin validar. Verifique los códigos.');
+            e.preventDefault();
+            return;
+        }
+
+        if (cantidad <= 0 || precio <= 0) {
+            alert('Cantidad y precio deben ser mayores a 0');
+            e.preventDefault();
+            return;
+        }
+
+        detalle.push({
+            Codigo: codigo,
+            Cantidad: cantidad,
+            CostoUnitario: precio
+        });
+    }
+
+    document.getElementById('detalleJSON').value = JSON.stringify(detalle);
+}
 </script>

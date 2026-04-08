@@ -2964,3 +2964,298 @@ GO
  
 
 ---------------------------Amanda FINALIZA 7/4/2026-------
+
+---------------------------Andres Inicio 7.04.2026---------------------
+
+CREATE OR ALTER PROCEDURE dbo.sp_Usuarios_ObtenerPorId
+  @Id INT
+AS
+BEGIN
+  SET NOCOUNT ON;
+
+  SELECT u.Id, 
+         u.Username, 
+         u.NombreCompleto, 
+         u.Email, 
+         u.RolId, 
+         u.Activo,
+         ISNULL(u.PreguntasConfiguradas, 0) AS PreguntasConfiguradas,
+         r.Nombre AS RolNombre
+  FROM dbo.Usuarios u
+  INNER JOIN dbo.Roles r ON r.Id = u.RolId
+  WHERE u.Id = @Id;
+END
+GO
+
+--- desactivacion logica
+
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.columns 
+    WHERE object_id = OBJECT_ID('dbo.Clientes') 
+      AND name = 'Activo'
+)
+BEGIN
+    ALTER TABLE dbo.Clientes
+    ADD Activo BIT NOT NULL CONSTRAINT DF_Clientes_Activo DEFAULT 1;
+END
+GO
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        c.Id,
+        c.NombreCompleto,
+        c.Email,
+        c.Telefono,
+        c.Direccion,
+        c.Activo,
+        COUNT(m.Id) AS CantMascotas
+    FROM dbo.Clientes c
+    LEFT JOIN dbo.Mascotas m ON m.ClienteId = c.Id
+    GROUP BY 
+        c.Id, 
+        c.NombreCompleto, 
+        c.Email, 
+        c.Telefono, 
+        c.Direccion,
+        c.Activo
+    ORDER BY c.Id DESC;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_Clientes_SetActivo
+    @Id INT,
+    @Activo BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Clientes
+    SET Activo = @Activo
+    WHERE Id = @Id;
+END
+GO
+
+
+IF NOT EXISTS (
+    SELECT * 
+    FROM sys.columns 
+    WHERE object_id = OBJECT_ID('dbo.Compras') 
+      AND name = 'Activo'
+)
+BEGIN
+    ALTER TABLE dbo.Compras
+    ADD Activo BIT NOT NULL CONSTRAINT DF_Compras_Activo DEFAULT 1;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_Compras_Listar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        c.Id,
+        c.ProveedorId,
+        p.Nombre AS Proveedor,
+        c.UsuarioId,
+        u.NombreCompleto AS Usuario,
+        c.Fecha,
+        c.Total,
+        c.Activo
+    FROM dbo.Compras c
+    INNER JOIN dbo.Proveedores p ON p.Id = c.ProveedorId
+    INNER JOIN dbo.Usuarios u ON u.Id = c.UsuarioId
+    ORDER BY c.Id DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Compras_SetActivo
+    @Id INT,
+    @Activo BIT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.Compras
+    SET Activo = @Activo
+    WHERE Id = @Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Compras_ObtenerPorId
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        Id,
+        ProveedorId,
+        UsuarioId,
+        Fecha,
+        Total,
+        Activo
+    FROM dbo.Compras
+    WHERE Id = @Id;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_ComprasDetalle_ListarPorCompra
+    @CompraId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        cd.Id,
+        cd.CompraId,
+        cd.ProductoId,
+        p.Nombre AS Producto,
+        p.Codigo,
+        cd.Cantidad,
+        cd.CostoUnitario,
+        cd.Subtotal
+    FROM dbo.ComprasDetalle cd
+    INNER JOIN dbo.Productos p ON p.Id = cd.ProductoId
+    WHERE cd.CompraId = @CompraId
+    ORDER BY cd.Id ASC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Compras_Insertar
+    @ProveedorId INT,
+    @UsuarioId INT,
+    @DetalleJSON NVARCHAR(MAX)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRANSACTION;
+
+    BEGIN TRY
+        DECLARE @CompraId INT;
+        DECLARE @Total DECIMAL(10,2);
+
+        -- Calcular total de la compra
+        SELECT @Total = SUM(Cantidad * CostoUnitario)
+        FROM OPENJSON(@DetalleJSON)
+        WITH (
+            ProductoId INT,
+            Cantidad INT,
+            CostoUnitario DECIMAL(10,2)
+        );
+
+        -- Insertar encabezado
+        INSERT INTO dbo.Compras (ProveedorId, UsuarioId, Fecha, Total, Activo)
+        VALUES (@ProveedorId, @UsuarioId, GETDATE(), ISNULL(@Total, 0), 1);
+
+        SET @CompraId = SCOPE_IDENTITY();
+
+        -- Insertar detalle
+        INSERT INTO dbo.ComprasDetalle
+        (
+            CompraId,
+            ProductoId,
+            Cantidad,
+            CostoUnitario,
+            Subtotal
+        )
+        SELECT
+            @CompraId,
+            ProductoId,
+            Cantidad,
+            CostoUnitario,
+            (Cantidad * CostoUnitario)
+        FROM OPENJSON(@DetalleJSON)
+        WITH (
+            ProductoId INT,
+            Cantidad INT,
+            CostoUnitario DECIMAL(10,2)
+        );
+
+        -- Actualizar stock de productos
+        UPDATE p
+        SET p.Stock = p.Stock + d.Cantidad
+        FROM dbo.Productos p
+        INNER JOIN (
+            SELECT ProductoId, Cantidad
+            FROM OPENJSON(@DetalleJSON)
+            WITH (
+                ProductoId INT,
+                Cantidad INT
+            )
+        ) d ON p.Id = d.ProductoId;
+
+        COMMIT TRANSACTION;
+
+        SELECT @CompraId AS CompraId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+
+---- aqui validen sus productos ID y su provedor ID, esto registra una compra para pruebas
+
+DECLARE @DetalleJSON NVARCHAR(MAX) = N'
+[
+  { "ProductoId": 10, "Cantidad": 2, "CostoUnitario": 5000 },
+  { "ProductoId": 11, "Cantidad": 3, "CostoUnitario": 2500 }
+]';
+
+EXEC dbo.sp_Compras_Insertar
+    @ProveedorId = 4,
+    @UsuarioId = 1,
+    @DetalleJSON = @DetalleJSON;
+
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_Compras_Resumen
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        COUNT(*) AS TotalCompras,
+        ISNULL(SUM(Total), 0) AS TotalInvertido,
+        SUM(CASE WHEN Activo = 1 THEN 1 ELSE 0 END) AS ComprasActivas,
+        SUM(CASE WHEN Activo = 0 THEN 1 ELSE 0 END) AS ComprasDesactivadas
+    FROM dbo.Compras;
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_ObtenerPorCodigo
+    @Codigo NVARCHAR(50)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        p.Id,
+        p.Nombre,
+        p.Codigo,
+        p.Precio,
+        p.Stock,
+        p.StockMinimo,
+        p.ProveedorId,
+        p.CategoriaId,
+        p.ImagenUrl
+    FROM dbo.Productos p
+    WHERE p.Codigo = @Codigo;
+END
+GO
+
+
+---------------------------Andres Fin 7.04.2026---------------------

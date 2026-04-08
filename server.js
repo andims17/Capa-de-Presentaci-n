@@ -46,6 +46,7 @@ const reportesRouter = require('./src/routes/reportes');
 const usuariosRouter = require('./src/routes/usuarios');
 const proveedoresRouter = require('./src/routes/proveedores');
 const transporteRouter = require('./src/routes/transporte');
+const comprasRouter = require('./src/routes/compras');
 
 const { requireLogin, requireAdmin } = require('./src/middlewares/auth');
 
@@ -64,6 +65,7 @@ app.use('/clientes', requireLogin, clientesRouter);
 app.use('/mascota', requireLogin, mascotaRouter);
 app.use('/ventas', requireLogin, ventasRouter);
 app.use('/transporte', requireLogin, transporteRouter);
+app.use('/compras', requireLogin, comprasRouter);
 
 // Solo admin
 app.use('/usuarios', requireAdmin, usuariosRouter);

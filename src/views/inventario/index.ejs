@@ -19,22 +19,25 @@
 
 <!-- ================= WIDGETS ================= -->
 <div class="stats-grid">
-    <div class="stat-card">
+    <div class="stat-card stat-card-filter active" onclick="filtrarPorEstado('todos', this)">
         <div class="stat-icon bg-cyan"><i class="fas fa-boxes"></i></div>
         <div class="stat-value"><%= resumen.TotalProductos || 0 %></div>
         <div class="stat-label">Total</div>
     </div>
-    <div class="stat-card">
+
+    <div class="stat-card stat-card-filter" onclick="filtrarPorEstado('enstock', this)">
         <div class="stat-icon bg-green"><i class="fas fa-check-circle"></i></div>
         <div class="stat-value"><%= resumen.EnStock || 0 %></div>
         <div class="stat-label">En Stock</div>
     </div>
-    <div class="stat-card">
+
+    <div class="stat-card stat-card-filter" onclick="filtrarPorEstado('stockbajo', this)">
         <div class="stat-icon bg-orange"><i class="fas fa-exclamation-triangle"></i></div>
         <div class="stat-value"><%= resumen.StockBajo || 0 %></div>
         <div class="stat-label">Stock Bajo</div>
     </div>
-    <div class="stat-card">
+
+    <div class="stat-card stat-card-filter" onclick="filtrarPorEstado('agotados', this)">
         <div class="stat-icon bg-red"><i class="fas fa-times-circle"></i></div>
         <div class="stat-value"><%= resumen.Agotados || 0 %></div>
         <div class="stat-label">Agotados</div>
@@ -61,9 +64,11 @@
         <div id="vistaGrid" class="productos-grid">
             <% productos.forEach(p => { %>
                 <div class="producto-card producto-item" onclick="verProducto('<%= p.Id %>')"
-                     data-nombre="<%= (p.Nombre || '').toLowerCase() %>"
-                     data-codigo="<%= (p.Codigo || '').toLowerCase() %>"
-                     data-proveedor="<%= (p.Proveedor || '').toLowerCase() %>">
+                    data-nombre="<%= (p.Nombre || '').toLowerCase() %>"
+                    data-codigo="<%= (p.Codigo || '').toLowerCase() %>"
+                    data-proveedor="<%= (p.Proveedor || '').toLowerCase() %>"
+                    data-stock="<%= p.Stock %>"
+                    data-stockminimo="<%= p.StockMinimo %>">
                     <div class="producto-imagen">
                         <% if (p.ImagenUrl) { %>
                             <img src="<%= p.ImagenUrl %>" alt="<%= p.Nombre %>">
@@ -127,7 +132,9 @@
                     <tr class="producto-row"
                         data-nombre="<%= (p.Nombre || '').toLowerCase() %>"
                         data-codigo="<%= (p.Codigo || '').toLowerCase() %>"
-                        data-proveedor="<%= (p.Proveedor || '').toLowerCase() %>">
+                        data-proveedor="<%= (p.Proveedor || '').toLowerCase() %>"
+                        data-stock="<%= p.Stock %>"
+                        data-stockminimo="<%= p.StockMinimo %>">
                         <td><strong><%= p.Nombre %></strong><br><small><%= p.Codigo %></small></td>
                         <td><%= p.Categoria %></td>
                         <td><%= p.Proveedor || '—' %></td>
@@ -382,5 +389,83 @@ function filtrarProductos() {
         const coincide  = nombre.includes(texto) || codigo.includes(texto) || proveedor.includes(texto);
         row.style.display = coincide ? '' : 'none';
     });
+}
+</script>
+
+<script>
+let filtroEstadoActual = 'todos';
+
+function cumpleFiltroEstado(el, estado) {
+    const stock = Number(el.dataset.stock || 0);
+    const stockMinimo = Number(el.dataset.stockminimo || 0);
+
+    switch (estado) {
+        case 'enstock':
+            return stock > stockMinimo;
+
+        case 'stockbajo':
+            return stock > 0 && stock <= stockMinimo;
+
+        case 'agotados':
+            return stock === 0;
+
+        case 'todos':
+        default:
+            return true;
+    }
+}
+
+function filtrarPorEstado(estado, cardSeleccionada = null) {
+    filtroEstadoActual = estado;
+
+    document.querySelectorAll('.stat-card-filter').forEach(card => {
+        card.classList.remove('active');
+    });
+
+    if (cardSeleccionada) {
+        cardSeleccionada.classList.add('active');
+    }
+
+    aplicarFiltros();
+}
+
+function aplicarFiltros() {
+    const texto = document.getElementById('buscadorProductos').value.toLowerCase().trim();
+
+    document.querySelectorAll('.producto-item').forEach(card => {
+        const nombre = card.dataset.nombre || '';
+        const codigo = card.dataset.codigo || '';
+        const proveedor = card.dataset.proveedor || '';
+
+        const coincideBusqueda =
+            !texto ||
+            nombre.includes(texto) ||
+            codigo.includes(texto) ||
+            proveedor.includes(texto);
+
+        const coincideEstado = cumpleFiltroEstado(card, filtroEstadoActual);
+
+        card.style.display = (coincideBusqueda && coincideEstado) ? 'flex' : 'none';
+    });
+
+    document.querySelectorAll('.producto-row').forEach(row => {
+        const nombre = row.dataset.nombre || '';
+        const codigo = row.dataset.codigo || '';
+        const proveedor = row.dataset.proveedor || '';
+
+        const coincideBusqueda =
+            !texto ||
+            nombre.includes(texto) ||
+            codigo.includes(texto) ||
+            proveedor.includes(texto);
+
+        const coincideEstado = cumpleFiltroEstado(row, filtroEstadoActual);
+
+        row.style.display = (coincideBusqueda && coincideEstado) ? '' : 'none';
+    });
+}
+
+function filtrarProductos() {
+    aplicarFiltros();
 }
 </script>

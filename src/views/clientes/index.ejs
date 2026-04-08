@@ -3,6 +3,26 @@
     <p class="page-subtitle">Administra la información de los clientes</p>
 </div>
 
+<div class="stats-grid">
+    <div class="stat-card stat-card-filter active" onclick="filtrarPorEstadoCliente('todos', this)">
+        <div class="stat-icon bg-cyan"><i class="fas fa-users"></i></div>
+        <div class="stat-value"><%= clientes.length || 0 %></div>
+        <div class="stat-label">Todos</div>
+    </div>
+
+    <div class="stat-card stat-card-filter" onclick="filtrarPorEstadoCliente('activos', this)">
+        <div class="stat-icon bg-green"><i class="fas fa-user-check"></i></div>
+        <div class="stat-value"><%= clientes.filter(c => c.Activo).length %></div>
+        <div class="stat-label">Activos</div>
+    </div>
+
+    <div class="stat-card stat-card-filter" onclick="filtrarPorEstadoCliente('desactivados', this)">
+        <div class="stat-icon bg-red"><i class="fas fa-user-slash"></i></div>
+        <div class="stat-value"><%= clientes.filter(c => !c.Activo).length %></div>
+        <div class="stat-label">Desactivados</div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header">
         <h2 class="card-title">Lista de Clientes</h2>
@@ -21,7 +41,7 @@
     <div class="clients-grid" id="listaClientes">
         <% if (clientes && clientes.length> 0) { %>
             <% clientes.forEach(cliente=> { %>
-                <div class="client-card">
+                <div class="client-card" data-activo="<%= cliente.Activo ? '1' : '0' %>">
                     <div class="client-header">
                         <div class="client-avatar">
                             <%= cliente.NombreCompleto.split(' ').map(n => n[0]).join('') %></div>
@@ -62,18 +82,40 @@
                                             <% } %>
                             </span>
                         </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Estado:</span>
+                            <span class="detail-value">
+                                <% if (cliente.Activo) { %>
+                                    <span style="color:#10B981; font-weight:600;">Activo</span>
+                                <% } else { %>
+                                    <span style="color:#EF4444; font-weight:600;">Inactivo</span>
+                                <% } %>
+                            </span>
+                        </div>
                     </div>
-                    <div class="client-actions">
+                                        <div class="client-actions">
                         <button type="button" class="btn btn-primary btn-sm"
                             onclick="openEditModal(<%= cliente.Id %>, '<%= encodeURIComponent(cliente.NombreCompleto) %>', '<%= encodeURIComponent(cliente.Telefono || '') %>', '<%= encodeURIComponent(cliente.Email || '') %>', '<%= encodeURIComponent(cliente.Direccion || '') %>')">
                             <i class="fas fa-edit"></i> Editar
                         </button>
-                        <a href="/clientes/ver/<%= cliente.Id %>" class="btn btn-info btn-sm">
-                            <i class="fas fa-eye"></i> Ver
-                        </a>
+
+                        <% if (cliente.Activo) { %>
+                            <form method="POST" action="/clientes/<%= cliente.Id %>/desactivar" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('¿Deseas desactivar a <%= cliente.NombreCompleto %>?')">
+                                    <i class="fas fa-user-slash"></i> Desactivar
+                                </button>
+                            </form>
+                        <% } else { %>
+                            <form method="POST" action="/clientes/<%= cliente.Id %>/activar" style="display:inline;">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="fas fa-user-check"></i> Activar
+                                </button>
+                            </form>
+                        <% } %>
                     </div>
                 </div>
-                <% }) %>
+            <% }) %>
                     <% } else { %>
                         <p>No hay clientes registrados.</p>
                         <% } %>
@@ -148,17 +190,45 @@
 </div>
 
 <script>
-    function filtrarClientes() {
-        const texto = document.getElementById('buscadorClientes').value.toLowerCase();
-        const tarjetas = document.querySelectorAll('.client-card');
-        tarjetas.forEach(tarjeta => {
-            const contenidoTarjeta = tarjeta.innerText.toLowerCase();
-            if (contenidoTarjeta.includes(texto)) {
-                tarjeta.style.display = ""; 
-            } else {
-                tarjeta.style.display = "none"; 
-            }
+    let filtroEstadoClienteActual = 'todos';
+
+    function filtrarPorEstadoCliente(estado, cardSeleccionada = null) {
+        filtroEstadoClienteActual = estado;
+
+        document.querySelectorAll('.stat-card-filter').forEach(card => {
+            card.classList.remove('active');
         });
+
+        if (cardSeleccionada) {
+            cardSeleccionada.classList.add('active');
+        }
+
+        aplicarFiltrosClientes();
+    }
+
+    function aplicarFiltrosClientes() {
+        const texto = document.getElementById('buscadorClientes').value.toLowerCase().trim();
+        const tarjetas = document.querySelectorAll('.client-card');
+
+        tarjetas.forEach(tarjeta => {
+            const contenido = tarjeta.innerText.toLowerCase();
+            const activo = tarjeta.dataset.activo === '1';
+
+            const coincideTexto = !texto || contenido.includes(texto);
+
+            let coincideEstado = true;
+            if (filtroEstadoClienteActual === 'activos') {
+                coincideEstado = activo;
+            } else if (filtroEstadoClienteActual === 'desactivados') {
+                coincideEstado = !activo;
+            }
+
+            tarjeta.style.display = (coincideTexto && coincideEstado) ? '' : 'none';
+        });
+    }
+
+    function filtrarClientes() {
+        aplicarFiltrosClientes();
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'block'; }
@@ -173,5 +243,4 @@
         document.getElementById('formEditarCliente').action = '/clientes/editar/' + id;
         openModal('editarClienteModal');
     }
-
 </script>

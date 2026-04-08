@@ -1,55 +1,115 @@
 <div class="page-header">
-  <h1 class="page-title">Usuarios</h1>
-  <p class="page-subtitle">Administración de usuarios (borrado lógico)</p>
+    <h1 class="page-title">Usuarios</h1>
+    <p class="page-subtitle">Administración de usuarios (borrado lógico)</p>
 </div>
-
-<a href="/usuarios/nuevo" class="btn btn-primary" style="margin-bottom:1rem; display:inline-block;">
-  <i class="fas fa-user-plus"></i> Nuevo usuario
-</a>
 
 <div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Listado</h2>
-  </div>
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <h2 class="card-title">Lista de Usuarios</h2>
 
-  <div style="overflow:auto;">
-    <table class="table" style="width:100%; border-collapse:collapse;">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Usuario</th>
-          <th>Nombre</th>
-          <th>Email</th>
-          <th>Rol</th>
-          <th>Activo</th>
-          <th style="min-width:220px;">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% users.forEach(u => { %>
-          <tr>
-            <td><%= u.Id %></td>
-            <td><%= u.Username %></td>
-            <td><%= u.NombreCompleto %></td>
-            <td><%= u.Email %></td>
-            <td><%= u.RolNombre %></td>
-            <td><%= u.Activo ? 'Sí' : 'No' %></td>
-            <td>
-              <a class="btn btn-secondary" href="/usuarios/<%= u.Id %>/editar">Editar</a>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <div class="search-box">
+                <input
+                    type="text"
+                    id="buscadorUsuarios"
+                    class="search-input"
+                    placeholder="Buscar usuario por nombre..."
+                    onkeyup="filtrarUsuarios()"
+                >
+                <button class="search-btn" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
 
-              <% if (u.Activo) { %>
-                <form method="POST" action="/usuarios/<%= u.Id %>/desactivar" style="display:inline;">
-                  <button class="btn btn-danger" type="submit">Desactivar</button>
-                </form>
-              <% } else { %>
-                <form method="POST" action="/usuarios/<%= u.Id %>/activar" style="display:inline;">
-                  <button class="btn btn-primary" type="submit">Activar</button>
-                </form>
-              <% } %>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
+            <a href="/usuarios/nuevo" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Nuevo usuario
+            </a>
+        </div>
+    </div>
+
+    <div class="clients-grid" id="listaUsuarios">
+        <% if (users && users.length > 0) { %>
+            <% users.forEach(u => { %>
+                <div class="client-card usuario-card">
+                    <div class="client-header">
+                        <div class="client-avatar">
+                            <%= (u.NombreCompleto || u.Username).split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() %>
+                        </div>
+
+                        <div class="client-info">
+                            <h3><%= u.NombreCompleto %></h3>
+                            <p>USR-<%= u.Id.toString().padStart(3, '0') %></p>
+                        </div>
+                    </div>
+
+                    <div class="client-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Usuario:</span>
+                            <span class="detail-value"><%= u.Username %></span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value"><%= u.Email || '-' %></span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Rol:</span>
+                            <span class="detail-value"><%= u.RolNombre %></span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Estado:</span>
+                            <span class="detail-value">
+                                <% if (u.Activo) { %>
+                                    <span style="color:#10B981; font-weight:600;">Activo</span>
+                                <% } else { %>
+                                    <span style="color:#EF4444; font-weight:600;">Inactivo</span>
+                                <% } %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="client-actions" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <a class="btn btn-secondary btn-sm" href="/usuarios/<%= u.Id %>/editar">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+
+                        <% if (u.Activo) { %>
+                            <form method="POST" action="/usuarios/<%= u.Id %>/desactivar" style="display:inline;">
+                                <button class="btn btn-danger btn-sm" type="submit">
+                                    <i class="fas fa-user-slash"></i> Desactivar
+                                </button>
+                            </form>
+                        <% } else { %>
+                            <form method="POST" action="/usuarios/<%= u.Id %>/activar" style="display:inline;">
+                                <button class="btn btn-primary btn-sm" type="submit">
+                                    <i class="fas fa-user-check"></i> Activar
+                                </button>
+                            </form>
+                        <% } %>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p>No hay usuarios registrados.</p>
+        <% } %>
+    </div>
 </div>
+
+<script>
+    function filtrarUsuarios() {
+        const texto = document.getElementById('buscadorUsuarios').value.toLowerCase().trim();
+        const tarjetas = document.querySelectorAll('.usuario-card');
+
+        tarjetas.forEach(tarjeta => {
+            const nombre = tarjeta.querySelector('.client-info h3')?.innerText.toLowerCase() || '';
+
+            if (nombre.includes(texto)) {
+                tarjeta.style.display = '';
+            } else {
+                tarjeta.style.display = 'none';
+            }
+        });
+    }
+</script>

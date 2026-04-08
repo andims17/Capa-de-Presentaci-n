@@ -35,6 +35,14 @@ async function actualizarCliente(c) {
         .execute('sp_Clientes_Actualizar');
 }
 
+async function setActivo(id, activo) {
+    const pool = await getPool();
+    await pool.request()
+        .input('Id', sql.Int, id)
+        .input('Activo', sql.Bit, activo)
+        .execute('sp_Clientes_SetActivo');
+}
+
 async function eliminarCliente(id) {
     const pool = await getPool();
     await pool.request()
@@ -47,5 +55,6 @@ module.exports = {
     obtenerClientePorId,
     insertarCliente,
     actualizarCliente,
-    eliminarCliente
+    eliminarCliente,
+    setActivo
 };

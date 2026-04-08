@@ -104,21 +104,40 @@ router.post('/editar/:id', async (req, res) => {
 });
 
 
-router.get('/eliminar/:id', async (req, res) => {
+
+router.post('/:id/desactivar', async (req, res) => {
     try {
-        await clientesModel.eliminarCliente(req.params.id);
+        await clientesModel.setActivo(req.params.id, 0);
 
         registrarEvento({
             codigoEvento: 'CLI_ELIMINADO',
             actorUsuarioId: req.session.user?.id ?? null,
-            detalle: `Cliente eliminado (ID ${req.params.id})`,
+            detalle: `Cliente desactivado (ID ${req.params.id})`,
             ip: obtenerIp(req)
         });
 
         res.redirect('/clientes');
     } catch (error) {
         console.error(error);
-        res.send('Error eliminando cliente');
+        res.send('Error desactivando cliente');
+    }
+});
+
+router.post('/:id/activar', async (req, res) => {
+    try {
+        await clientesModel.setActivo(req.params.id, 1);
+
+        registrarEvento({
+            codigoEvento: 'CLI_EDITADO',
+            actorUsuarioId: req.session.user?.id ?? null,
+            detalle: `Cliente activado (ID ${req.params.id})`,
+            ip: obtenerIp(req)
+        });
+
+        res.redirect('/clientes');
+    } catch (error) {
+        console.error(error);
+        res.send('Error activando cliente');
     }
 });
 

@@ -6,6 +6,7 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 
 const productosModel = require(path.join(__dirname, '../models/productosModel'));
+const comprasModel = require(path.join(__dirname, '../models/comprasModel'));
 
 // Helper: validar id numérico (evita choque con "compras", etc.)
 function esIdNumerico(id) {
@@ -45,14 +46,69 @@ router.get('/', async (req, res) => {
 });
 
 // ================= COMPRAS =================
-router.get('/compras', (req, res) => {
+router.get('/compras', async (req, res) => {
   try {
+    const compras = await comprasModel.listarCompras();
+    const resumenCompras = await comprasModel.resumenCompras();
+    const proveedores = await require('../models/proveedoresModel').listarProveedores();
+    const productos = await productosModel.listarProductos();
+
     res.render('inventario/compras', {
-      title: 'Registro de Compras'
+      title: 'Registro de Compras',
+      compras,
+      resumenCompras,
+      proveedores,
+      productos
     });
   } catch (error) {
     console.error('❌ Error cargando compras:', error);
-    res.status(500).send('Error cargando compras');
+    res.render('inventario/compras', {
+      title: 'Registro de Compras',
+      compras: [],
+      resumenCompras: {
+        TotalCompras: 0,
+        TotalInvertido: 0,
+        ComprasActivas: 0,
+        ComprasDesactivadas: 0
+      },
+      proveedores: [],
+      productos: []
+    });
+  }
+});
+
+router.post('/compras/crear', async (req, res) => {
+  try {
+    const proveedorId = parseInt(req.body.ProveedorId);
+    const usuarioId = req.session.user?.id || 1;
+    const detalleRaw = JSON.parse(req.body.DetalleJSON || '[]');
+
+    const detalle = [];
+
+    for (let item of detalleRaw) {
+      const producto = await productosModel.obtenerProductoPorCodigo(item.Codigo);
+
+      if (!producto) {
+        return res.send(`Producto no encontrado: ${item.Codigo}`);
+      }
+
+      detalle.push({
+        ProductoId: producto.Id,
+        Cantidad: item.Cantidad,
+        CostoUnitario: item.CostoUnitario
+      });
+    }
+
+    await comprasModel.insertarCompra({
+      proveedorId,
+      usuarioId,
+      detalle
+    });
+
+    res.redirect('/inventario/compras');
+  } catch (error) {
+    console.error('❌ Error creando compra:', error);
+    res.send('Error creando compra');
   }
 });
 
@@ -126,6 +182,23 @@ router.get('/eliminar/:id', async (req, res) => {
 });
 
 // ================= OBTENER PRODUCTO (AJAX) =================
+
+router.get('/producto-por-codigo/:codigo', async (req, res) => {
+  try {
+    const { codigo } = req.params;
+
+    const producto = await productosModel.obtenerProductoPorCodigo(codigo);
+
+    if (!producto) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    res.json(producto);
+  } catch (error) {
+    console.error('❌ Error buscando producto por código:', error);
+    res.status(500).json({ error: 'Error buscando producto' });
+  }
+});
 
 router.get('/:id', async (req, res) => {
   try {

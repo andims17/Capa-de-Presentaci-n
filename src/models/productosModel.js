@@ -100,6 +100,15 @@ async function existeCodigo(codigo) {
     return result.recordset[0].total > 0;
 }
 
+async function obtenerProductoPorCodigo(codigo) {
+    const pool = await getPool();
+    const result = await pool.request()
+        .input('Codigo', sql.NVarChar(50), codigo)
+        .execute('sp_Productos_ObtenerPorCodigo');
+
+    return result.recordset[0];
+}
+
 
 module.exports = {
     listarProductos,
@@ -109,5 +118,6 @@ module.exports = {
     eliminarProducto,
     listarCategorias,
     resumenInventario,
-        existeCodigo
+    existeCodigo,
+    obtenerProductoPorCodigo
 };
