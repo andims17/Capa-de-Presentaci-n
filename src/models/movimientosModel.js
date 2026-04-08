@@ -2,34 +2,32 @@ const { sql, getPool } = require('../config/db');
 
 async function listarMovimientos(filters = {}) {
     const pool = await getPool();
-    const request = pool.request();
-
     const { desde, hasta, productoId } = filters;
 
-    // Declarar parámetros
-    request.input('ProductoId', sql.Int, productoId || null);
-    request.input('FechaDesde', sql.Date, desde || null);
-    request.input('FechaHasta', sql.Date, hasta || null);
+    const result = await pool.request()
+        .input('ProductoId', sql.Int,  productoId || null)
+        .input('FechaDesde', sql.Date, desde      || null)
+        .input('FechaHasta', sql.Date, hasta      || null)
+        .execute('dbo.sp_Movimientos_Listar');
 
-    const query = `
-    SELECT 
-        m.Fecha AS Fecha,
-        m.Tipo AS Accion,
-        m.Cantidad,
-        p.Id AS ProductoId,
-        p.Nombre AS Producto,
-        u.NombreCompleto AS Usuario,
-        m.Detalle AS Referencia
-    FROM Movimientos m
-    INNER JOIN Productos p ON m.ProductoId = p.Id
-    LEFT JOIN Usuarios u ON m.UsuarioId = u.Id
-    WHERE ( @ProductoId IS NULL OR m.ProductoId = @ProductoId )
-      AND ( @FechaDesde IS NULL OR CONVERT(date, m.Fecha) >= @FechaDesde )
-      AND ( @FechaHasta IS NULL OR CONVERT(date, m.Fecha) <= @FechaHasta )
-    ORDER BY m.Fecha DESC`;
-
-    const result = await request.query(query);
     return result.recordset;
 }
 
-module.exports = { listarMovimientos };
+async function registrarMovimiento({ tipo, productoId, cantidad, usuarioId = null, detalle = null, stockPrevio = null, stockNuevo = null }) {
+    try {
+        const pool = await getPool();
+        await pool.request()
+            .input('Tipo',        sql.VarChar(50),   tipo)
+            .input('ProductoId',  sql.Int,           productoId)
+            .input('Cantidad',    sql.Int,           cantidad)
+            .input('UsuarioId',   sql.Int,           usuarioId   || null)
+            .input('Detalle',     sql.NVarChar(250), detalle     || null)
+            .input('StockPrevio', sql.Int,           stockPrevio)
+            .input('StockNuevo',  sql.Int,           stockNuevo)
+            .execute('dbo.sp_Movimientos_Insertar');
+    } catch (error) {
+        console.error('Error registrando movimiento:', error.message);
+    }
+}
+
+module.exports = { listarMovimientos, registrarMovimiento };

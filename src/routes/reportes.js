@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const productosModel = require('../models/productosModel');
+const productosModel   = require('../models/productosModel');
 const movimientosModel = require('../models/movimientosModel');
+const { resumenReportes } = require('../models/ventaModel');
 const { getAllUsers } = require('../models/usuarioModel');
 const { listarEventos, listarTiposEvento, registrarEvento, limpiarEventosPorCategoria } = require('../models/logAuditoriaModel');
 const { requireAdmin } = require('../middlewares/auth');
@@ -14,7 +15,6 @@ function obtenerIp(req) {
 
 function obtenerCategoriaBitacora(codigoEvento) {
   if (!codigoEvento) return 'usuarios';
-
   const codigo = String(codigoEvento).toUpperCase();
   if (codigo.startsWith('REP_') || codigo.startsWith('RPT_')) return 'reportes';
   return 'usuarios';
@@ -30,33 +30,58 @@ async function registrarEventoReporte(req, codigoEvento, nombreEvento, detalle, 
   await registrarEvento({
     codigoEvento,
     nombreEvento,
-    actorUsuarioId: req.session.user?.id ?? null,
+    actorUsuarioId:   req.session.user?.id ?? null,
     usuarioAfectadoId: null,
     detalle,
-    ip: obtenerIp(req),
+    ip:   obtenerIp(req),
     datos
   });
 }
 
 router.get('/', async (req, res) => {
-  await registrarEventoReporte(
-    req,
-    'REP_VER_PANEL',
-    'Acceso al panel de reportes',
-    'El usuario ingresó al panel principal de reportes'
-  );
+  try {
+    await registrarEventoReporte(
+      req,
+      'REP_VER_PANEL',
+      'Acceso al panel de reportes',
+      'El usuario ingresó al panel principal de reportes'
+    );
 
-  res.render('reportes/index', { title: 'Reportes y Estadísticas' });
+    const datos = await resumenReportes();
+
+    res.render('reportes/index', {
+      title: 'Reportes y Estadísticas',
+      ventas:             datos.ventas,
+      topProductos:       datos.topProductos,
+      topClientes:        datos.topClientes,
+      ventasPorDia:       datos.ventasPorDia,
+      citas:              datos.citas,
+      productosBajoStock: datos.productosBajoStock
+    });
+  } catch (error) {
+    console.error('Error cargando panel de reportes:', error);
+    res.render('reportes/index', {
+      title: 'Reportes y Estadísticas',
+      ventas:             { TotalVentas: 0, IngresosTotales: 0, VentasMes: 0, IngresosMes: 0 },
+      topProductos:       [],
+      topClientes:        [],
+      ventasPorDia:       [],
+      citas:              { TotalCitas: 0, Pendientes: 0, Confirmadas: 0, Canceladas: 0 },
+      productosBajoStock: 0
+    });
+  }
 });
 
 router.get('/historial', async (req, res) => {
   try {
-    const desde = req.query.desde || null;
-    const hasta = req.query.hasta || null;
+    const desde    = req.query.desde   || null;
+    const hasta    = req.query.hasta   || null;
     const producto = req.query.producto ? parseInt(req.query.producto) : null;
 
-    const productos = await productosModel.listarProductos();
-    const movimientos = await movimientosModel.listarMovimientos({ desde, hasta, productoId: producto });
+    const [productos, movimientos] = await Promise.all([
+      productosModel.listarProductos(),
+      movimientosModel.listarMovimientos({ desde, hasta, productoId: producto })
+    ]);
 
     const esConsultaFiltrada = tieneFiltrosHistorial({ desde, hasta, producto });
 
@@ -65,30 +90,33 @@ router.get('/historial', async (req, res) => {
       esConsultaFiltrada ? 'REP_FILTRAR_HISTORIAL' : 'REP_VER_HISTORIAL',
       esConsultaFiltrada ? 'Filtrado de historial de inventario' : 'Consulta de historial de inventario',
       esConsultaFiltrada
-        ? 'El usuario consultó el historial de movimientos usando filtros'
-        : 'El usuario consultó el historial completo de movimientos de inventario',
+        ? 'El usuario consultó el historial usando filtros'
+        : 'El usuario consultó el historial completo de movimientos',
       { desde, hasta, producto, totalResultados: movimientos.length }
     );
 
     res.render('reportes/historial', {
-      title: 'Historial de Movimientos',
+      title:      'Historial de Movimientos',
       productos,
       movimientos,
-      filtros: { desde, hasta, producto }
+      filtros:    { desde, hasta, producto }
     });
   } catch (error) {
     console.error('Error cargando historial de movimientos:', error);
-    res.render('reportes/historial', { title: 'Historial de Movimientos', productos: [], movimientos: [], filtros: {} });
+    res.render('reportes/historial', {
+      title:      'Historial de Movimientos',
+      productos:  [],
+      movimientos:[],
+      filtros:    {}
+    });
   }
 });
 
 router.post('/accion', async (req, res) => {
   try {
     const { codigoEvento, nombreEvento, detalle, datos } = req.body || {};
-
-    if (!codigoEvento || !nombreEvento || !detalle) {
-      return res.status(400).json({ ok: false, error: 'Datos incompletos para registrar el evento' });
-    }
+    if (!codigoEvento || !nombreEvento || !detalle)
+      return res.status(400).json({ ok: false, error: 'Datos incompletos' });
 
     await registrarEventoReporte(req, codigoEvento, nombreEvento, detalle, datos || null);
     return res.json({ ok: true });
@@ -101,10 +129,8 @@ router.post('/accion', async (req, res) => {
 router.post('/logs/limpiar', requireAdmin, async (req, res) => {
   try {
     const seccion = req.body?.seccion === 'reportes' ? 'reportes' : 'usuarios';
-
-    if (seccion !== 'reportes') {
+    if (seccion !== 'reportes')
       return res.redirect('/reportes/logs?seccion=usuarios&msg=solo_reportes');
-    }
 
     const eliminados = await limpiarEventosPorCategoria('reportes');
     await registrarEventoReporte(
@@ -124,9 +150,9 @@ router.post('/logs/limpiar', requireAdmin, async (req, res) => {
 
 router.get('/logs', requireAdmin, async (req, res) => {
   try {
-    const seccion = req.query.seccion === 'reportes' ? 'reportes' : 'usuarios';
-    const mensaje = req.query.msg || null;
-    const count = Number.parseInt(req.query.count, 10);
+    const seccion  = req.query.seccion === 'reportes' ? 'reportes' : 'usuarios';
+    const mensaje  = req.query.msg   || null;
+    const count    = Number.parseInt(req.query.count, 10);
 
     await registrarEventoReporte(
       req,
@@ -152,19 +178,21 @@ router.get('/logs', requireAdmin, async (req, res) => {
       return acc;
     }, { usuarios: 0, reportes: 0 });
 
-    const eventos = todosEventos.filter(evento => obtenerCategoriaBitacora(evento.TipoCodigo) === seccion);
+    const eventos = todosEventos.filter(
+      evento => obtenerCategoriaBitacora(evento.TipoCodigo) === seccion
+    );
 
     res.render('reportes/logs', {
-      title: 'Bitácora de Auditoría',
+      title:             'Bitácora de Auditoría',
       eventos,
       resumenCategorias,
-      totalEventos: todosEventos.length,
-      seccionActiva: seccion,
+      totalEventos:      todosEventos.length,
+      seccionActiva:     seccion,
       mensaje,
       cantidadEliminada: Number.isFinite(count) ? count : 0,
       tiposEvento,
       usuarios,
-      filtros: { seccion }
+      filtros:           { seccion }
     });
   } catch (error) {
     console.error('Error cargando bitácora:', error);

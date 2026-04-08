@@ -1,4 +1,5 @@
 const { sql, getPool } = require('../config/db');
+const { registrarMovimiento } = require('./movimientosModel');
 
 async function listarCompras() {
     const pool = await getPool();
@@ -25,13 +26,36 @@ async function listarDetalleCompra(compraId) {
 async function insertarCompra({ proveedorId, usuarioId, detalle }) {
     const pool = await getPool();
 
-    const detalleJSON = JSON.stringify(detalle);
+    const stocksPrevios = {};
+    for (const item of detalle) {
+        const r = await pool.request()
+            .input('ProductoId', sql.Int, item.ProductoId)
+            .execute('dbo.sp_Productos_ObtenerStock');
+        stocksPrevios[item.ProductoId] = r.recordset[0]?.Stock ?? 0;
+    }
 
+    const detalleJSON = JSON.stringify(detalle);
     const result = await pool.request()
-        .input('ProveedorId', sql.Int, proveedorId)
-        .input('UsuarioId', sql.Int, usuarioId)
-        .input('DetalleJSON', sql.NVarChar(sql.MAX), detalleJSON)
+        .input('ProveedorId',  sql.Int,              proveedorId)
+        .input('UsuarioId',    sql.Int,              usuarioId)
+        .input('DetalleJSON',  sql.NVarChar(sql.MAX), detalleJSON)
         .execute('sp_Compras_Insertar');
+
+    const compraId = result.recordset[0]?.CompraId;
+    for (const item of detalle) {
+        const stockPrev  = stocksPrevios[item.ProductoId] ?? 0;
+        const stockNuevo = stockPrev + item.Cantidad;
+
+        await registrarMovimiento({
+            tipo:        'Entrada',
+            productoId:  item.ProductoId,
+            cantidad:    item.Cantidad,
+            usuarioId:   usuarioId,
+            detalle:     `Compra #${compraId}`,
+            stockPrevio: stockPrev,
+            stockNuevo
+        });
+    }
 
     return result.recordset[0];
 }
@@ -39,7 +63,7 @@ async function insertarCompra({ proveedorId, usuarioId, detalle }) {
 async function setActivo(id, activo) {
     const pool = await getPool();
     await pool.request()
-        .input('Id', sql.Int, id)
+        .input('Id',     sql.Int, id)
         .input('Activo', sql.Bit, activo)
         .execute('sp_Compras_SetActivo');
 }

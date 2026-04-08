@@ -1,155 +1,218 @@
 <% title = 'Historial de Movimientos' %>
 
 <div class="page-header">
-    <h1 class="page-title">Historial de Movimientos</h1>
-    <p class="page-subtitle">Registro de entradas y salidas del sistema</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h1 class="page-title">Historial de Movimientos</h1>
+            <p class="page-subtitle">Registro de entradas y salidas del inventario</p>
+        </div>
+        <a href="/reportes" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Reportes
+        </a>
+    </div>
 </div>
 
-<div class="card">
+<div class="card" style="margin-bottom:20px;">
     <div class="card-header">
         <h2 class="card-title">Filtrar Movimientos</h2>
     </div>
     <div class="card-body">
-        <form method="GET" action="/reportes/historial" class="row">
-                <div class="form-group col-3">
-                <label>Fecha Desde</label>
-                <input type="text" name="desde" class="form-control flatpickr" value="<%= filtros && filtros.desde ? filtros.desde : '' %>">
+        <form method="GET" action="/reportes/historial" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+            <div class="form-group" style="flex:1; min-width:150px;">
+                <label class="form-label">Fecha Desde</label>
+                <input type="text" name="desde" class="form-control flatpickr"
+                       value="<%= filtros && filtros.desde ? filtros.desde : '' %>">
             </div>
-
-            <div class="form-group col-3">
-                <label>Fecha Hasta</label>
-                <input type="text" name="hasta" class="form-control flatpickr" value="<%= filtros && filtros.hasta ? filtros.hasta : '' %>">
+            <div class="form-group" style="flex:1; min-width:150px;">
+                <label class="form-label">Fecha Hasta</label>
+                <input type="text" name="hasta" class="form-control flatpickr"
+                       value="<%= filtros && filtros.hasta ? filtros.hasta : '' %>">
             </div>
-
-            <div class="form-group col-4">
-                <label>Producto</label>
-                <div style="position: relative; z-index: 100;">
-                    <select id="producto-select" name="producto" class="form-control">
-                        <option value="">-- Seleccionar Producto --</option>
-                        <% if (productos && productos.length > 0) { %>
-                            <% productos.forEach(p => { %>
-                                <option value="<%= p.Id %>" data-stock="<%= p.Stock %>" <%= filtros && filtros.producto && String(filtros.producto) === String(p.Id) ? 'selected' : '' %>><%= p.Nombre %> (Stock: <%= p.Stock %>)</option>
-                            <% }) %>
-                        <% } else { %>
-                            <option disabled>No hay productos disponibles</option>
-                        <% } %>
-                    </select>
-                </div>
-                <small id="stock-info" style="color: #666; display: block; margin-top: 5px;"></small>
+            <div class="form-group" style="flex:2; min-width:200px;">
+                <label class="form-label">Producto</label>
+                <select id="producto-select" name="producto" class="form-control">
+                    <option value="">-- Todos los productos --</option>
+                    <% if (productos && productos.length > 0) { %>
+                        <% productos.forEach(p => { %>
+                            <option value="<%= p.Id %>"
+                                    data-stock="<%= p.Stock %>"
+                                    <%= filtros && filtros.producto && String(filtros.producto) === String(p.Id) ? 'selected' : '' %>>
+                                <%= p.Nombre %> (Stock: <%= p.Stock %>)
+                            </option>
+                        <% }) %>
+                    <% } %>
+                </select>
+                <small id="stock-info" style="color:#666; display:block; margin-top:4px;"></small>
             </div>
-
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const selectElement = document.getElementById('producto-select');
-                    const stockInfo = document.getElementById('stock-info');
-
-                    selectElement.addEventListener('change', function() {
-                        const selectedOption = this.options[this.selectedIndex];
-                        if (this.value) {
-                            const stock = selectedOption.getAttribute('data-stock');
-                            const nombre = selectedOption.text.split('(')[0].trim();
-                            stockInfo.innerHTML = `<strong style="color: ${stock > 0 ? '#4CAF50' : '#f44336'};">✓ ${nombre} - Stock disponible: ${stock} unidades</strong>`;
-                        } else {
-                            stockInfo.innerHTML = '';
-                        }
-                    });
-                });
-            </script>
-
-            <div class="form-group col-2" style="display:flex;align-items:flex-end;">
-                <button class="btn btn-primary" type="submit">Buscar</button>
+            <div class="form-group" style="display:flex; gap:8px; align-items:flex-end;">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                <a href="/reportes/historial" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Limpiar
+                </a>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Flatpickr: cargar tema según modo (light/dark), observar cambios y aplicar idioma español -->
-<script>
-  (function(){
-    const head = document.head;
-    const getTheme = () => document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+<% if (movimientos && movimientos.length > 0) { %>
+<%
+    const entradas = movimientos.filter(m => m.Accion === 'Entrada');
+    const salidas  = movimientos.filter(m => m.Accion === 'Salida');
+    const ajustes  = movimientos.filter(m => m.Accion !== 'Entrada' && m.Accion !== 'Salida');
+    const totalEntradas = entradas.reduce((s, m) => s + (m.Cantidad || 0), 0);
+    const totalSalidas  = salidas.reduce((s, m) => s + (m.Cantidad || 0), 0);
+%>
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:20px;">
+    <div class="card" style="text-align:center; padding:16px;">
+        <div style="font-size:1.8rem; font-weight:bold; color:#17a2b8;"><%= movimientos.length %></div>
+        <div style="color:#6c757d; font-size:0.85em;">Total movimientos</div>
+    </div>
+    <div class="card" style="text-align:center; padding:16px;">
+        <div style="font-size:1.8rem; font-weight:bold; color:#28a745;"><%= entradas.length %></div>
+        <div style="color:#6c757d; font-size:0.85em;">Entradas (<%= totalEntradas %> uds)</div>
+    </div>
+    <div class="card" style="text-align:center; padding:16px;">
+        <div style="font-size:1.8rem; font-weight:bold; color:#dc3545;"><%= salidas.length %></div>
+        <div style="color:#6c757d; font-size:0.85em;">Salidas (<%= totalSalidas %> uds)</div>
+    </div>
+    <% if (ajustes.length > 0) { %>
+    <div class="card" style="text-align:center; padding:16px;">
+        <div style="font-size:1.8rem; font-weight:bold; color:#fd7e14;"><%= ajustes.length %></div>
+        <div style="color:#6c757d; font-size:0.85em;">Ajustes manuales</div>
+    </div>
+    <% } %>
+</div>
+<% } %>
 
-    function insertCss(theme){
-      let existing = document.getElementById('flatpickr-theme');
-      const href = theme === 'dark'
-        ? 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css'
-        : 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
-
-      if (existing) {
-        existing.href = href;
-        return;
-      }
-
-      existing = document.createElement('link');
-      existing.rel = 'stylesheet';
-      existing.id = 'flatpickr-theme';
-      existing.href = href;
-      head.appendChild(existing);
-    }
-
-    // Cargar CSS según tema actual
-    insertCss(getTheme());
-
-    // Cargar script de flatpickr y locale español
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
-    script.onload = function(){
-      // Cargar locale español
-      const esLocale = document.createElement('script');
-      esLocale.src = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js';
-      esLocale.onload = function(){
-        flatpickr('.flatpickr', {
-          dateFormat: 'Y-m-d',
-          allowInput: true,
-          locale: 'es'
-        });
-      };
-      head.appendChild(esLocale);
-        };
-        head.appendChild(script);
-
-        // Observar cambios en el atributo data-theme para actualizar CSS dinámicamente
-        const obs = new MutationObserver(() => {
-            insertCss(getTheme());
-        });
-        obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    })();
-</script>
-
-<div class="card mt-3">
-    <div class="card-header">
+<div class="card">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
         <h2 class="card-title">Listado de Movimientos</h2>
+        <% if (movimientos && movimientos.length > 0) { %>
+            <span style="color:#6c757d; font-size:0.85em;"><%= movimientos.length %> resultado(s)</span>
+        <% } %>
     </div>
     <div class="card-body">
         <table class="table">
             <thead>
                 <tr>
                     <th>Fecha</th>
-                    <th>Acción</th>
+                    <th>Tipo</th>
                     <th>Producto</th>
                     <th>Cantidad</th>
+                    <th>Stock Anterior</th>
+                    <th>Stock Nuevo</th>
                     <th>Usuario</th>
                     <th>Referencia</th>
                 </tr>
             </thead>
             <tbody>
-                <% if (movimientos && movimientos.length) { %>
+                <% if (movimientos && movimientos.length > 0) { %>
                     <% movimientos.forEach(m => { %>
                         <tr>
-                            <td><%= new Date(m.Fecha).toLocaleString() %></td>
-                            <td><%= m.Accion %></td>
-                            <td><%= m.Producto %></td>
-                            <td><%= m.Cantidad %></td>
+                            <td style="white-space:nowrap;">
+                                <div><%= new Date(m.Fecha).toLocaleDateString('es-CR') %></div>
+                                <div style="font-size:0.8em; color:#6c757d;">
+                                    <%= new Date(m.Fecha).toLocaleTimeString('es-CR') %>
+                                </div>
+                            </td>
+                            <td>
+                                <% if (m.Accion === 'Entrada') { %>
+                                    <span style="background:rgba(40,167,69,0.15); color:#28a745; padding:3px 10px; border-radius:999px; font-size:0.82em; font-weight:700;">
+                                        ↑ Entrada
+                                    </span>
+                                <% } else if (m.Accion === 'Salida') { %>
+                                    <span style="background:rgba(220,53,69,0.15); color:#dc3545; padding:3px 10px; border-radius:999px; font-size:0.82em; font-weight:700;">
+                                        ↓ Salida
+                                    </span>
+                                <% } else { %>
+                                    <span style="background:rgba(253,126,20,0.15); color:#fd7e14; padding:3px 10px; border-radius:999px; font-size:0.82em; font-weight:700;">
+                                        ⇄ <%= m.Accion %>
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td><strong><%= m.Producto %></strong></td>
+                            <td style="text-align:center;">
+                                <strong style="color:<%= m.Accion === 'Entrada' ? '#28a745' : '#dc3545' %>;">
+                                    <%= m.Accion === 'Entrada' ? '+' : '-' %><%= m.Cantidad %>
+                                </strong>
+                            </td>
+                            <td style="text-align:center; color:#6c757d;">
+                                <%= m.StockPrevio !== null && m.StockPrevio !== undefined ? m.StockPrevio : '-' %>
+                            </td>
+                            <td style="text-align:center;">
+                                <% if (m.StockNuevo !== null && m.StockNuevo !== undefined) { %>
+                                    <strong style="color:<%= m.StockNuevo <= 0 ? '#dc3545' : '#28a745' %>;">
+                                        <%= m.StockNuevo %>
+                                    </strong>
+                                <% } else { %>
+                                    -
+                                <% } %>
+                            </td>
                             <td><%= m.Usuario || 'Sistema' %></td>
-                            <td><%= m.Referencia %></td>
+                            <td style="color:#6c757d; font-size:0.85em;"><%= m.Referencia || '-' %></td>
                         </tr>
                     <% }) %>
                 <% } else { %>
                     <tr>
-                        <td colspan="6">No se encontraron movimientos para los filtros seleccionados.</td>
+                        <td colspan="8" style="text-align:center; padding:30px; color:#6c757d;">
+                            <i class="fas fa-inbox" style="font-size:2rem; margin-bottom:10px; display:block;"></i>
+                            No se encontraron movimientos para los filtros seleccionados.
+                        </td>
                     </tr>
                 <% } %>
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+  (function(){
+    const head = document.head;
+    const getTheme = () => document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+
+    function insertCss(theme) {
+      let existing = document.getElementById('flatpickr-theme');
+      const href = theme === 'dark'
+        ? 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css'
+        : 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+      if (existing) { existing.href = href; return; }
+      existing = document.createElement('link');
+      existing.rel = 'stylesheet';
+      existing.id  = 'flatpickr-theme';
+      existing.href = href;
+      head.appendChild(existing);
+    }
+
+    insertCss(getTheme());
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
+    script.onload = function() {
+      const esLocale = document.createElement('script');
+      esLocale.src = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js';
+      esLocale.onload = function() {
+        flatpickr('.flatpickr', { dateFormat: 'Y-m-d', allowInput: true, locale: 'es' });
+      };
+      head.appendChild(esLocale);
+    };
+    head.appendChild(script);
+
+    new MutationObserver(() => insertCss(getTheme()))
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  })();
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const sel = document.getElementById('producto-select');
+    const info = document.getElementById('stock-info');
+    sel.addEventListener('change', function() {
+      if (!this.value) { info.innerHTML = ''; return; }
+      const opt   = this.options[this.selectedIndex];
+      const stock = opt.getAttribute('data-stock');
+      const nombre = opt.text.split('(')[0].trim();
+      info.innerHTML = `<strong style="color:${stock > 0 ? '#28a745' : '#dc3545'};">
+        ✓ ${nombre} — Stock actual: ${stock} unidades</strong>`;
+    });
+  });
+</script>
