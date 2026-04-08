@@ -103,11 +103,28 @@
             <div class="payment-section">
                 <div class="form-group">
                     <label class="form-label">Método de Pago</label>
-                    <select class="form-control" id="paymentMethod">
+                    <select class="form-control" id="paymentMethod" onchange="toggleEfectivoFields()">
                         <option value="efectivo">Efectivo</option>
                         <option value="tarjeta">Tarjeta</option>
                         <option value="transferencia">Transferencia</option>
                     </select>
+                </div>
+
+                <div id="efectivoSection">
+                    <div class="form-group">
+                        <label class="form-label">Monto recibido</label>
+                        <input type="number" class="form-control" id="montoRecibido"
+                               placeholder="₡0" min="0" step="100"
+                               oninput="calcularVuelto()">
+                    </div>
+                    <div class="summary-row" id="vueltoRow" style="display:none;">
+                        <span style="font-weight:600;">Vuelto:</span>
+                        <span id="vueltoDisplay" style="font-weight:700; color:var(--success,#10B981); font-size:1.1rem;">₡0</span>
+                    </div>
+                    <div class="summary-row" id="faltaRow" style="display:none;">
+                        <span style="font-weight:600;">Falta:</span>
+                        <span id="faltaDisplay" style="font-weight:700; color:var(--danger,#EF4444); font-size:1.1rem;">₡0</span>
+                    </div>
                 </div>
 
                 <button class="btn btn-success btn-full" onclick="processSale()">
@@ -223,7 +240,7 @@
     var currentCustomer = { id: null, name: 'Venta General', code: '' };
     let tempGroomingData = null;
     var currentCategory = 'all';
-    let groomingPrecioActual = 0; 
+    let groomingPrecioActual = 0;
 
     function setCategory(category, element) {
         currentCategory = category;
@@ -237,6 +254,46 @@
         if (item) {
             item.descuentoManual = (item.descuentoManual === porcentaje) ? 0 : porcentaje;
             updateCartUI();
+        }
+    }
+
+    function toggleEfectivoFields() {
+        const metodo = document.getElementById('paymentMethod').value;
+        const section = document.getElementById('efectivoSection');
+        section.style.display = metodo === 'efectivo' ? 'block' : 'none';
+        if (metodo !== 'efectivo') {
+            document.getElementById('montoRecibido').value = '';
+            document.getElementById('vueltoRow').style.display = 'none';
+            document.getElementById('faltaRow').style.display  = 'none';
+        }
+    }
+
+    function calcularVuelto() {
+        const totalEl = document.getElementById('total');
+        if (!totalEl) return;
+        // parse total limpiando símbolo y separadores de miles
+        const totalStr = totalEl.innerText.replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.');
+        const total = parseFloat(totalStr) || 0;
+        const recibido = parseFloat(document.getElementById('montoRecibido').value) || 0;
+
+        const vueltoRow = document.getElementById('vueltoRow');
+        const faltaRow  = document.getElementById('faltaRow');
+
+        if (recibido <= 0) {
+            vueltoRow.style.display = 'none';
+            faltaRow.style.display  = 'none';
+            return;
+        }
+
+        const diff = recibido - total;
+        if (diff >= 0) {
+            document.getElementById('vueltoDisplay').textContent = '₡' + diff.toLocaleString('es-CR');
+            vueltoRow.style.display = 'flex';
+            faltaRow.style.display  = 'none';
+        } else {
+            document.getElementById('faltaDisplay').textContent = '₡' + Math.abs(diff).toLocaleString('es-CR');
+            faltaRow.style.display  = 'flex';
+            vueltoRow.style.display = 'none';
         }
     }
 
@@ -318,7 +375,6 @@
                 return;
             }
 
-            // Mostrar desglose
             document.getElementById('groomingPeso').textContent = `${data.peso} kg`;
             document.getElementById('groomingCostoBase').textContent = `₡${data.costoGrooming.toLocaleString()}`;
 
@@ -344,7 +400,6 @@
     }
 
     function abrirModalGrooming() {
-        // Reset estado del modal
         document.getElementById('groomingPrecioBox').style.display = 'none';
         document.getElementById('groomingPrecioError').style.display = 'none';
         document.getElementById('btnConfirmarGrooming').disabled = true;
@@ -440,7 +495,6 @@
         if (!mascotaId || !fecha || !hora) return alert("Seleccione mascota, fecha y hora");
         if (groomingPrecioActual <= 0) return alert("Espere a que se calcule el precio del servicio");
 
-        // Texto de detalle para mostrar en carrito
         const mascotaSelect = document.getElementById('citaMascotaId');
         const mascotaNombre = mascotaSelect.options[mascotaSelect.selectedIndex]?.text || '';
         let detalle = `Mascota: ${mascotaNombre} | ${fecha} ${hora}`;
@@ -527,6 +581,7 @@
         actualizarEtiqueta('tax-display', "₡" + iva.toLocaleString());
         actualizarEtiqueta('total', "₡" + (subtotal + iva).toLocaleString());
         actualizarEtiqueta('totalBtn', (subtotal + iva).toLocaleString());
+        calcularVuelto();
     }
 
     window.changeQty = function (id, delta) {
@@ -549,6 +604,15 @@
 
     window.processSale = async function () {
         if (cart.length === 0) return alert('El carrito está vacío');
+        const metodo = document.getElementById('paymentMethod').value;
+        if (metodo === 'efectivo') {
+            const recibido = parseFloat(document.getElementById('montoRecibido').value) || 0;
+            if (recibido <= 0) return alert('Ingrese el monto recibido en efectivo.');
+            const totalEl = document.getElementById('total');
+            const totalStr = totalEl.innerText.replace(/[^0-9,]/g, '').replace(',', '.');
+            const total = parseFloat(totalStr) || 0;
+            if (recibido < total) return alert('El monto recibido es menor al total de la venta.');
+        }
         const subtotal = cart.reduce((acc, item) => {
             const precioFinal = item.precio * (1 - (item.descuentoManual || 0));
             return acc + (precioFinal * item.quantity);
