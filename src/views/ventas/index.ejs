@@ -271,9 +271,10 @@
     function calcularVuelto() {
         const totalEl = document.getElementById('total');
         if (!totalEl) return;
-        // parse total limpiando símbolo y separadores de miles
-        const totalStr = totalEl.innerText.replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.');
-        const total = parseFloat(totalStr) || 0;
+        const total = cart.reduce((acc, item) => {
+        const precioFinal = item.precio * (1 - (item.descuentoManual || 0));
+        return acc + (precioFinal * item.quantity);
+        }, 0) * (1 + TAX_RATE);
         const recibido = parseFloat(document.getElementById('montoRecibido').value) || 0;
 
         const vueltoRow = document.getElementById('vueltoRow');
@@ -609,8 +610,7 @@
             const recibido = parseFloat(document.getElementById('montoRecibido').value) || 0;
             if (recibido <= 0) return alert('Ingrese el monto recibido en efectivo.');
             const totalEl = document.getElementById('total');
-            const totalStr = totalEl.innerText.replace(/[^0-9,]/g, '').replace(',', '.');
-            const total = parseFloat(totalStr) || 0;
+            const total = subtotal * (1 + TAX_RATE);
             if (recibido < total) return alert('El monto recibido es menor al total de la venta.');
         }
         const subtotal = cart.reduce((acc, item) => {
