@@ -1,0 +1,890 @@
+<div class="page-header">
+    <h1 class="page-title">Calendario de Citas</h1>
+    <p class="page-subtitle">Vista mensual de todas las citas registradas</p>
+</div>
+
+<style>
+    /* ── Cabecera del calendario ── */
+    .cal-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .cal-nav-arrows {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+    }
+    .cal-nav-arrows h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        min-width: 200px;
+        text-align: center;
+    }
+    .cal-btn {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        border-radius: 8px;
+        padding: .45rem .85rem;
+        cursor: pointer;
+        font-size: .95rem;
+        transition: background .2s, color .2s;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+    .cal-btn:hover {
+        background: var(--primary-dark);
+        color: #fff;
+        border-color: var(--primary-dark);
+    }
+    .cal-btn-today {
+        background: var(--primary-dark);
+        color: #fff;
+        border-color: var(--primary-dark);
+        font-weight: 600;
+    }
+    .cal-btn-today:hover {
+        background: var(--primary-cyan);
+        border-color: var(--primary-cyan);
+        color: #0c1a2e;
+    }
+
+    /* ── Leyenda ── */
+    .cal-legend {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .cal-legend-item {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        font-size: .82rem;
+        color: var(--text-secondary);
+    }
+    .cal-legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    /* ── Grid del calendario ── */
+    .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .cal-day-header {
+        background: var(--bg-tertiary);
+        text-align: center;
+        padding: .65rem .25rem;
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--text-secondary);
+    }
+    .cal-cell {
+        background: var(--bg-secondary);
+        min-height: 110px;
+        padding: .5rem;
+        display: flex;
+        flex-direction: column;
+        gap: .3rem;
+        position: relative;
+        cursor: default;
+        transition: background .15s;
+    }
+    .cal-cell.other-month {
+        background: var(--bg-tertiary);
+        opacity: .55;
+    }
+    .cal-cell.today .cal-day-num {
+        background: var(--primary-dark);
+        color: #fff;
+    }
+    .cal-cell:hover:not(.other-month) {
+        background: var(--primary-light);
+    }
+    [data-theme="dark"] .cal-cell:hover:not(.other-month) {
+        background: #1e3a5f;
+    }
+    .cal-day-num {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .82rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        flex-shrink: 0;
+    }
+
+    /* ── Píldoras de cita en celda ── */
+    .cal-pill {
+        border-radius: 5px;
+        padding: 2px 6px;
+        font-size: .73rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+        transition: filter .15s, transform .1s;
+        line-height: 1.5;
+    }
+    .cal-pill:hover {
+        filter: brightness(1.12);
+        transform: translateY(-1px);
+    }
+    .cal-pill.pendiente   { background: #FEF3C7; color: #92400E; }
+    .cal-pill.confirmada  { background: #D1FAE5; color: #065F46; }
+    .cal-pill.completada  { background: #DBEAFE; color: #1E40AF; }
+    .cal-pill.cancelada   { background: #FEE2E2; color: #991B1B; }
+    [data-theme="dark"] .cal-pill.pendiente   { background: #78350f; color: #FDE68A; }
+    [data-theme="dark"] .cal-pill.confirmada  { background: #064e3b; color: #A7F3D0; }
+    [data-theme="dark"] .cal-pill.completada  { background: #1e3a8a; color: #BFDBFE; }
+    [data-theme="dark"] .cal-pill.cancelada   { background: #7f1d1d; color: #FECACA; }
+
+    .cal-more {
+        font-size: .7rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 1px 4px;
+        border-radius: 4px;
+        transition: background .15s;
+    }
+    .cal-more:hover { background: var(--border-color); }
+
+    /* ── Modal de detalle de cita ── */
+    .cita-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .cita-modal-overlay.open { display: flex; }
+    .cita-modal-box {
+        background: var(--bg-secondary);
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        width: 100%;
+        max-width: 440px;
+        overflow: hidden;
+        animation: slideUp .2s ease;
+    }
+    @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+    .cita-modal-header {
+        padding: 1.1rem 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .cita-modal-header h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .cita-modal-body {
+        padding: 1.3rem 1.4rem;
+        display: flex;
+        flex-direction: column;
+        gap: .85rem;
+    }
+    .cita-modal-row {
+        display: flex;
+        gap: .7rem;
+        align-items: flex-start;
+    }
+    .cita-modal-row i {
+        color: var(--primary-dark);
+        font-size: .9rem;
+        margin-top: .15rem;
+        width: 16px;
+        flex-shrink: 0;
+    }
+    .cita-modal-label {
+        font-size: .75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        margin-bottom: 2px;
+    }
+    .cita-modal-value {
+        font-size: .9rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    .cita-modal-footer {
+        padding: 1rem 1.4rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .estado-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .3rem .7rem;
+        border-radius: 20px;
+        font-size: .8rem;
+        font-weight: 600;
+    }
+    .estado-badge.pendiente   { background: #FEF3C7; color: #92400E; }
+    .estado-badge.confirmada  { background: #D1FAE5; color: #065F46; }
+    .estado-badge.completada  { background: #DBEAFE; color: #1E40AF; }
+    .estado-badge.cancelada   { background: #FEE2E2; color: #991B1B; }
+    [data-theme="dark"] .estado-badge.pendiente  { background: #78350f; color: #FDE68A; }
+    [data-theme="dark"] .estado-badge.confirmada { background: #064e3b; color: #A7F3D0; }
+    [data-theme="dark"] .estado-badge.completada { background: #1e3a8a; color: #BFDBFE; }
+    [data-theme="dark"] .estado-badge.cancelada  { background: #7f1d1d; color: #FECACA; }
+
+    /* ── Modal cambio de estado ── */
+    .estado-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.5);
+        z-index: 1100;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .estado-modal-overlay.open { display: flex; }
+    .estado-modal-box {
+        background: var(--bg-secondary);
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.35);
+        width: 100%;
+        max-width: 380px;
+        overflow: hidden;
+        animation: slideUp .2s ease;
+    }
+    .estado-modal-header {
+        padding: 1.1rem 1.4rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .estado-modal-header h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .estado-options {
+        padding: 1.2rem 1.4rem;
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+    }
+    .estado-option {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .75rem 1rem;
+        border-radius: 10px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: border-color .15s, background .15s;
+    }
+    .estado-option:hover { border-color: var(--primary-dark); background: var(--bg-tertiary); }
+    .estado-option.selected { border-color: var(--primary-dark); background: var(--primary-light); }
+    [data-theme="dark"] .estado-option.selected { background: #1e3a5f; }
+    .estado-option-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .estado-option-text strong { display: block; font-size: .9rem; color: var(--text-primary); }
+    .estado-option-text small  { font-size: .78rem; color: var(--text-secondary); }
+    .estado-modal-footer {
+        padding: 1rem 1.4rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: .75rem;
+    }
+
+    /* ── Modal de día (ver todas las citas) ── */
+    .dia-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+        z-index: 1050;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .dia-modal-overlay.open { display: flex; }
+    .dia-modal-box {
+        background: var(--bg-secondary);
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        width: 100%;
+        max-width: 480px;
+        max-height: 80vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp .2s ease;
+    }
+    .dia-modal-header {
+        padding: 1.1rem 1.4rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .dia-modal-list {
+        overflow-y: auto;
+        flex: 1;
+        padding: 1rem 1.4rem;
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+    }
+    .dia-cita-card {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .7rem .9rem;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: border-color .15s, background .15s;
+    }
+    .dia-cita-card:hover { border-color: var(--primary-dark); background: var(--bg-tertiary); }
+    .dia-cita-time {
+        font-size: .82rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        min-width: 42px;
+    }
+    .dia-cita-info strong { display: block; font-size: .88rem; color: var(--text-primary); }
+    .dia-cita-info small  { font-size: .78rem; color: var(--text-secondary); }
+
+    /* ── Botón cerrar ── */
+    .modal-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: .2rem;
+        border-radius: 6px;
+        transition: background .15s, color .15s;
+        line-height: 1;
+    }
+    .modal-close-btn:hover { background: var(--border-color); color: var(--text-primary); }
+
+    /* ── Resumen mensual ── */
+    .cal-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: .75rem;
+        margin-bottom: 1.25rem;
+    }
+    .cal-summary-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: .85rem 1rem;
+        text-align: center;
+    }
+    .cal-summary-card .num {
+        font-size: 1.6rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: .2rem;
+    }
+    .cal-summary-card .lbl {
+        font-size: .75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+    .num-total     { color: var(--primary-dark); }
+    .num-pendiente { color: #D97706; }
+    .num-confirmada{ color: #059669; }
+    .num-completada{ color: #2563EB; }
+    .num-cancelada { color: #DC2626; }
+
+    @media (max-width: 640px) {
+        .cal-cell { min-height: 70px; padding: .3rem; }
+        .cal-day-header { font-size: .65rem; padding: .4rem .1rem; }
+        .cal-pill { font-size: .65rem; }
+    }
+</style>
+
+<%
+    // Datos para el resumen
+    const totalMes = citas.length;
+    const resumen = { Pendiente: 0, Confirmada: 0, Completada: 0, Cancelada: 0 };
+    citas.forEach(c => {
+        const e = c.Estado || 'Pendiente';
+        if (resumen[e] !== undefined) resumen[e]++;
+        else resumen['Pendiente']++;
+    });
+%>
+
+<!-- Navegación del mes -->
+<div class="cal-nav">
+    <div class="cal-nav-arrows">
+        <a href="/citas/calendario?year=<%= prevYear %>&month=<%= prevMonth %>" class="cal-btn">
+            <i class="fas fa-chevron-left"></i> Anterior
+        </a>
+        <h2><%= nombreMes %> <%= year %></h2>
+        <a href="/citas/calendario?year=<%= nextYear %>&month=<%= nextMonth %>" class="cal-btn">
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </a>
+    </div>
+    <div style="display:flex; gap:.6rem; align-items:center; flex-wrap:wrap;">
+        <a href="/citas/calendario" class="cal-btn cal-btn-today">
+            <i class="fas fa-calendar-day"></i> Hoy
+        </a>
+        <a href="/citas" class="cal-btn">
+            <i class="fas fa-list"></i> Ver lista
+        </a>
+    </div>
+</div>
+
+<!-- Resumen mensual -->
+<div class="cal-summary">
+    <div class="cal-summary-card">
+        <div class="num num-total"><%= totalMes %></div>
+        <div class="lbl">Total</div>
+    </div>
+    <div class="cal-summary-card">
+        <div class="num num-pendiente"><%= resumen.Pendiente %></div>
+        <div class="lbl">Pendientes</div>
+    </div>
+    <div class="cal-summary-card">
+        <div class="num num-confirmada"><%= resumen.Confirmada %></div>
+        <div class="lbl">Confirmadas</div>
+    </div>
+    <div class="cal-summary-card">
+        <div class="num num-completada"><%= resumen.Completada %></div>
+        <div class="lbl">Completadas</div>
+    </div>
+    <div class="cal-summary-card">
+        <div class="num num-cancelada"><%= resumen.Cancelada %></div>
+        <div class="lbl">Canceladas</div>
+    </div>
+</div>
+
+<!-- Leyenda -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.9rem; flex-wrap:wrap; gap:.5rem;">
+    <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#D97706;"></div> Pendiente</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#059669;"></div> Confirmada</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#2563EB;"></div> Completada</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#DC2626;"></div> Cancelada</div>
+    </div>
+    <small style="color:var(--text-secondary); font-size:.78rem;"><i class="fas fa-hand-pointer"></i> Clic en una cita para cambiar estado</small>
+</div>
+
+<!-- Grid del calendario -->
+<div class="cal-grid">
+    <% const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']; %>
+    <% dias.forEach(d => { %>
+        <div class="cal-day-header"><%= d %></div>
+    <% }); %>
+
+    <% celdas.forEach(celda => {
+        const clsCell = [
+            'cal-cell',
+            celda.otroMes ? 'other-month' : '',
+            celda.esHoy   ? 'today'       : ''
+        ].filter(Boolean).join(' ');
+        const MAX_PILLS = 3;
+    %>
+    <div class="<%= clsCell %>">
+        <div class="cal-day-num"><%= celda.dia %></div>
+
+        <% celda.citas.slice(0, MAX_PILLS).forEach(c => {
+            const estadoKey = (c.Estado || 'Pendiente').toLowerCase();
+            const citaJson  = JSON.stringify(c).replace(/"/g, '&quot;');
+        %>
+            <div class="cal-pill <%= estadoKey %>"
+                 title="<%= c.Hora %> - <%= c.MascotaNombre %> (<%= c.ClienteNombre %>)"
+                 data-cita="<%- citaJson %>"
+                 onclick="abrirCitaDesdeEl(this)">
+                <%= c.Hora %> <%= c.MascotaNombre %>
+            </div>
+        <% }); %>
+
+        <% if (celda.citas.length > MAX_PILLS) { %>
+            <%
+                const diaJson = JSON.stringify(celda.citas).replace(/"/g, '&quot;');
+            %>
+            <div class="cal-more"
+                 data-fecha="<%= celda.fechaISO %>"
+                 data-citas="<%- diaJson %>"
+                 onclick="abrirDiaDesdeEl(this)">
+                +<%= celda.citas.length - MAX_PILLS %> más
+            </div>
+        <% } %>
+    </div>
+    <% }); %>
+</div>
+
+
+<!-- ── Modal: Detalle de cita ── -->
+<div id="citaOverlay" class="cita-modal-overlay" onclick="cerrarCitaModal(event)">
+    <div class="cita-modal-box">
+        <div class="cita-modal-header">
+            <h3><i class="fas fa-calendar-check"></i> Detalle de Cita</h3>
+            <button class="modal-close-btn" onclick="cerrarCitaModalForce()">×</button>
+        </div>
+        <div class="cita-modal-body">
+            <div class="cita-modal-row">
+                <i class="fas fa-paw"></i>
+                <div>
+                    <div class="cita-modal-label">Mascota</div>
+                    <div class="cita-modal-value" id="cm-mascota">—</div>
+                </div>
+            </div>
+            <div class="cita-modal-row">
+                <i class="fas fa-user"></i>
+                <div>
+                    <div class="cita-modal-label">Cliente</div>
+                    <div class="cita-modal-value" id="cm-cliente">—</div>
+                </div>
+            </div>
+            <div class="cita-modal-row">
+                <i class="fas fa-calendar"></i>
+                <div>
+                    <div class="cita-modal-label">Fecha y Hora</div>
+                    <div class="cita-modal-value" id="cm-fecha">—</div>
+                </div>
+            </div>
+            <div class="cita-modal-row">
+                <i class="fas fa-scissors"></i>
+                <div>
+                    <div class="cita-modal-label">Servicio</div>
+                    <div class="cita-modal-value" id="cm-servicio">—</div>
+                </div>
+            </div>
+            <div class="cita-modal-row">
+                <i class="fas fa-truck"></i>
+                <div>
+                    <div class="cita-modal-label">Transporte</div>
+                    <div class="cita-modal-value" id="cm-transporte">—</div>
+                </div>
+            </div>
+            <div class="cita-modal-row">
+                <i class="fas fa-coins"></i>
+                <div>
+                    <div class="cita-modal-label">Total</div>
+                    <div class="cita-modal-value" id="cm-total">—</div>
+                </div>
+            </div>
+        </div>
+        <div class="cita-modal-footer">
+            <div id="cm-estado-badge" class="estado-badge">—</div>
+            <button class="btn btn-primary" style="font-size:.85rem; padding:.45rem 1rem;"
+                    onclick="abrirCambioEstado()">
+                <i class="fas fa-edit"></i> Cambiar Estado
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ── Modal: Cambiar estado ── -->
+<div id="estadoOverlay" class="estado-modal-overlay" onclick="cerrarEstadoModal(event)">
+    <div class="estado-modal-box">
+        <div class="estado-modal-header">
+            <h3><i class="fas fa-exchange-alt"></i> Cambiar Estado</h3>
+            <button class="modal-close-btn" onclick="cerrarEstadoModalForce()">×</button>
+        </div>
+        <form id="formCambioEstado" method="POST" action="">
+            <input type="hidden" name="Fecha"  id="fs-fecha">
+            <input type="hidden" name="Hora"   id="fs-hora">
+            <input type="hidden" name="Estado" id="fs-estado">
+            <div class="estado-options">
+                <div class="estado-option" id="opt-pendiente" onclick="seleccionarEstado('Pendiente')">
+                    <div class="estado-option-icon" style="background:#FEF3C7;">
+                        <i class="fas fa-clock" style="color:#D97706;"></i>
+                    </div>
+                    <div class="estado-option-text">
+                        <strong>Pendiente</strong>
+                        <small>Aún sin confirmar</small>
+                    </div>
+                </div>
+                <div class="estado-option" id="opt-confirmada" onclick="seleccionarEstado('Confirmada')">
+                    <div class="estado-option-icon" style="background:#D1FAE5;">
+                        <i class="fas fa-check-circle" style="color:#059669;"></i>
+                    </div>
+                    <div class="estado-option-text">
+                        <strong>Confirmada</strong>
+                        <small>Cita confirmada con el cliente</small>
+                    </div>
+                </div>
+                <div class="estado-option" id="opt-completada" onclick="seleccionarEstado('Completada')">
+                    <div class="estado-option-icon" style="background:#DBEAFE;">
+                        <i class="fas fa-star" style="color:#2563EB;"></i>
+                    </div>
+                    <div class="estado-option-text">
+                        <strong>Completada</strong>
+                        <small>Servicio realizado exitosamente</small>
+                    </div>
+                </div>
+                <div class="estado-option" id="opt-cancelada" onclick="seleccionarEstado('Cancelada')">
+                    <div class="estado-option-icon" style="background:#FEE2E2;">
+                        <i class="fas fa-times-circle" style="color:#DC2626;"></i>
+                    </div>
+                    <div class="estado-option-text">
+                        <strong>Cancelada</strong>
+                        <small>Cita no se realizará</small>
+                    </div>
+                </div>
+            </div>
+            <div class="estado-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="cerrarEstadoModalForce()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ── Modal: Todas las citas del día ── -->
+<div id="diaOverlay" class="dia-modal-overlay" onclick="cerrarDiaModal(event)">
+    <div class="dia-modal-box">
+        <div class="dia-modal-header">
+            <h3 id="dia-modal-title" style="font-size:1rem; font-weight:700; color:var(--text-primary);">
+                <i class="fas fa-calendar-day"></i> Citas del día
+            </h3>
+            <button class="modal-close-btn" onclick="cerrarDiaModalForce()">×</button>
+        </div>
+        <div class="dia-modal-list" id="dia-modal-list"></div>
+    </div>
+</div>
+
+
+<!-- ── Modal de éxito/error ── -->
+<div id="notifOverlay" class="cita-modal-overlay" style="z-index:1200;" onclick="cerrarNotif()">
+    <div class="cita-modal-box" style="max-width:360px;">
+        <div class="cita-modal-header" id="notifHeader">
+            <h3 id="notifTitle">—</h3>
+            <button class="modal-close-btn" onclick="cerrarNotif()">×</button>
+        </div>
+        <div class="cita-modal-body">
+            <p id="notifMsg" style="color:var(--text-primary); margin:0;"></p>
+        </div>
+        <div style="padding:.9rem 1.4rem; display:flex; justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="cerrarNotif()">Entendido</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// ── Estado global ──────────────────────────────────────
+let citaActual = null;
+let estadoSeleccionado = null;
+
+// ── Utilidades ─────────────────────────────────────────
+function estadoBadgeHTML(estado) {
+    const key = (estado || 'Pendiente').toLowerCase();
+    const icons = { pendiente:'clock', confirmada:'check-circle', completada:'star', cancelada:'times-circle' };
+    const icon = icons[key] || 'circle';
+    return `<span class="estado-badge ${key}"><i class="fas fa-${icon}"></i> ${estado || 'Pendiente'}</span>`;
+}
+
+// ── Wrappers para leer data-attributes ────────────────
+function abrirCitaDesdeEl(el) {
+    const cita = JSON.parse(el.getAttribute('data-cita'));
+    abrirCita(cita);
+}
+function abrirDiaDesdeEl(el) {
+    const fecha = el.getAttribute('data-fecha');
+    const citas = JSON.parse(el.getAttribute('data-citas'));
+    abrirDia(fecha, citas);
+}
+
+// ── Modal DETALLE DE CITA ──────────────────────────────
+function abrirCita(cita) {
+    citaActual = cita;
+    const estado = cita.Estado || 'Pendiente';
+
+    document.getElementById('cm-mascota').textContent  = cita.MascotaNombre || '—';
+    document.getElementById('cm-cliente').textContent  = cita.ClienteNombre || '—';
+    document.getElementById('cm-fecha').textContent    = `${cita.Fecha} a las ${cita.Hora}`;
+    document.getElementById('cm-servicio').textContent = cita.Servicio || '—';
+
+    const transp = cita.TransporteNecesario
+        ? `Sí – ${cita.TipoTransporte || ''} · ₡${(cita.CostoTransporte||0).toLocaleString('es-CR')}`
+        : 'No requiere';
+    document.getElementById('cm-transporte').textContent = transp;
+
+    const total = ((cita.CostoGrooming||0) + (cita.CostoTransporte||0));
+    document.getElementById('cm-total').textContent = `₡${total.toLocaleString('es-CR')}`;
+
+    document.getElementById('cm-estado-badge').innerHTML = estadoBadgeHTML(estado);
+    document.getElementById('cm-estado-badge').className = `estado-badge ${estado.toLowerCase()}`;
+
+    // Cerrar día modal si estaba abierto
+    cerrarDiaModalForce();
+
+    document.getElementById('citaOverlay').classList.add('open');
+}
+
+function cerrarCitaModal(e) {
+    if (e.target === document.getElementById('citaOverlay')) cerrarCitaModalForce();
+}
+function cerrarCitaModalForce() {
+    document.getElementById('citaOverlay').classList.remove('open');
+}
+
+// ── Modal CAMBIO DE ESTADO ─────────────────────────────
+function abrirCambioEstado() {
+    if (!citaActual) return;
+    cerrarCitaModalForce();
+
+    estadoSeleccionado = citaActual.Estado || 'Pendiente';
+
+    // Pre-seleccionar estado actual
+    document.querySelectorAll('.estado-option').forEach(el => el.classList.remove('selected'));
+    const opt = document.getElementById('opt-' + estadoSeleccionado.toLowerCase());
+    if (opt) opt.classList.add('selected');
+
+    // Configurar el form
+    document.getElementById('fs-fecha').value  = citaActual.FechaISO || '';
+    document.getElementById('fs-hora').value   = citaActual.Hora     || '';
+    document.getElementById('fs-estado').value = estadoSeleccionado;
+    document.getElementById('formCambioEstado').action = '/citas/editar/' + citaActual.Id;
+
+    document.getElementById('estadoOverlay').classList.add('open');
+}
+
+function seleccionarEstado(val) {
+    estadoSeleccionado = val;
+    document.getElementById('fs-estado').value = val;
+    document.querySelectorAll('.estado-option').forEach(el => el.classList.remove('selected'));
+    const opt = document.getElementById('opt-' + val.toLowerCase());
+    if (opt) opt.classList.add('selected');
+}
+
+function cerrarEstadoModal(e) {
+    if (e.target === document.getElementById('estadoOverlay')) cerrarEstadoModalForce();
+}
+function cerrarEstadoModalForce() {
+    document.getElementById('estadoOverlay').classList.remove('open');
+}
+
+// ── Modal TODAS LAS CITAS DEL DÍA ─────────────────────
+function abrirDia(fechaISO, citas) {
+    // Formatear fecha bonito
+    const [y,m,d] = fechaISO.split('-');
+    const meses = ['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    document.getElementById('dia-modal-title').innerHTML =
+        `<i class="fas fa-calendar-day"></i> ${parseInt(d)} de ${meses[parseInt(m)]} ${y}`;
+
+    const list = document.getElementById('dia-modal-list');
+    list.innerHTML = '';
+    citas.forEach(c => {
+        const estadoKey = (c.Estado||'Pendiente').toLowerCase();
+        const pill = `<span class="cal-pill ${estadoKey}" style="font-size:.75rem;">${c.Estado||'Pendiente'}</span>`;
+        const card = document.createElement('div');
+        card.className = 'dia-cita-card';
+        card.innerHTML = `
+            <div class="dia-cita-time">${c.Hora}</div>
+            <div class="dia-cita-info" style="flex:1;">
+                <strong>${c.MascotaNombre}</strong>
+                <small>${c.ClienteNombre} · ${c.Servicio||'Grooming'}</small>
+            </div>
+            ${pill}
+        `;
+        card.addEventListener('click', () => {
+            cerrarDiaModalForce();
+            abrirCita(c);
+        });
+        list.appendChild(card);
+    });
+
+    document.getElementById('diaOverlay').classList.add('open');
+}
+
+function cerrarDiaModal(e) {
+    if (e.target === document.getElementById('diaOverlay')) cerrarDiaModalForce();
+}
+function cerrarDiaModalForce() {
+    document.getElementById('diaOverlay').classList.remove('open');
+}
+
+// ── Notificación de éxito/error ────────────────────────
+function cerrarNotif() { document.getElementById('notifOverlay').classList.remove('open'); }
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (error) {
+        document.getElementById('notifTitle').innerHTML = '<i class="fas fa-circle-exclamation" style="color:#DC2626;"></i> No se pudo guardar';
+        document.getElementById('notifMsg').textContent = decodeURIComponent(error);
+        document.getElementById('notifOverlay').classList.add('open');
+        params.delete('error');
+        const url = params.toString() ? `${location.pathname}?${params}` : location.pathname;
+        window.history.replaceState({}, '', url);
+    }
+    const ok = params.get('ok');
+    if (ok) {
+        document.getElementById('notifTitle').innerHTML = '<i class="fas fa-check-circle" style="color:#059669;"></i> Estado actualizado';
+        document.getElementById('notifMsg').textContent = 'El estado de la cita fue actualizado correctamente.';
+        document.getElementById('notifOverlay').classList.add('open');
+        params.delete('ok');
+        const url = params.toString() ? `${location.pathname}?${params}` : location.pathname;
+        window.history.replaceState({}, '', url);
+    }
+})();
+
+// Cerrar con Escape
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        cerrarCitaModalForce();
+        cerrarEstadoModalForce();
+        cerrarDiaModalForce();
+        cerrarNotif();
+    }
+});
+</script>

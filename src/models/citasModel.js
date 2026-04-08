@@ -55,6 +55,25 @@ async function listarCitas(fecha = null, clienteId = null) {
     }));
 }
 
+async function listarCitasPorRango(fechaInicio, fechaFin, clienteId = null) {
+    const pool = await getPool();
+    const request = pool.request();
+
+    request.input('FechaInicio', sql.Date, fechaInicio);
+    request.input('FechaFin',    sql.Date, fechaFin);
+    if (clienteId) request.input('ClienteId', sql.Int, clienteId);
+
+    const result = await request.execute('sp_Citas_Listar');
+
+    return result.recordset.map(cita => ({
+        ...cita,
+        FechaISO: formatFechaISO(cita.Fecha),
+        Hora:     formatHora(cita.Hora),
+        Fecha:    formatFecha(cita.Fecha),
+        TransporteNecesario: cita.TransporteNecesario === 1 || cita.TransporteNecesario === true
+    }));
+}
+
 async function obtenerCitaPorId(id) {
     const pool = await getPool();
     const result = await pool.request()
@@ -92,6 +111,7 @@ async function actualizarCita(id, data) {
 
 module.exports = {
     listarCitas,
+    listarCitasPorRango,
     obtenerCitaPorId,
     actualizarCita
 };
