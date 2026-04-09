@@ -605,13 +605,11 @@
 
     window.processSale = async function () {
         if (cart.length === 0) return alert('El carrito está vacío');
-
         const subtotal = cart.reduce((acc, item) => {
             const precioFinal = item.precio * (1 - (item.descuentoManual || 0));
             return acc + (precioFinal * item.quantity);
         }, 0);
         const totalConIVA = subtotal * (1 + TAX_RATE);
-
         const metodo = document.getElementById('paymentMethod').value;
         if (metodo === 'efectivo') {
             const recibido = parseFloat(document.getElementById('montoRecibido').value) || 0;

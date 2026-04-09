@@ -3491,3 +3491,138 @@ GO
 PRINT 'SPs de Movimientos creados exitosamente.';
 GO
 ---------------------------Nolan Fin 8.04.2026---------------------
+
+
+--------------------------- SP CORREGIDO AMANDA ---------------------------
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Eliminar
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+ 
+        -- Eliminar registros dependientes para respetar FK
+        DELETE FROM dbo.Movimientos    WHERE ProductoId = @Id;
+        DELETE FROM dbo.VentasDetalle  WHERE ProductoId = @Id;
+        DELETE FROM dbo.ComprasDetalle WHERE ProductoId = @Id;
+ 
+        DELETE FROM dbo.Productos WHERE Id = @Id;
+ 
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrMsg, 16, 1);
+    END CATCH
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Eliminar
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        DELETE FROM dbo.Movimientos    WHERE ProductoId = @Id;
+        DELETE FROM dbo.VentasDetalle  WHERE ProductoId = @Id;
+        DELETE FROM dbo.ComprasDetalle WHERE ProductoId = @Id;
+
+        DELETE FROM dbo.Productos WHERE Id = @Id;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrMsg, 16, 1);
+    END CATCH
+END
+GO
+
+
+
+
+-- ============================================================
+-- FIX: Crear tabla Movimientos si no existe
+-- Ejecutar en SQL Server Management Studio sobre VetPostDB
+-- ============================================================
+ 
+USE VetPostDB;
+GO
+ 
+-- 1. Crear tabla Movimientos si no existe
+IF OBJECT_ID('dbo.Movimientos', 'U') IS NULL
+BEGIN
+    CREATE TABLE Movimientos (
+        Id          INT IDENTITY(1,1) PRIMARY KEY,
+        Fecha       DATETIME          DEFAULT GETDATE(),
+        Tipo        VARCHAR(50)       NOT NULL,   -- 'Entrada' | 'Salida'
+        ProductoId  INT               NOT NULL,
+        Cantidad    INT               NOT NULL,
+        UsuarioId   INT               NULL,
+        Detalle     NVARCHAR(250)     NULL,
+        StockPrevio INT               NULL,
+        StockNuevo  INT               NULL,
+        FOREIGN KEY (ProductoId) REFERENCES dbo.Productos(Id),
+        FOREIGN KEY (UsuarioId)  REFERENCES dbo.Usuarios(Id)
+    );
+ 
+    CREATE INDEX IX_Movimientos_Fecha      ON dbo.Movimientos(Fecha DESC);
+    CREATE INDEX IX_Movimientos_ProductoId ON dbo.Movimientos(ProductoId);
+ 
+    PRINT '✅ Tabla Movimientos creada.';
+END
+ELSE
+BEGIN
+    PRINT '⚠️  Tabla Movimientos ya existía, no se modificó.';
+END
+GO
+ 
+-- 2. Recrear sp_Productos_Eliminar apuntando a dbo.Movimientos
+CREATE OR ALTER PROCEDURE dbo.sp_Productos_Eliminar
+    @Id INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+ 
+        DELETE FROM dbo.Movimientos    WHERE ProductoId = @Id;
+        DELETE FROM dbo.VentasDetalle  WHERE ProductoId = @Id;
+        DELETE FROM dbo.ComprasDetalle WHERE ProductoId = @Id;
+ 
+        DELETE FROM dbo.Productos WHERE Id = @Id;
+ 
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrMsg, 16, 1);
+    END CATCH
+END
+GO
+ 
+-- 3. Recrear sp_Movimientos_Insertar (por si acaso apuntaba mal)
+CREATE OR ALTER PROCEDURE dbo.sp_Movimientos_Insertar
+    @Tipo        VARCHAR(50),
+    @ProductoId  INT,
+    @Cantidad    INT,
+    @UsuarioId   INT        = NULL,
+    @Detalle     NVARCHAR(250) = NULL,
+    @StockPrevio INT        = NULL,
+    @StockNuevo  INT        = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO dbo.Movimientos (Tipo, ProductoId, Cantidad, UsuarioId, Detalle, StockPrevio, StockNuevo)
+    VALUES (@Tipo, @ProductoId, @Cantidad, @UsuarioId, @Detalle, @StockPrevio, @StockNuevo);
+END
+GO
+ 
+PRINT '✅ Fix aplicado correctamente.';
