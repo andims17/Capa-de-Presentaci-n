@@ -84,7 +84,7 @@ async function agendarCitaDesdePOS(datos) {
         .input('Provincia',           sql.VarChar(50),  datos.Provincia)
         .execute('dbo.sp_Citas_Insertar');
 
-    return result.recordset[0] || { success: true };
+    return result.recordset?.[0] || { success: true };
 }
 
 async function calcularPrecioGrooming(mascotaId, requiereTransporte, provincia, tipoTransporte) {
