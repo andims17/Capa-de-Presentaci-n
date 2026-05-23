@@ -20,6 +20,5 @@ pnpm-debug.log*
 dist/
 build/
 coverage/
-src/config/db.js
 
 
