@@ -1,122 +1,80 @@
-const { sql, getPool } = require('../config/db');
+const { pool } = require('../config/db');
 const { registrarMovimiento } = require('./movimientosModel');
- 
+
 async function listarProductos() {
-    const pool = await getPool();
-    const result = await pool.request()
-        .execute('sp_Productos_Listar');
-    return result.recordset;
+  const [rows] = await pool.execute('CALL sp_Productos_Listar()');
+  return rows[0];
 }
- 
+
 async function obtenerProductoPorId(id) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('Id', sql.Int, id)
-        .execute('sp_Productos_ObtenerPorId');
-    return result.recordset[0];   // ya debe traer ProveedorId
+  const [rows] = await pool.execute('CALL sp_Productos_ObtenerPorId(?)', [id]);
+  return rows[0][0];
 }
- 
+
 async function insertarProducto(p) {
-    const pool = await getPool();
-    await pool.request()
-        .input('CategoriaId', sql.Int, p.CategoriaId)
-        .input('Nombre', sql.NVarChar, p.Nombre)
-        .input('Codigo', sql.NVarChar, p.Codigo)
-        .input('Precio', sql.Decimal(10, 2), p.Precio)
-        .input('Stock', sql.Int, p.Stock)
-        .input('StockMinimo', sql.Int, p.StockMinimo)
-        .input('ImagenUrl', sql.NVarChar(500), p.ImagenUrl || null)
-        .input('ProveedorId', sql.Int, p.ProveedorId || null)
-        .execute('sp_Productos_Insertar');
+  await pool.execute('CALL sp_Productos_Insertar(?,?,?,?,?,?,?,?)', [
+    p.CategoriaId, p.Nombre, p.Codigo, p.Precio,
+    p.Stock, p.StockMinimo, p.ImagenUrl || null, p.ProveedorId || null
+  ]);
 }
- 
+
 async function actualizarProducto(p) {
-    const pool = await getPool();
-    const request = pool.request();
-    
-    // Obtener stock anterior
-    const resultAnterior = await request.input('Id', sql.Int, p.Id)
-        .query('SELECT Stock FROM Productos WHERE Id = @Id');
-    const stockAnterior = resultAnterior.recordset[0]?.Stock || 0;
-    const stockNuevo = Number(p.Stock);
-    
-    // Actualizar producto
-    await pool.request()
-        .input('Id', sql.Int, p.Id)
-        .input('CategoriaId', sql.Int, p.CategoriaId)
-        .input('Nombre', sql.NVarChar, p.Nombre)
-        .input('Codigo', sql.NVarChar, p.Codigo)
-        .input('Precio', sql.Decimal(10, 2), p.Precio)
-        .input('Stock', sql.Int, p.Stock)
-        .input('StockMinimo', sql.Int, p.StockMinimo)
-        .input('ImagenUrl', sql.NVarChar(500), p.ImagenUrl || null)
-        .input('ProveedorId', sql.Int, p.ProveedorId || null)
-        .execute('sp_Productos_Actualizar');
-    
-    // Registrar movimiento si el stock cambió
-    if (stockAnterior !== stockNuevo) {
-        const diferencia = stockNuevo - stockAnterior;
-        const tipo = diferencia > 0 ? 'Entrada' : 'Salida';
- 
-        await registrarMovimiento({
-            tipo,
-            productoId:  p.Id,
-            cantidad:    Math.abs(diferencia),
-            usuarioId:   p.UsuarioId || null,
-            detalle:     'Ajuste manual de inventario',
-            stockPrevio: stockAnterior,
-            stockNuevo
-        });
-    }
+  // Obtener stock anterior
+  const [stockRows] = await pool.execute('SELECT Stock FROM Productos WHERE Id = ?', [p.Id]);
+  const stockAnterior = stockRows[0]?.Stock || 0;
+  const stockNuevo = Number(p.Stock);
+
+  await pool.execute('CALL sp_Productos_Actualizar(?,?,?,?,?,?,?,?,?)', [
+    p.Id, p.CategoriaId, p.Nombre, p.Codigo, p.Precio,
+    p.Stock, p.StockMinimo, p.ImagenUrl || null, p.ProveedorId || null
+  ]);
+
+  if (stockAnterior !== stockNuevo) {
+    const diferencia = stockNuevo - stockAnterior;
+    await registrarMovimiento({
+      tipo:        diferencia > 0 ? 'Entrada' : 'Salida',
+      productoId:  p.Id,
+      cantidad:    Math.abs(diferencia),
+      usuarioId:   p.UsuarioId || null,
+      detalle:     'Ajuste manual de inventario',
+      stockPrevio: stockAnterior,
+      stockNuevo
+    });
+  }
 }
- 
+
 async function eliminarProducto(id) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id', sql.Int, id)
-        .execute('sp_Productos_Eliminar');
+  await pool.execute('CALL sp_Productos_Eliminar(?)', [id]);
 }
- 
+
 async function listarCategorias() {
-    const pool = await getPool();
-    const result = await pool.request()
-        .query('SELECT Id, Nombre FROM Categorias');
-    return result.recordset;
+  const [rows] = await pool.execute('SELECT Id, Nombre FROM Categorias');
+  return rows;
 }
- 
+
 async function resumenInventario() {
-    const pool = await getPool();
-    const result = await pool.request()
-        .execute('sp_Productos_ResumenInventario');
-    return result.recordset[0];
+  const [rows] = await pool.execute('CALL sp_Productos_ResumenInventario()');
+  return rows[0][0];
 }
- 
+
 async function existeCodigo(codigo) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('Codigo', sql.VarChar, codigo)
-        .query('SELECT COUNT(*) AS total FROM Productos WHERE Codigo = @Codigo');
-    return result.recordset[0].total > 0;
+  const [rows] = await pool.execute('SELECT COUNT(*) AS total FROM Productos WHERE Codigo = ?', [codigo]);
+  return rows[0].total > 0;
 }
- 
+
 async function obtenerProductoPorCodigo(codigo) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('Codigo', sql.NVarChar(50), codigo)
-        .execute('sp_Productos_ObtenerPorCodigo');
- 
-    return result.recordset[0];
+  const [rows] = await pool.execute('CALL sp_Productos_ObtenerPorCodigo(?)', [codigo]);
+  return rows[0][0];
 }
- 
- 
+
 module.exports = {
-    listarProductos,
-    obtenerProductoPorId,
-    insertarProducto,
-    actualizarProducto,
-    eliminarProducto,
-    listarCategorias,
-    resumenInventario,
-    existeCodigo,
-    obtenerProductoPorCodigo
+  listarProductos,
+  obtenerProductoPorId,
+  insertarProducto,
+  actualizarProducto,
+  eliminarProducto,
+  listarCategorias,
+  resumenInventario,
+  existeCodigo,
+  obtenerProductoPorCodigo
 };

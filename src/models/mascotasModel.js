@@ -1,51 +1,37 @@
-const { sql, getPool } = require('../config/db');
+const { pool } = require('../config/db');
 
 async function listarMascotas() {
-    const pool = await getPool();
-    const result = await pool.request().execute('sp_Mascota_Listar');
-    return result.recordset;
+  const [rows] = await pool.execute('CALL sp_Mascota_Listar()');
+  return rows[0];
 }
 
 async function insertarMascota(m) {
-    const pool = await getPool();
-    await pool.request()
-        .input('ClienteId', sql.Int, m.ClienteId)
-        .input('Nombre', sql.NVarChar(100), m.Nombre)
-        .input('Especie', sql.NVarChar(50), m.Especie)
-        .input('Raza', sql.NVarChar(50), m.Raza)
-        .input('Sexo', sql.NVarChar(10), m.Sexo)
-        .input('FechaNacimiento', sql.Date, m.FechaNacimiento || null)
-        .input('TieneAlergias', sql.Bit, m.TieneAlergias === 'on' ? 1 : 0) 
-        .input('NotasAlergias', sql.NVarChar(sql.MAX), m.NotasAlergias)
-        .input('Peso', sql.Decimal(5, 2), m.Peso || null)
-        .execute('sp_Mascota_Insertar');
+  await pool.execute('CALL sp_Mascota_Insertar(?,?,?,?,?,?,?,?,?)', [
+    m.ClienteId, m.Nombre, m.Especie, m.Raza, m.Sexo,
+    m.FechaNacimiento || null,
+    m.TieneAlergias === 'on' ? 1 : 0,
+    m.NotasAlergias || null,
+    m.Peso || null
+  ]);
 }
 
 async function actualizarMascota(m) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id', sql.Int, m.Id)
-        .input('ClienteId', sql.Int, m.ClienteId)
-        .input('Nombre', sql.NVarChar(100), m.Nombre)
-        .input('Especie', sql.NVarChar(50), m.Especie)
-        .input('Raza', sql.NVarChar(50), m.Raza)
-        .input('Sexo', sql.NVarChar(10), m.Sexo)
-        .input('FechaNacimiento', sql.Date, m.FechaNacimiento || null)
-        .input('TieneAlergias', sql.Bit, m.TieneAlergias === 'on' ? 1 : 0)
-        .input('NotasAlergias', sql.NVarChar(sql.MAX), m.NotasAlergias)
-        .input('Peso', sql.Decimal(5, 2), m.Peso || null)
-        .execute('sp_Mascota_Actualizar');
+  await pool.execute('CALL sp_Mascota_Actualizar(?,?,?,?,?,?,?,?,?,?)', [
+    m.Id, m.ClienteId, m.Nombre, m.Especie, m.Raza, m.Sexo,
+    m.FechaNacimiento || null,
+    m.TieneAlergias === 'on' ? 1 : 0,
+    m.NotasAlergias || null,
+    m.Peso || null
+  ]);
 }
 
 async function eliminarMascota(id) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id', sql.Int, id)
-        .execute('dbo.sp_Mascota_Eliminar'); 
+  await pool.execute('CALL sp_Mascota_Eliminar(?)', [id]);
 }
-module.exports = { 
-    listarMascotas, 
-    insertarMascota, 
-    actualizarMascota,
-    eliminarMascota
+
+module.exports = {
+  listarMascotas,
+  insertarMascota,
+  actualizarMascota,
+  eliminarMascota
 };

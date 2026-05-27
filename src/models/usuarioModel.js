@@ -1,140 +1,66 @@
-const { getPool, sql } = require('../config/db');
+const { pool } = require('../config/db');
 
 // ===== LOGIN =====
 async function findByUsername(username) {
-  const pool = await getPool();
-
-  const result = await pool.request()
-    .input('Username', sql.NVarChar(50), username)
-    .execute('dbo.sp_Usuarios_ObtenerPorUsername');
-
-  return result.recordset[0];
+  const [rows] = await pool.execute('CALL sp_Usuarios_ObtenerPorUsername(?)', [username]);
+  return rows[0][0];
 }
 
 // ===== REGISTRO / ADMIN CREATE =====
 async function createUser({ username, nombreCompleto, email, passwordHash, rolId, preguntaSeguridad1, respuestaSeguridad1, preguntaSeguridad2, respuestaSeguridad2 }) {
-  const pool = await getPool();
-
-  const result = await pool.request()
-    .input('Username', sql.NVarChar(50), username)
-    .input('NombreCompleto', sql.NVarChar(120), nombreCompleto)
-    .input('Email', sql.NVarChar(120), email)
-    .input('PasswordHash', sql.NVarChar(255), passwordHash)
-    .input('RolId', sql.Int, rolId)
-    .execute('dbo.sp_Usuarios_Insertar');
-
-  const newId = result.recordset[0]?.Id;
-
-  if (newId && (preguntaSeguridad1 || respuestaSeguridad1 || preguntaSeguridad2 || respuestaSeguridad2)) {
-    await pool.request()
-      .input('Id', sql.Int, newId)
-      .input('PreguntaSeguridad1', sql.NVarChar(100), preguntaSeguridad1 || null)
-      .input('RespuestaSeguridad1', sql.NVarChar(255), respuestaSeguridad1 || null)
-      .input('PreguntaSeguridad2', sql.NVarChar(100), preguntaSeguridad2 || null)
-      .input('RespuestaSeguridad2', sql.NVarChar(255), respuestaSeguridad2 || null)
-      .query(`
-        IF COL_LENGTH('dbo.Usuarios', 'PreguntaSeguridad1') IS NOT NULL
-           AND COL_LENGTH('dbo.Usuarios', 'RespuestaSeguridad1') IS NOT NULL
-           AND COL_LENGTH('dbo.Usuarios', 'PreguntaSeguridad2') IS NOT NULL
-           AND COL_LENGTH('dbo.Usuarios', 'RespuestaSeguridad2') IS NOT NULL
-        BEGIN
-          UPDATE dbo.Usuarios
-          SET PreguntaSeguridad1 = @PreguntaSeguridad1,
-              RespuestaSeguridad1 = @RespuestaSeguridad1,
-              PreguntaSeguridad2 = @PreguntaSeguridad2,
-              RespuestaSeguridad2 = @RespuestaSeguridad2,
-              PreguntasConfiguradas = 1
-          WHERE Id = @Id;
-        END
-      `);
-  }
-
-  return newId;
+  const [rows] = await pool.execute('CALL sp_Usuarios_Insertar(?,?,?,?,?,?,?,?,?)', [
+    username, nombreCompleto, email, passwordHash, rolId,
+    preguntaSeguridad1 || null, respuestaSeguridad1 || null,
+    preguntaSeguridad2 || null, respuestaSeguridad2 || null
+  ]);
+  return rows[0][0]?.Id;
 }
 
 // ===== VALIDACIONES =====
 async function existsUsername(username) {
-  const pool = await getPool();
-
-  const r = await pool.request()
-    .input('Username', sql.NVarChar(50), username)
-    .execute('dbo.sp_Usuarios_ExisteUsername');
-
-  return (r.recordset[0]?.Existe ?? 0) === 1;
+  const [rows] = await pool.execute('CALL sp_Usuarios_ExisteUsername(?)', [username]);
+  return (rows[0][0]?.Existe ?? 0) === 1;
 }
 
 async function existsEmail(email) {
-  const pool = await getPool();
-
-  const r = await pool.request()
-    .input('Email', sql.NVarChar(120), email)
-    .execute('dbo.sp_Usuarios_ExisteEmail');
-
-  return (r.recordset[0]?.Existe ?? 0) === 1;
+  const [rows] = await pool.execute('CALL sp_Usuarios_ExisteEmail(?)', [email]);
+  return (rows[0][0]?.Existe ?? 0) === 1;
 }
 
 // ===== ROLES =====
 async function getRoleIdByName(nombreRol) {
-  const pool = await getPool();
-
-  const r = await pool.request()
-    .input('Nombre', sql.NVarChar(50), nombreRol)
-    .execute('dbo.sp_Roles_ObtenerIdPorNombre');
-
-  return r.recordset[0]?.Id || null;
+  const [rows] = await pool.execute('CALL sp_Roles_ObtenerIdPorNombre(?)', [nombreRol]);
+  return rows[0][0]?.Id || null;
 }
 
 async function getRoles() {
-  const pool = await getPool();
-  const r = await pool.request().execute('dbo.sp_Roles_Listar');
-  return r.recordset;
+  const [rows] = await pool.execute('CALL sp_Roles_Listar()');
+  return rows[0];
 }
 
 // ===== CRUD ADMIN =====
 async function getAllUsers() {
-  const pool = await getPool();
-  const r = await pool.request().execute('dbo.sp_Usuarios_Listar');
-  return r.recordset;
+  const [rows] = await pool.execute('CALL sp_Usuarios_Listar()');
+  return rows[0];
 }
 
 async function getUserById(id) {
-  const pool = await getPool();
-  const r = await pool.request()
-    .input('Id', sql.Int, id)
-    .execute('dbo.sp_Usuarios_ObtenerPorId');
-
-  return r.recordset[0];
+  const [rows] = await pool.execute('CALL sp_Usuarios_ObtenerPorId(?)', [id]);
+  return rows[0][0];
 }
 
 async function updateUser({ id, username, nombreCompleto, email, rolId, activo }) {
-  const pool = await getPool();
-
-  await pool.request()
-    .input('Id', sql.Int, id)
-    .input('Username', sql.NVarChar(50), username)
-    .input('NombreCompleto', sql.NVarChar(120), nombreCompleto)
-    .input('Email', sql.NVarChar(120), email)
-    .input('RolId', sql.Int, rolId)
-    .input('Activo', sql.Bit, activo ? 1 : 0)
-    .execute('dbo.sp_Usuarios_Actualizar');
+  await pool.execute('CALL sp_Usuarios_Actualizar(?,?,?,?,?,?)', [
+    id, username, nombreCompleto, email, rolId, activo ? 1 : 0
+  ]);
 }
 
 async function resetPassword({ id, passwordHash }) {
-  const pool = await getPool();
-
-  await pool.request()
-    .input('Id', sql.Int, id)
-    .input('PasswordHash', sql.NVarChar(255), passwordHash)
-    .execute('dbo.sp_Usuarios_ResetPassword');
+  await pool.execute('CALL sp_Usuarios_ResetPassword(?,?)', [id, passwordHash]);
 }
 
 async function setUserActive(id, activo) {
-  const pool = await getPool();
-
-  await pool.request()
-    .input('Id', sql.Int, id)
-    .input('Activo', sql.Bit, activo ? 1 : 0)
-    .execute('dbo.sp_Usuarios_SetActivo');
+  await pool.execute('CALL sp_Usuarios_SetActivo(?,?)', [id, activo ? 1 : 0]);
 }
 
 module.exports = {
@@ -143,7 +69,6 @@ module.exports = {
   existsUsername,
   existsEmail,
   getRoleIdByName,
-  // admin
   getRoles,
   getAllUsers,
   getUserById,

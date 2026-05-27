@@ -1,60 +1,40 @@
-const { sql, getPool } = require('../config/db');
+const { pool } = require('../config/db');
 
 async function listarClientes() {
-    const pool = await getPool();
-    const result = await pool.request().execute('sp_Clientes_Listar');
-    return result.recordset;
+  const [rows] = await pool.execute('CALL sp_Clientes_Listar()');
+  return rows[0];
 }
 
 async function obtenerClientePorId(id) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('Id', sql.Int, id)
-        .execute('sp_Clientes_ObtenerPorId');
-    return result.recordset[0];
+  const [rows] = await pool.execute('CALL sp_Clientes_ObtenerPorId(?)', [id]);
+  return rows[0][0];
 }
 
 async function insertarCliente(c) {
-    const pool = await getPool();
-    await pool.request()
-        .input('NombreCompleto', sql.NVarChar(150), c.NombreCompleto)
-        .input('Email', sql.NVarChar(150), c.Email || null)
-        .input('Telefono', sql.NVarChar(30), c.Telefono || null)
-        .input('Direccion', sql.NVarChar(200), c.Direccion || null)
-        .execute('sp_Clientes_Insertar');
+  await pool.execute('CALL sp_Clientes_Insertar(?,?,?,?)', [
+    c.NombreCompleto, c.Email || null, c.Telefono || null, c.Direccion || null
+  ]);
 }
 
 async function actualizarCliente(c) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id', sql.Int, c.Id)
-        .input('NombreCompleto', sql.NVarChar(150), c.NombreCompleto)
-        .input('Email', sql.NVarChar(150), c.Email || null)
-        .input('Telefono', sql.NVarChar(30), c.Telefono || null)
-        .input('Direccion', sql.NVarChar(200), c.Direccion || null)
-        .execute('sp_Clientes_Actualizar');
+  await pool.execute('CALL sp_Clientes_Actualizar(?,?,?,?,?)', [
+    c.Id, c.NombreCompleto, c.Email || null, c.Telefono || null, c.Direccion || null
+  ]);
 }
 
 async function setActivo(id, activo) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id', sql.Int, id)
-        .input('Activo', sql.Bit, activo)
-        .execute('sp_Clientes_SetActivo');
+  await pool.execute('CALL sp_Clientes_SetActivo(?,?)', [id, activo]);
 }
 
 async function eliminarCliente(id) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id', sql.Int, id)
-        .execute('sp_Clientes_Eliminar');
+  await pool.execute('CALL sp_Clientes_Eliminar(?)', [id]);
 }
 
 module.exports = {
-    listarClientes,
-    obtenerClientePorId,
-    insertarCliente,
-    actualizarCliente,
-    eliminarCliente,
-    setActivo
+  listarClientes,
+  obtenerClientePorId,
+  insertarCliente,
+  actualizarCliente,
+  eliminarCliente,
+  setActivo
 };

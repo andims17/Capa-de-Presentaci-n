@@ -1,44 +1,36 @@
-const { sql, getPool } = require('../config/db');
+const { pool } = require('../config/db');
 
-function formatHora(horaObj) {
-    if (!horaObj) return '-';
-    const h = horaObj.getUTCHours().toString().padStart(2, '0');
-    const m = horaObj.getUTCMinutes().toString().padStart(2, '0');
-    return `${h}:${m}`;
+function formatHora(val) {
+  if (!val) return '-';
+  if (typeof val === 'string') return val.substring(0, 5);
+  const h = val.getUTCHours().toString().padStart(2, '0');
+  const m = val.getUTCMinutes().toString().padStart(2, '0');
+  return `${h}:${m}`;
 }
 
 function formatFecha(fechaObj) {
-    if (!fechaObj) return '-';
-    return new Date(fechaObj).toLocaleDateString('es-CR', { timeZone: 'UTC' });
+  if (!fechaObj) return '-';
+  return new Date(fechaObj).toLocaleDateString('es-CR', { timeZone: 'UTC' });
 }
 
 async function getTransportistaConCitas() {
-    const pool = await getPool();
-    const result = await pool.request().execute('sp_Transporte_ListarConCitas');
-
-    const transportista = result.recordsets[0][0] || null;
-
-    const citas = (result.recordsets[1] || []).map(cita => ({
-        ...cita,
-        Hora:  formatHora(cita.Hora),
-        Fecha: formatFecha(cita.Fecha)
-    }));
-
-    return { transportista, citas };
+  const [rows] = await pool.execute('CALL sp_Transporte_ListarConCitas()');
+  const transportista = rows[0][0] || null;
+  const citas = (rows[1] || []).map(cita => ({
+    ...cita,
+    Hora:  formatHora(cita.Hora),
+    Fecha: formatFecha(cita.Fecha)
+  }));
+  return { transportista, citas };
 }
 
 async function actualizarTransportista(data) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id',              sql.Int,     1)
-        .input('TipoVehiculo',    sql.VarChar, data.TipoVehiculo)
-        .input('Placa',           sql.VarChar, data.Placa)
-        .input('NombreConductor', sql.VarChar, data.NombreConductor)
-        .input('Telefono',        sql.VarChar, data.Telefono)
-        .execute('sp_Transporte_Actualizar');
+  await pool.execute('CALL sp_Transporte_Actualizar(?,?,?,?,?)', [
+    1, data.TipoVehiculo, data.Placa, data.NombreConductor, data.Telefono
+  ]);
 }
 
 module.exports = {
-    getTransportistaConCitas,
-    actualizarTransportista
+  getTransportistaConCitas,
+  actualizarTransportista
 };

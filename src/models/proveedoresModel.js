@@ -1,51 +1,35 @@
-const { sql, getPool } = require('../config/db');
+const { pool } = require('../config/db');
 
 async function listarProveedores() {
-    const pool = await getPool();
-    const result = await pool.request().execute('sp_Proveedores_Listar');
-    return result.recordset;
+  const [rows] = await pool.execute('CALL sp_Proveedores_Listar()');
+  return rows[0];
 }
 
 async function obtenerProveedorPorId(id) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('Id', sql.Int, id)
-        .execute('sp_Proveedores_ObtenerPorId');
-    return result.recordset[0];
+  const [rows] = await pool.execute('CALL sp_Proveedores_ObtenerPorId(?)', [id]);
+  return rows[0][0];
 }
 
 async function insertarProveedor(p) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Nombre', sql.NVarChar, p.Nombre)
-        .input('Email', sql.NVarChar, p.Email)
-        .input('Telefono', sql.NVarChar, p.Telefono)
-        .input('Direccion', sql.NVarChar, p.Direccion)
-        .execute('sp_Proveedores_Insertar');
+  await pool.execute('CALL sp_Proveedores_Insertar(?,?,?,?)', [
+    p.Nombre, p.Email, p.Telefono, p.Direccion
+  ]);
 }
 
 async function actualizarProveedor(p) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id', sql.Int, p.Id)
-        .input('Nombre', sql.NVarChar, p.Nombre)
-        .input('Email', sql.NVarChar, p.Email)
-        .input('Telefono', sql.NVarChar, p.Telefono)
-        .input('Direccion', sql.NVarChar, p.Direccion)
-        .execute('sp_Proveedores_Actualizar');
+  await pool.execute('CALL sp_Proveedores_Actualizar(?,?,?,?,?)', [
+    p.Id, p.Nombre, p.Email, p.Telefono, p.Direccion
+  ]);
 }
 
 async function eliminarProveedor(id) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id', sql.Int, id)
-        .execute('sp_Proveedores_Eliminar');
+  await pool.execute('CALL sp_Proveedores_Eliminar(?)', [id]);
 }
 
 module.exports = {
-    listarProveedores,
-    obtenerProveedorPorId,
-    insertarProveedor,
-    actualizarProveedor,
-    eliminarProveedor
+  listarProveedores,
+  obtenerProveedorPorId,
+  insertarProveedor,
+  actualizarProveedor,
+  eliminarProveedor
 };

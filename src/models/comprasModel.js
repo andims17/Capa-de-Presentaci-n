@@ -1,84 +1,82 @@
-const { sql, getPool } = require('../config/db');
+const { pool } = require('../config/db');
 const { registrarMovimiento } = require('./movimientosModel');
 
 async function listarCompras() {
-    const pool = await getPool();
-    const result = await pool.request().execute('sp_Compras_Listar');
-    return result.recordset;
+  const [rows] = await pool.execute('CALL sp_Compras_Listar()');
+  return rows[0];
 }
 
 async function obtenerCompraPorId(id) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('Id', sql.Int, id)
-        .execute('sp_Compras_ObtenerPorId');
-    return result.recordset[0];
+  const [rows] = await pool.execute('CALL sp_Compras_ObtenerPorId(?)', [id]);
+  return rows[0][0];
 }
 
 async function listarDetalleCompra(compraId) {
-    const pool = await getPool();
-    const result = await pool.request()
-        .input('CompraId', sql.Int, compraId)
-        .execute('sp_ComprasDetalle_ListarPorCompra');
-    return result.recordset;
+  const [rows] = await pool.execute('CALL sp_ComprasDetalle_ListarPorCompra(?)', [compraId]);
+  return rows[0];
 }
 
 async function insertarCompra({ proveedorId, usuarioId, detalle }) {
-    const pool = await getPool();
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
 
+    // Obtener stocks previos
     const stocksPrevios = {};
     for (const item of detalle) {
-        const r = await pool.request()
-            .input('ProductoId', sql.Int, item.ProductoId)
-            .execute('dbo.sp_Productos_ObtenerStock');
-        stocksPrevios[item.ProductoId] = r.recordset[0]?.Stock ?? 0;
+      const [r] = await conn.execute('SELECT Stock FROM Productos WHERE Id = ?', [item.ProductoId]);
+      stocksPrevios[item.ProductoId] = r[0]?.Stock ?? 0;
     }
 
-    const detalleJSON = JSON.stringify(detalle);
-    const result = await pool.request()
-        .input('ProveedorId',  sql.Int,              proveedorId)
-        .input('UsuarioId',    sql.Int,              usuarioId)
-        .input('DetalleJSON',  sql.NVarChar(sql.MAX), detalleJSON)
-        .execute('sp_Compras_Insertar');
+    // Crear tabla temporal y llenarla
+    await conn.execute(`CREATE TEMPORARY TABLE IF NOT EXISTS tmp_compra_detalle 
+      (ProductoId INT, Cantidad INT, CostoUnitario DECIMAL(10,2))`);
+    await conn.execute('DELETE FROM tmp_compra_detalle');
 
-    const compraId = result.recordset[0]?.CompraId;
     for (const item of detalle) {
-        const stockPrev  = stocksPrevios[item.ProductoId] ?? 0;
-        const stockNuevo = stockPrev + item.Cantidad;
-
-        await registrarMovimiento({
-            tipo:        'Entrada',
-            productoId:  item.ProductoId,
-            cantidad:    item.Cantidad,
-            usuarioId:   usuarioId,
-            detalle:     `Compra #${compraId}`,
-            stockPrevio: stockPrev,
-            stockNuevo
-        });
+      await conn.execute('INSERT INTO tmp_compra_detalle VALUES (?,?,?)', [
+        item.ProductoId, item.Cantidad, item.CostoUnitario
+      ]);
     }
 
-    return result.recordset[0];
+    const [result] = await conn.execute('CALL sp_Compras_Insertar(?,?)', [proveedorId, usuarioId]);
+    const compraId = result[0][0]?.CompraId;
+
+    await conn.commit();
+
+    // Registrar movimientos
+    for (const item of detalle) {
+      const stockPrev  = stocksPrevios[item.ProductoId] ?? 0;
+      const stockNuevo = stockPrev + item.Cantidad;
+      await registrarMovimiento({
+        tipo: 'Entrada', productoId: item.ProductoId, cantidad: item.Cantidad,
+        usuarioId, detalle: `Compra #${compraId}`, stockPrevio: stockPrev, stockNuevo
+      });
+    }
+
+    return { CompraId: compraId };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 }
 
 async function setActivo(id, activo) {
-    const pool = await getPool();
-    await pool.request()
-        .input('Id',     sql.Int, id)
-        .input('Activo', sql.Bit, activo)
-        .execute('sp_Compras_SetActivo');
+  await pool.execute('CALL sp_Compras_SetActivo(?,?)', [id, activo]);
 }
 
 async function resumenCompras() {
-    const pool = await getPool();
-    const result = await pool.request().execute('sp_Compras_Resumen');
-    return result.recordset[0];
+  const [rows] = await pool.execute('CALL sp_Compras_Resumen()');
+  return rows[0][0];
 }
 
 module.exports = {
-    listarCompras,
-    obtenerCompraPorId,
-    listarDetalleCompra,
-    insertarCompra,
-    setActivo,
-    resumenCompras
+  listarCompras,
+  obtenerCompraPorId,
+  listarDetalleCompra,
+  insertarCompra,
+  setActivo,
+  resumenCompras
 };
