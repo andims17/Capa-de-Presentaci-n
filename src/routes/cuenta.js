@@ -9,7 +9,7 @@ const {
   getRoleIdByName
 } = require('../models/usuarioModel');
 const { registrarEvento } = require('../models/logAuditoriaModel');
-const { getPool, sql } = require('../config/db');
+const { getPool } = require('../config/db');
 
 const router = express.Router();
 
@@ -313,15 +313,20 @@ router.post('/preguntas-seguridad', async (req, res) => {
     }
 
     // Llamar SP para validar respuestas
+    // Validar respuestas (MySQL / mysql2, con parámetro OUT vía variable de sesión)
     const pool = await getPool();
-    const result = await pool.request()
-      .input('Username', username)
-      .input('Respuesta1', respuesta1)
-      .input('Respuesta2', respuesta2)
-      .output('Resultado', sql.Int)
-      .execute('sp_Usuarios_ValidarRespuestasSeguridad');
-
-    const resultado = result.output.Resultado;
+    const conn = await pool.getConnection();
+    let resultado;
+    try {
+      await conn.query(
+        'CALL sp_Usuarios_ValidarRespuestasSeguridad(?, ?, ?, @resultado)',
+        [username, respuesta1, respuesta2]
+      );
+      const [outRows] = await conn.query('SELECT @resultado AS Resultado');
+      resultado = Number(outRows[0]?.Resultado);
+    } finally {
+      conn.release();
+    }
 
     if (resultado === 1) {
       // Respuestas correctas
@@ -411,12 +416,12 @@ router.post('/nueva-contrasena', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const pool = await getPool();
-    const result = await pool.request()
-      .input('Username', username)
-      .input('NuevaContraseñaHash', passwordHash)
-      .execute('sp_Usuarios_ResetearContraseña');
+    const [rows] = await pool.execute(
+      'CALL sp_Usuarios_ResetearContrasena(?, ?)',
+      [username, passwordHash]
+    );
 
-    if (result.recordsets[0][0]?.Exitoso) {
+    if (rows?.[0]?.[0]?.Exitoso) {
       // Limpiar sesión
       delete req.session.usernameRecuperacion;
       delete req.session.respuestasValidadas;
@@ -486,13 +491,12 @@ router.post('/configurar-preguntas', async (req, res) => {
 
     // Ejecutar SP para guardar preguntas
     const pool = await getPool();
-    const result = await pool.request()
-      .input('UserId', userId)
-      .input('Respuesta1', respuesta1Norm)
-      .input('Respuesta2', respuesta2Norm)
-      .execute('sp_Usuarios_GuardarPreguntasSeguridad');
+    const [rows] = await pool.execute(
+      'CALL sp_Usuarios_GuardarPreguntasSeguridad(?, ?, ?)',
+      [userId, respuesta1Norm, respuesta2Norm]
+    );
 
-    if (result.recordsets[0][0]?.Exitoso) {
+    if (rows?.[0]?.[0]?.Exitoso) {
       // Actualizar sesión para marcar que está configurado
       req.session.user.preguntasConfiguradas = true;
 
