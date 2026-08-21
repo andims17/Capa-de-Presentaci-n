@@ -466,6 +466,12 @@
                         <a href="/usuarios" class="nav-item">
                             <i class="fas fa-user-cog"></i>
                             <span>Usuarios</span>
+                            <% if (typeof usuariosPendientes !== 'undefined' && usuariosPendientes > 0) { %>
+                                <span title="<%= usuariosPendientes %> cuenta(s) esperando aprobación"
+                                      style="margin-left:auto; background:#F59E0B; color:#fff; font-size:0.72rem; font-weight:700; min-width:20px; height:20px; padding:0 6px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center;">
+                                    <%= usuariosPendientes %>
+                                </span>
+                            <% } %>
                         </a>
                         <a href="/reportes/logs" class="nav-item">
                             <i class="fas fa-clipboard-list"></i>

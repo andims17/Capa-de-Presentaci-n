@@ -6,6 +6,7 @@ const {
   existsUsername,
   existsEmail,
   createUser,
+  createUserPendiente,
   getRoleIdByName,
   getDatosRecuperacion,
   registrarIntentoFallidoRecuperacion,
@@ -85,18 +86,24 @@ router.post('/login', async (req, res) => {
     // false en JavaScript. Por eso una cuenta desactivada podia
     // iniciar sesion sin problema.
     if (Number(user.Activo) !== 1) {
+      const pendiente = Number(user.PendienteAprobacion) === 1;
+
       await registrarEvento({
         codigoEvento: 'USR_LOGIN',
         actorUsuarioId: user.Id,
         usuarioAfectadoId: user.Id,
-        detalle: `Intento de acceso con cuenta desactivada: ${user.Username}`,
+        detalle: pendiente
+          ? `Intento de acceso con cuenta pendiente de aprobación: ${user.Username}`
+          : `Intento de acceso con cuenta desactivada: ${user.Username}`,
         ip: obtenerIp(req),
-        datos: { username: user.Username, activo: false }
+        datos: { username: user.Username, activo: false, pendiente }
       });
 
       return res.status(403).render('cuenta/login', {
         title: 'Iniciar Sesión - VetPost',
-        error: 'Esta cuenta está desactivada. Contacta al administrador.',
+        error: pendiente
+          ? 'Tu cuenta todavía no ha sido aprobada. Un administrador debe habilitarla antes de que puedas ingresar.'
+          : 'Esta cuenta está desactivada. Contacta al administrador.',
         layout: false
       });
     }
@@ -219,7 +226,11 @@ router.post('/registro', async (req, res) => {
     const respuesta1Hash = await hashearRespuesta(respuesta1);
     const respuesta2Hash = await hashearRespuesta(respuesta2);
 
-    const newId = await createUser({
+    // La cuenta se crea DESACTIVADA y pendiente de aprobación.
+    // Antes se creaba activa y con inicio de sesión automático, lo que
+    // significaba que cualquier persona con el enlace público entraba
+    // al sistema con rol Empleado y veía los datos de los clientes.
+    const newId = await createUserPendiente({
       username,
       nombreCompleto,
       email,
@@ -235,30 +246,17 @@ router.post('/registro', async (req, res) => {
       codigoEvento: 'USR_REGISTRO_CUENTA',
       actorUsuarioId: newId,
       usuarioAfectadoId: newId,
-      detalle: `Nuevo usuario registrado: ${username}`,
+      detalle: `Nueva solicitud de cuenta (pendiente de aprobación): ${username}`,
       ip: obtenerIp(req),
-      datos: { username, rol: 'Empleado' }
+      datos: { username, rol: 'Empleado', pendiente: true }
     });
 
-    // Auto-login al registrarse
-    req.session.user = {
-      id: newId,
+    // Sin sesión automática: la cuenta todavía no está habilitada.
+    return res.render('cuenta/registro-pendiente', {
+      title: 'Solicitud Enviada - VetPost',
       username,
-      rolId: rolEmpleadoId,
-      rolNombre: 'Empleado',
-      revalidadoEn: Date.now()
-    };
-
-    await registrarEvento({
-      codigoEvento: 'USR_LOGIN',
-      actorUsuarioId: newId,
-      usuarioAfectadoId: newId,
-      detalle: `Inicio de sesión automático tras registro: ${username}`,
-      ip: obtenerIp(req),
-      datos: { username, rol: 'Empleado' }
+      layout: false
     });
-
-    return res.redirect('/inicio');
   } catch (err) {
     console.error(err);
     return res.status(500).render('cuenta/registro', {

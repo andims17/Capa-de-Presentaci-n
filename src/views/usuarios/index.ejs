@@ -3,6 +3,57 @@
     <p class="page-subtitle">Administración de usuarios (borrado lógico)</p>
 </div>
 
+<%
+    // Tres estados posibles, no dos:
+    //   Activo=1                -> Activa
+    //   Activo=0, Pendiente=1   -> Esperando aprobación (registro público)
+    //   Activo=0, Pendiente=0   -> Desactivada por un admin
+    const esPendiente = u => !u.Activo && Number(u.PendienteAprobacion) === 1;
+    const pendientes  = users.filter(esPendiente);
+    const activos     = users.filter(u => u.Activo);
+    const desactivados = users.filter(u => !u.Activo && !esPendiente(u));
+%>
+
+<% if (pendientes.length > 0) { %>
+    <div style="background:#FEF3C7; border-left:4px solid #F59E0B; color:#92400E; padding:12px 16px; border-radius:6px; margin-bottom:20px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <i class="fas fa-user-clock" style="font-size:1.2rem;"></i>
+        <span>
+            <strong><%= pendientes.length %></strong>
+            <%= pendientes.length === 1 ? 'cuenta espera' : 'cuentas esperan' %> tu aprobación.
+        </span>
+        <button type="button" class="btn btn-primary btn-sm" style="margin-left:auto;"
+                onclick="filtrarPorEstadoUsuario('pendientes', document.getElementById('cardPendientes'))">
+            Ver solicitudes
+        </button>
+    </div>
+<% } %>
+
+<div class="stats-grid">
+    <div class="stat-card stat-card-filter active" onclick="filtrarPorEstadoUsuario('todos', this)">
+        <div class="stat-icon bg-cyan"><i class="fas fa-users"></i></div>
+        <div class="stat-value"><%= users.length %></div>
+        <div class="stat-label">Todos</div>
+    </div>
+
+    <div class="stat-card stat-card-filter" onclick="filtrarPorEstadoUsuario('activos', this)">
+        <div class="stat-icon bg-green"><i class="fas fa-user-check"></i></div>
+        <div class="stat-value"><%= activos.length %></div>
+        <div class="stat-label">Activos</div>
+    </div>
+
+    <div class="stat-card stat-card-filter" id="cardPendientes" onclick="filtrarPorEstadoUsuario('pendientes', this)">
+        <div class="stat-icon bg-orange"><i class="fas fa-user-clock"></i></div>
+        <div class="stat-value"><%= pendientes.length %></div>
+        <div class="stat-label">Por aprobar</div>
+    </div>
+
+    <div class="stat-card stat-card-filter" onclick="filtrarPorEstadoUsuario('desactivados', this)">
+        <div class="stat-icon bg-red"><i class="fas fa-user-slash"></i></div>
+        <div class="stat-value"><%= desactivados.length %></div>
+        <div class="stat-label">Desactivados</div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
         <h2 class="card-title">Lista de Usuarios</h2>
@@ -30,7 +81,10 @@
     <div class="clients-grid" id="listaUsuarios">
         <% if (users && users.length > 0) { %>
             <% users.forEach(u => { %>
-                <div class="client-card usuario-card">
+                <% const pendienteEsta = esPendiente(u); %>
+                <div class="client-card usuario-card"
+                     data-estado="<%= u.Activo ? 'activos' : (pendienteEsta ? 'pendientes' : 'desactivados') %>"
+                     <% if (pendienteEsta) { %>style="border-left:4px solid #F59E0B;"<% } %>>
                     <div class="client-header">
                         <div class="client-avatar">
                             <%= (u.NombreCompleto || u.Username).split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() %>
@@ -63,8 +117,12 @@
                             <span class="detail-value">
                                 <% if (u.Activo) { %>
                                     <span style="color:#10B981; font-weight:600;">Activo</span>
+                                <% } else if (pendienteEsta) { %>
+                                    <span style="color:#F59E0B; font-weight:600;">
+                                        <i class="fas fa-user-clock"></i> Por aprobar
+                                    </span>
                                 <% } else { %>
-                                    <span style="color:#EF4444; font-weight:600;">Inactivo</span>
+                                    <span style="color:#EF4444; font-weight:600;">Desactivado</span>
                                 <% } %>
                             </span>
                         </div>
@@ -79,6 +137,18 @@
                             <form method="POST" action="/usuarios/<%= u.Id %>/desactivar" style="display:inline;">
                                 <button class="btn btn-danger btn-sm" type="submit">
                                     <i class="fas fa-user-slash"></i> Desactivar
+                                </button>
+                            </form>
+                        <% } else if (pendienteEsta) { %>
+                            <form method="POST" action="/usuarios/<%= u.Id %>/activar" style="display:inline;">
+                                <button class="btn btn-success btn-sm" type="submit">
+                                    <i class="fas fa-check"></i> Aprobar
+                                </button>
+                            </form>
+                            <form method="POST" action="/usuarios/<%= u.Id %>/desactivar" style="display:inline;">
+                                <button class="btn btn-danger btn-sm" type="submit"
+                                        onclick="return confirm('¿Rechazar la solicitud de <%= u.Username %>? La cuenta quedará desactivada.')">
+                                    <i class="fas fa-times"></i> Rechazar
                                 </button>
                             </form>
                         <% } else { %>
@@ -98,18 +168,40 @@
 </div>
 
 <script>
-    function filtrarUsuarios() {
-        const texto = document.getElementById('buscadorUsuarios').value.toLowerCase().trim();
-        const tarjetas = document.querySelectorAll('.usuario-card');
+    let filtroEstadoUsuarioActual = 'todos';
 
-        tarjetas.forEach(tarjeta => {
-            const nombre = tarjeta.querySelector('.client-info h3')?.innerText.toLowerCase() || '';
+    function filtrarPorEstadoUsuario(estado, cardSeleccionada = null) {
+        filtroEstadoUsuarioActual = estado;
 
-            if (nombre.includes(texto)) {
-                tarjeta.style.display = '';
-            } else {
-                tarjeta.style.display = 'none';
-            }
+        document.querySelectorAll('.stat-card-filter').forEach(card => {
+            card.classList.remove('active');
         });
+
+        if (cardSeleccionada) {
+            cardSeleccionada.classList.add('active');
+        }
+
+        aplicarFiltrosUsuarios();
+    }
+
+    function aplicarFiltrosUsuarios() {
+        const texto = document.getElementById('buscadorUsuarios').value.toLowerCase().trim();
+
+        document.querySelectorAll('.usuario-card').forEach(tarjeta => {
+            // Se busca en toda la tarjeta, no solo en el nombre: así el
+            // buscador también encuentra por username, email o rol.
+            const contenido = tarjeta.innerText.toLowerCase();
+            const estado = tarjeta.dataset.estado;
+
+            const coincideTexto  = !texto || contenido.includes(texto);
+            const coincideEstado = filtroEstadoUsuarioActual === 'todos'
+                || estado === filtroEstadoUsuarioActual;
+
+            tarjeta.style.display = (coincideTexto && coincideEstado) ? '' : 'none';
+        });
+    }
+
+    function filtrarUsuarios() {
+        aplicarFiltrosUsuarios();
     }
 </script>

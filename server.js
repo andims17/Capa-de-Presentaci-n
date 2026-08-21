@@ -28,9 +28,24 @@ app.use(session({
 }));
 
 // Variables globales para vistas
-app.use((req, res, next) => {
+const { contarPendientes } = require('./src/models/usuarioModel');
+
+app.use(async (req, res, next) => {
   res.locals.currentUser = req.session.user || null;
   res.locals.categorias = [];
+  res.locals.usuariosPendientes = 0;
+
+  // Contador de cuentas por aprobar para el indicador del menú.
+  // Solo se consulta para administradores: es quien puede aprobarlas.
+  if (req.session.user?.rolNombre === 'Administrador') {
+    try {
+      res.locals.usuariosPendientes = await contarPendientes();
+    } catch (error) {
+      // Si falla, el menú simplemente no muestra el indicador.
+      console.error('Error contando usuarios pendientes:', error.message);
+    }
+  }
+
   next();
 });
 

@@ -16,6 +16,22 @@ async function createUser({ username, nombreCompleto, email, passwordHash, rolId
   return rows[0][0]?.Id;
 }
 
+// Registro publico: la cuenta nace desactivada y pendiente de aprobacion.
+async function createUserPendiente({ username, nombreCompleto, email, passwordHash, rolId, preguntaSeguridad1, respuestaSeguridad1, preguntaSeguridad2, respuestaSeguridad2 }) {
+  const [rows] = await pool.execute('CALL sp_Usuarios_RegistroPublico(?,?,?,?,?,?,?,?,?)', [
+    username, nombreCompleto, email, passwordHash, rolId,
+    preguntaSeguridad1 || null, respuestaSeguridad1 || null,
+    preguntaSeguridad2 || null, respuestaSeguridad2 || null
+  ]);
+  return rows[0][0]?.Id;
+}
+
+// Cuantas cuentas esperan aprobacion (para el indicador del menu)
+async function contarPendientes() {
+  const [rows] = await pool.execute('CALL sp_Usuarios_ContarPendientes()');
+  return Number(rows[0][0]?.Pendientes ?? 0);
+}
+
 // ===== VALIDACIONES =====
 async function existsUsername(username) {
   const [rows] = await pool.execute('CALL sp_Usuarios_ExisteUsername(?)', [username]);
@@ -92,6 +108,8 @@ async function guardarPreguntasSeguridad({ userId, respuestaHash1, respuestaHash
 module.exports = {
   findByUsername,
   createUser,
+  createUserPendiente,
+  contarPendientes,
   existsUsername,
   existsEmail,
   getRoleIdByName,
