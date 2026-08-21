@@ -63,6 +63,32 @@ async function setUserActive(id, activo) {
   await pool.execute('CALL sp_Usuarios_SetActivo(?,?)', [id, activo ? 1 : 0]);
 }
 
+// ===== PREGUNTAS DE SEGURIDAD (respuestas con hash bcrypt) =====
+// La comparacion NO se hace en MySQL: bcrypt solo existe en Node.
+// Estos SPs unicamente leen el hash guardado y llevan el contador
+// de intentos fallidos.
+
+async function getDatosRecuperacion(username) {
+  const [rows] = await pool.execute('CALL sp_Usuarios_ObtenerDatosRecuperacion(?)', [username]);
+  return rows[0][0];
+}
+
+async function registrarIntentoFallidoRecuperacion(userId) {
+  await pool.execute('CALL sp_Usuarios_RegistrarIntentoFallido(?)', [userId]);
+}
+
+async function resetearIntentosRecuperacion(userId) {
+  await pool.execute('CALL sp_Usuarios_ResetearIntentosRecuperacion(?)', [userId]);
+}
+
+async function guardarPreguntasSeguridad({ userId, respuestaHash1, respuestaHash2 }) {
+  const [rows] = await pool.execute(
+    'CALL sp_Usuarios_GuardarPreguntasSeguridad(?,?,?)',
+    [userId, respuestaHash1, respuestaHash2]
+  );
+  return (rows[0][0]?.Exitoso ?? 0) === 1;
+}
+
 module.exports = {
   findByUsername,
   createUser,
@@ -74,5 +100,9 @@ module.exports = {
   getUserById,
   updateUser,
   resetPassword,
-  setUserActive
+  setUserActive,
+  getDatosRecuperacion,
+  registrarIntentoFallidoRecuperacion,
+  resetearIntentosRecuperacion,
+  guardarPreguntasSeguridad
 };

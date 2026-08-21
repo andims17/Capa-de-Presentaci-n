@@ -6,7 +6,11 @@ const {
   existsUsername,
   existsEmail,
   createUser,
-  getRoleIdByName
+  getRoleIdByName,
+  getDatosRecuperacion,
+  registrarIntentoFallidoRecuperacion,
+  resetearIntentosRecuperacion,
+  guardarPreguntasSeguridad
 } = require('../models/usuarioModel');
 const { registrarEvento } = require('../models/logAuditoriaModel');
 const { getPool } = require('../config/db');
@@ -17,6 +21,20 @@ function obtenerIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) return String(forwarded).split(',')[0].trim();
   return req.socket?.remoteAddress || req.ip || null;
+}
+
+// ===== RESPUESTAS DE SEGURIDAD =====
+// Se normaliza ANTES de hashear para que la comparacion sea
+// insensible a mayusculas y espacios. Si esta funcion cambia,
+// las respuestas ya guardadas dejan de coincidir.
+const SALT_ROUNDS_RESPUESTAS = 10;
+
+function normalizarRespuesta(respuesta) {
+  return String(respuesta).toLowerCase().trim();
+}
+
+function hashearRespuesta(respuesta) {
+  return bcrypt.hash(normalizarRespuesta(respuesta), SALT_ROUNDS_RESPUESTAS);
 }
 
 async function registrarCierreSesion(req) {
@@ -167,8 +185,10 @@ router.post('/registro', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const respuesta1Hash = respuesta1.toLowerCase().trim();
-    const respuesta2Hash = respuesta2.toLowerCase().trim();
+
+    // Las respuestas se guardan hasheadas, igual que la contrasena
+    const respuesta1Hash = await hashearRespuesta(respuesta1);
+    const respuesta2Hash = await hashearRespuesta(respuesta2);
 
     const newId = await createUser({
       username,
@@ -298,72 +318,76 @@ router.post('/preguntas-seguridad', async (req, res) => {
   const { respuesta1, respuesta2 } = req.body;
   const username = req.session.usernameRecuperacion;
 
+  // Helper para no repetir el render en cada rama
+  const responderError = (mensaje, status) =>
+    res.status(status).render('cuenta/preguntas-seguridad', {
+      title: 'Preguntas de Seguridad - VetPost',
+      username,
+      error: mensaje,
+      layout: false
+    });
+
   try {
     if (!username) {
       return res.redirect('/cuenta/olvide-contrasena');
     }
 
     if (!respuesta1 || !respuesta2) {
-      return res.status(400).render('cuenta/preguntas-seguridad', {
-        title: 'Preguntas de Seguridad - VetPost',
-        username,
-        error: 'Por favor responde ambas preguntas de seguridad.',
-        layout: false
-      });
+      return responderError('Por favor responde ambas preguntas de seguridad.', 400);
     }
 
-    // Llamar SP para validar respuestas
-    // Validar respuestas (MySQL / mysql2, con parámetro OUT vía variable de sesión)
-    const pool = await getPool();
-    const conn = await pool.getConnection();
-    let resultado;
-    try {
-      await conn.query(
-        'CALL sp_Usuarios_ValidarRespuestasSeguridad(?, ?, ?, @resultado)',
-        [username, respuesta1, respuesta2]
-      );
-      const [outRows] = await conn.query('SELECT @resultado AS Resultado');
-      resultado = Number(outRows[0]?.Resultado);
-    } finally {
-      conn.release();
+    // Las respuestas estan hasheadas con bcrypt, asi que MySQL no puede
+    // compararlas. El SP solo devuelve el hash guardado y el estado de
+    // intentos; la verificacion se hace aca con bcrypt.compare().
+    const datos = await getDatosRecuperacion(username);
+
+    if (!datos || Number(datos.Activo) !== 1) {
+      return responderError('Usuario no encontrado o inactivo.', 400);
     }
 
-    if (resultado === 1) {
-      // Respuestas correctas
+    if (!datos.RespuestaSeguridad1 || !datos.RespuestaSeguridad2) {
+      return responderError('Esta cuenta no tiene preguntas de seguridad configuradas.', 400);
+    }
+
+    // ----- Bloqueo: 3 intentos fallidos, 15 minutos de espera -----
+    const minutos = datos.MinutosDesdeUltimoIntento;
+    const intentos = Number(datos.IntentosRecuperacion) || 0;
+
+    if (intentos >= 3 && minutos !== null && minutos < 15) {
+      return responderError('Demasiados intentos fallidos. Intenta nuevamente en 15 minutos.', 429);
+    }
+
+    // Ya paso el bloqueo: se limpia el contador y se deja intentar
+    if (intentos >= 3) {
+      await resetearIntentosRecuperacion(datos.Id);
+    }
+
+    // ----- Verificacion real -----
+    // Se comparan las dos siempre (sin cortar en la primera) para no
+    // filtrar por tiempo de respuesta cual de las dos fallo.
+    const coincide1 = await bcrypt.compare(normalizarRespuesta(respuesta1), datos.RespuestaSeguridad1);
+    const coincide2 = await bcrypt.compare(normalizarRespuesta(respuesta2), datos.RespuestaSeguridad2);
+
+    if (coincide1 && coincide2) {
+      await resetearIntentosRecuperacion(datos.Id);
       req.session.respuestasValidadas = true;
       return res.redirect('/cuenta/nueva-contrasena');
-    } else if (resultado === 3) {
-      // Bloqueado temporalmente
-      return res.status(429).render('cuenta/preguntas-seguridad', {
-        title: 'Preguntas de Seguridad - VetPost',
-        username,
-        error: 'Demasiados intentos fallidos. Intenta nuevamente en 15 minutos.',
-        layout: false
-      });
-    } else if (resultado === 2) {
-      // Respuestas incorrectas
-      return res.status(400).render('cuenta/preguntas-seguridad', {
-        title: 'Preguntas de Seguridad - VetPost',
-        username,
-        error: 'Las respuestas son incorrectas. Por favor intenta nuevamente.',
-        layout: false
-      });
-    } else {
-      return res.status(400).render('cuenta/preguntas-seguridad', {
-        title: 'Preguntas de Seguridad - VetPost',
-        username,
-        error: 'Usuario no encontrado o inactivo.',
-        layout: false
-      });
     }
+
+    await registrarIntentoFallidoRecuperacion(datos.Id);
+
+    await registrarEvento({
+      codigoEvento: 'USR_RESET_PASSWORD',
+      actorUsuarioId: null,
+      usuarioAfectadoId: datos.Id,
+      detalle: `Intento fallido de recuperacion para: ${username}`,
+      ip: obtenerIp(req)
+    });
+
+    return responderError('Las respuestas son incorrectas. Por favor intenta nuevamente.', 400);
   } catch (error) {
     console.error(error);
-    return res.status(500).render('cuenta/preguntas-seguridad', {
-      title: 'Preguntas de Seguridad - VetPost',
-      username,
-      error: 'Error al validar respuestas.',
-      layout: false
-    });
+    return responderError('Error al validar respuestas.', 500);
   }
 });
 
@@ -409,6 +433,24 @@ router.post('/nueva-contrasena', async (req, res) => {
       return res.status(400).render('cuenta/nueva-contrasena', {
         title: 'Nueva Contraseña - VetPost',
         error: 'La contraseña debe tener al menos 6 caracteres.',
+        layout: false
+      });
+    }
+
+    // ===== NO PERMITIR REUTILIZAR LA CONTRASEÑA ACTUAL =====
+    const usuarioActual = await findByUsername(username);
+
+    if (!usuarioActual) {
+      delete req.session.usernameRecuperacion;
+      delete req.session.respuestasValidadas;
+      return res.redirect('/cuenta/olvide-contrasena');
+    }
+
+    const esLaMismaContrasena = await bcrypt.compare(password, usuarioActual.PasswordHash);
+    if (esLaMismaContrasena) {
+      return res.status(400).render('cuenta/nueva-contrasena', {
+        title: 'Nueva Contraseña - VetPost',
+        error: 'La nueva contraseña no puede ser igual a la actual. Elige una diferente.',
         layout: false
       });
     }
@@ -485,18 +527,17 @@ router.post('/configurar-preguntas', async (req, res) => {
       });
     }
 
-    // Normalizar respuestas
-    const respuesta1Norm = respuesta1.toLowerCase().trim();
-    const respuesta2Norm = respuesta2.toLowerCase().trim();
+    // Normalizar y hashear antes de guardar (nunca en texto plano)
+    const respuesta1Hash = await hashearRespuesta(respuesta1);
+    const respuesta2Hash = await hashearRespuesta(respuesta2);
 
-    // Ejecutar SP para guardar preguntas
-    const pool = await getPool();
-    const [rows] = await pool.execute(
-      'CALL sp_Usuarios_GuardarPreguntasSeguridad(?, ?, ?)',
-      [userId, respuesta1Norm, respuesta2Norm]
-    );
+    const guardado = await guardarPreguntasSeguridad({
+      userId,
+      respuestaHash1: respuesta1Hash,
+      respuestaHash2: respuesta2Hash
+    });
 
-    if (rows?.[0]?.[0]?.Exitoso) {
+    if (guardado) {
       // Actualizar sesión para marcar que está configurado
       req.session.user.preguntasConfiguradas = true;
 

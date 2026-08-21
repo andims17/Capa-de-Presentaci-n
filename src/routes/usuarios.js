@@ -10,7 +10,8 @@ const {
   createUser,
   updateUser,
   resetPassword,   // ✅ 1) AGREGADO
-  setUserActive
+  setUserActive,
+  findByUsername   // ✅ para comparar contra la contraseña actual
 } = require('../models/usuarioModel');
 const { registrarEvento } = require('../models/logAuditoriaModel');
 
@@ -139,6 +140,24 @@ router.post('/:id/editar', async (req, res) => {
         roles,
         error: 'Ese email ya está registrado.'
       });
+    }
+
+    // ===== NO PERMITIR REUTILIZAR LA CONTRASEÑA ACTUAL =====
+    // Se valida ANTES de guardar cualquier cambio, para no dejar el registro a medias.
+    if (newPassword && newPassword.trim().length >= 6) {
+      const usuarioActual = await findByUsername(user.Username);
+      const esLaMismaContrasena = usuarioActual
+        ? await bcrypt.compare(newPassword.trim(), usuarioActual.PasswordHash)
+        : false;
+
+      if (esLaMismaContrasena) {
+        return res.render('usuarios/editar', {
+          title: 'Editar Usuario',
+          user: { ...user, ...req.body },
+          roles,
+          error: 'La nueva contraseña no puede ser igual a la actual del usuario.'
+        });
+      }
     }
 
     const activoBool = (activo === '1' || activo === 1 || activo === true || activo === 'true');
