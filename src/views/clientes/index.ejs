@@ -3,6 +3,14 @@
     <p class="page-subtitle">Administra la información de los clientes</p>
 </div>
 
+<% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger"
+         style="background:#FEE2E2; color:#B91C1C; border-left:4px solid #EF4444; padding:12px 16px; border-radius:6px; margin-bottom:20px;">
+        <i class="fas fa-exclamation-circle" style="margin-right:8px;"></i>
+        <%= error %>
+    </div>
+<% } %>
+
 <div class="stats-grid">
     <div class="stat-card stat-card-filter active" onclick="filtrarPorEstadoCliente('todos', this)">
         <div class="stat-icon bg-cyan"><i class="fas fa-users"></i></div>
@@ -53,6 +61,13 @@
                     </div>
                     <div class="client-details">
                         <div class="detail-item">
+                            <span class="detail-label">Cédula:</span>
+                            <span class="detail-value">
+                                <%= cliente.Cedula || '-' %>
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
                             <span class="detail-label">Teléfono:</span>
                             <span class="detail-value">
                                 <%= cliente.Telefono || '-' %>
@@ -95,7 +110,7 @@
                     </div>
                                         <div class="client-actions">
                         <button type="button" class="btn btn-primary btn-sm"
-                            onclick="openEditModal(<%= cliente.Id %>, '<%= encodeURIComponent(cliente.NombreCompleto) %>', '<%= encodeURIComponent(cliente.Telefono || '') %>', '<%= encodeURIComponent(cliente.Email || '') %>', '<%= encodeURIComponent(cliente.Direccion || '') %>')">
+                            onclick="openEditModal(<%= cliente.Id %>, '<%= encodeURIComponent(cliente.NombreCompleto) %>', '<%= encodeURIComponent(cliente.Telefono || '') %>', '<%= encodeURIComponent(cliente.Email || '') %>', '<%= encodeURIComponent(cliente.Direccion || '') %>', '<%= encodeURIComponent(cliente.Cedula || '') %>')">
                             <i class="fas fa-edit"></i> Editar
                         </button>
 
@@ -135,6 +150,11 @@
                 <input type="text" name="NombreCompleto" class="form-control" placeholder="Nombre completo" required>
             </div>
             <div class="form-group">
+                <label class="form-label">Cédula</label>
+                <input type="text" name="Cedula" class="form-control cedula-input"
+                       placeholder="1-2345-6789" maxlength="11" inputmode="numeric">
+            </div>
+            <div class="form-group">
                 <label class="form-label">Teléfono</label>
                 <input type="tel" name="Telefono" class="form-control" placeholder="Número de teléfono">
             </div>
@@ -167,6 +187,11 @@
             <div class="form-group">
                 <label class="form-label">Nombre</label>
                 <input type="text" name="NombreCompleto" id="editarNombreCliente" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cédula</label>
+                <input type="text" name="Cedula" id="editarCedulaCliente" class="form-control cedula-input"
+                       placeholder="1-2345-6789" maxlength="11" inputmode="numeric">
             </div>
             <div class="form-group">
                 <label class="form-label">Teléfono</label>
@@ -234,13 +259,48 @@
     function openModal(id) { document.getElementById(id).style.display = 'block'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    function openEditModal(id, nombre, telefono, email, direccion) {
+    function openEditModal(id, nombre, telefono, email, direccion, cedula) {
         document.getElementById('editarIdCliente').value = id;
         document.getElementById('editarNombreCliente').value = decodeURIComponent(nombre);
         document.getElementById('editarTelefonoCliente').value = decodeURIComponent(telefono);
         document.getElementById('editarEmailCliente').value = decodeURIComponent(email);
         document.getElementById('editarDireccionCliente').value = decodeURIComponent(direccion);
+        document.getElementById('editarCedulaCliente').value = decodeURIComponent(cedula || '');
         document.getElementById('formEditarCliente').action = '/clientes/editar/' + id;
         openModal('editarClienteModal');
     }
+
+    // ===== TC-039: mascara de cedula =====
+    // Formato estandar de Costa Rica: 1-2345-6789 (9 digitos).
+    // Se aplica al salir del campo, que es lo que pide el caso de prueba.
+    function formatearCedula(valor) {
+        const digitos = String(valor).replace(/\D/g, '').slice(0, 9);
+        if (digitos.length === 0) return '';
+        if (digitos.length <= 1) return digitos;
+        if (digitos.length <= 5) return digitos[0] + '-' + digitos.slice(1);
+        return digitos[0] + '-' + digitos.slice(1, 5) + '-' + digitos.slice(5);
+    }
+
+    document.querySelectorAll('.cedula-input').forEach(function (campo) {
+        // Al salir del campo: aplicar mascara y avisar si la longitud no cuadra
+        campo.addEventListener('blur', function () {
+            const soloDigitos = this.value.replace(/\D/g, '');
+            this.value = formatearCedula(this.value);
+
+            if (soloDigitos.length > 0 && soloDigitos.length !== 9) {
+                this.setCustomValidity('La cédula debe tener 9 dígitos');
+                this.style.borderColor = '#EF4444';
+            } else {
+                this.setCustomValidity('');
+                this.style.borderColor = '';
+            }
+        });
+
+        // Mientras escribe: solo permitir digitos y guiones
+        campo.addEventListener('input', function () {
+            this.setCustomValidity('');
+            this.style.borderColor = '';
+            this.value = this.value.replace(/[^\d-]/g, '');
+        });
+    });
 </script>

@@ -57,8 +57,28 @@ async function resumenInventario() {
   return rows[0][0];
 }
 
-async function existeCodigo(codigo) {
-  const [rows] = await pool.execute('SELECT COUNT(*) AS total FROM Productos WHERE Codigo = ?', [codigo]);
+// TC-028: duplicados por codigo (SKU).
+// excluirId permite editar un producto sin que choque consigo mismo.
+async function existeCodigo(codigo, excluirId = null) {
+  if (!codigo) return false;
+  const [rows] = await pool.execute(
+    `SELECT COUNT(*) AS total FROM Productos
+     WHERE Codigo = ? AND (? IS NULL OR Id <> ?)`,
+    [String(codigo).trim(), excluirId, excluirId]
+  );
+  return rows[0].total > 0;
+}
+
+// TC-028: duplicados por nombre.
+// El collation de la base es utf8mb4_unicode_ci, asi que
+// "Shampoo Antipulgas" y "shampoo antipulgas" cuentan como iguales.
+async function existeNombre(nombre, excluirId = null) {
+  if (!nombre) return false;
+  const [rows] = await pool.execute(
+    `SELECT COUNT(*) AS total FROM Productos
+     WHERE Nombre = ? AND (? IS NULL OR Id <> ?)`,
+    [String(nombre).trim(), excluirId, excluirId]
+  );
   return rows[0].total > 0;
 }
 
@@ -76,5 +96,6 @@ module.exports = {
   listarCategorias,
   resumenInventario,
   existeCodigo,
+  existeNombre,
   obtenerProductoPorCodigo
 };

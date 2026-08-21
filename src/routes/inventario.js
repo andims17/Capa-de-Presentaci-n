@@ -13,6 +13,52 @@ function esIdNumerico(id) {
   return /^\d+$/.test(String(id));
 }
 
+/**
+ * TC-028: vuelve a mostrar el inventario con un mensaje de error.
+ *
+ * Antes esto se armaba a mano en cada lugar y se olvidaba pasar
+ * "proveedores", que la vista recorre con .forEach() -> EJS lanzaba
+ * ReferenceError y el usuario veia un Internal Server Error en vez
+ * del mensaje de validacion. Centralizarlo evita que vuelva a pasar.
+ */
+async function renderInventarioConError(res, mensaje) {
+  const productos   = await productosModel.listarProductos();
+  const resumen     = await productosModel.resumenInventario();
+  const categorias  = await productosModel.listarCategorias();
+  const proveedores = await require('../models/proveedoresModel').listarProveedores();
+
+  return res.status(400).render('inventario/index', {
+    title: 'Gestión de Inventario',
+    productos,
+    resumen,
+    categorias,
+    proveedores,
+    error: mensaje
+  });
+}
+
+/**
+ * TC-028: valida duplicados por codigo (SKU) y por nombre.
+ * Devuelve el mensaje de error, o null si no hay duplicado.
+ */
+async function validarProductoDuplicado({ codigo, nombre, excluirId = null }) {
+  const codigoLimpio = String(codigo || '').trim();
+  const nombreLimpio = String(nombre || '').trim();
+
+  if (!nombreLimpio) return 'El nombre del producto es obligatorio';
+  if (!codigoLimpio) return 'El código (SKU) del producto es obligatorio';
+
+  if (await productosModel.existeCodigo(codigoLimpio, excluirId)) {
+    return `Ya existe un producto con el código "${codigoLimpio}"`;
+  }
+
+  if (await productosModel.existeNombre(nombreLimpio, excluirId)) {
+    return `Ya existe un producto llamado "${nombreLimpio}"`;
+  }
+
+  return null;
+}
+
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -115,20 +161,14 @@ router.post('/compras/crear', async (req, res) => {
 // ================= CREAR =================
 router.post('/crear', upload.single('Imagen'), async (req, res) => {
   try {
-    const existe = await productosModel.existeCodigo(req.body.Codigo);
+    // TC-028: se valida SKU y nombre antes de intentar guardar
+    const errorDuplicado = await validarProductoDuplicado({
+      codigo: req.body.Codigo,
+      nombre: req.body.Nombre
+    });
 
-    if (existe) {
-      const productos = await productosModel.listarProductos();
-      const resumen = await productosModel.resumenInventario();
-      const categorias = await productosModel.listarCategorias();
-
-      return res.render('inventario/index', {
-        title: 'Gestión de Inventario',
-        productos,
-        resumen,
-        categorias,
-        error: '❌ Ya existe un producto con ese código'
-      });
+    if (errorDuplicado) {
+      return await renderInventarioConError(res, errorDuplicado);
     }
 
     // ✅ URL de Cloudinary (si subieron imagen)
@@ -137,30 +177,56 @@ router.post('/crear', upload.single('Imagen'), async (req, res) => {
     // Mandamos todo al model + ImagenUrl
     await productosModel.insertarProducto({
       ...req.body,
+      Nombre: String(req.body.Nombre).trim(),
+      Codigo: String(req.body.Codigo).trim(),
       ImagenUrl: imagenUrl
     });
 
     res.redirect('/inventario');
   } catch (error) {
     console.error('❌ Error creando producto:', error);
-    res.send('Error creando producto');
+    // Red de seguridad: si la BD rechaza por el UNIQUE de Codigo,
+    // igual se muestra un mensaje legible y no un 500 en blanco.
+    if (error.code === 'ER_DUP_ENTRY') {
+      return await renderInventarioConError(res, 'Ya existe un producto con ese código');
+    }
+    return await renderInventarioConError(res, 'Error creando el producto. Revisa los datos e intenta de nuevo.');
   }
 });
 
 // ================= ACTUALIZAR =================
 router.post('/actualizar', upload.single('Imagen'), async (req, res) => {
   try {
+    const id = Number(req.body.Id);
+
+    // TC-028: la misma validacion al editar, excluyendo el propio
+    // producto para que pueda guardarse sin cambiar el codigo.
+    const errorDuplicado = await validarProductoDuplicado({
+      codigo: req.body.Codigo,
+      nombre: req.body.Nombre,
+      excluirId: id
+    });
+
+    if (errorDuplicado) {
+      return await renderInventarioConError(res, errorDuplicado);
+    }
+
     const imagenUrl = req.file ? req.file.path : null;
 
     await productosModel.actualizarProducto({
       ...req.body,
+      Nombre: String(req.body.Nombre).trim(),
+      Codigo: String(req.body.Codigo).trim(),
       ImagenUrl: imagenUrl
     });
 
     res.redirect('/inventario');
   } catch (error) {
     console.error('❌ Error actualizando producto:', error);
-    res.send('Error actualizando producto');
+    if (error.code === 'ER_DUP_ENTRY') {
+      return await renderInventarioConError(res, 'Ya existe un producto con ese código');
+    }
+    return await renderInventarioConError(res, 'Error actualizando el producto. Revisa los datos e intenta de nuevo.');
   }
 });
 
