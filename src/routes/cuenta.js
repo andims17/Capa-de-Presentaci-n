@@ -52,9 +52,15 @@ async function registrarCierreSesion(req) {
 
 // ===== LOGIN =====
 router.get('/login', (req, res) => {
+  // El middleware redirige aca con ?motivo=cuenta_inactiva cuando
+  // detecta que la cuenta fue desactivada con la sesion abierta.
+  const mensajes = {
+    cuenta_inactiva: 'Tu cuenta fue desactivada. Contacta al administrador.'
+  };
+
   res.render('cuenta/login', {
     title: 'Iniciar Sesión - VetPost',
-    error: null,
+    error: mensajes[req.query.motivo] || null,
     layout: false
   });
 });
@@ -65,10 +71,32 @@ router.post('/login', async (req, res) => {
   try {
     const user = await findByUsername(username);
 
-    if (!user || user.Activo === false) {
+    if (!user) {
       return res.status(401).render('cuenta/login', {
         title: 'Iniciar Sesión - VetPost',
         error: 'Usuario o contraseña incorrectos',
+        layout: false
+      });
+    }
+
+    // Cuenta desactivada.
+    // Antes esto decia "user.Activo === false" y NUNCA se cumplia:
+    // MySQL devuelve TINYINT(1) como el numero 0, y 0 === false es
+    // false en JavaScript. Por eso una cuenta desactivada podia
+    // iniciar sesion sin problema.
+    if (Number(user.Activo) !== 1) {
+      await registrarEvento({
+        codigoEvento: 'USR_LOGIN',
+        actorUsuarioId: user.Id,
+        usuarioAfectadoId: user.Id,
+        detalle: `Intento de acceso con cuenta desactivada: ${user.Username}`,
+        ip: obtenerIp(req),
+        datos: { username: user.Username, activo: false }
+      });
+
+      return res.status(403).render('cuenta/login', {
+        title: 'Iniciar Sesión - VetPost',
+        error: 'Esta cuenta está desactivada. Contacta al administrador.',
         layout: false
       });
     }
@@ -86,7 +114,8 @@ router.post('/login', async (req, res) => {
       id: user.Id,
       username: user.Username,
       rolId: user.RolId,
-      rolNombre: user.RolNombre
+      rolNombre: user.RolNombre,
+      revalidadoEn: Date.now()
     };
 
     await registrarEvento({
@@ -213,11 +242,12 @@ router.post('/registro', async (req, res) => {
 
     // Auto-login al registrarse
     req.session.user = {
-  id: newId,
-  username,
-  rolId: rolEmpleadoId,
-  rolNombre: 'Empleado'
-};
+      id: newId,
+      username,
+      rolId: rolEmpleadoId,
+      rolNombre: 'Empleado',
+      revalidadoEn: Date.now()
+    };
 
     await registrarEvento({
       codigoEvento: 'USR_LOGIN',
