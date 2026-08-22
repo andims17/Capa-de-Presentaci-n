@@ -260,7 +260,7 @@
         element.classList.add('active');
         filterProducts();
     }
-    
+
     function selectCustomer(elemento) {
         const id      = elemento.dataset.id || '';
         const nombre  = elemento.dataset.nombre || 'Venta General';
@@ -706,9 +706,9 @@
             return [
                 p.quantity,
                 p.isGrooming ? `${p.nombre}${p.detalle ? '\n' + p.detalle : ''}` : p.nombre,
-                `₡${p.precio.toLocaleString()}`, 
+                `CRC ${p.precio.toLocaleString()}`, 
                 `${descPorcentaje}%`,
-                `₡${(precioConDesc * p.quantity).toLocaleString()}`
+                `CRC ${(precioConDesc * p.quantity).toLocaleString()}`
             ];
         });
 
@@ -732,10 +732,10 @@
         const totalPDF = obtenerMontoLimpio('total');
 
         doc.setFont("helvetica", "normal");
-        doc.text(`Subtotal: ₡${subtotalPDF}`, 140, finalY);
-        doc.text(`IVA (13%): ₡${ivaPDF}`, 140, finalY + 5);
+        doc.text(`Subtotal: CRC ${subtotalPDF}`, 140, finalY);
+        doc.text(`IVA (13%): CRC ${ivaPDF}`, 140, finalY + 5);
         doc.setFont("helvetica", "bold");
-        doc.text(`TOTAL FINAL: ₡${totalPDF}`, 140, finalY + 12);
+        doc.text(`TOTAL FINAL: CRC ${totalPDF}`, 140, finalY + 12);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
         doc.text("Términos: Este documento es un comprobante de pago oficial.", 10, finalY + 30);
