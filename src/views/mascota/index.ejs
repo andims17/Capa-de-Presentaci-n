@@ -1,3 +1,14 @@
+<%
+  // sp_Mascota_Listar solo devuelve ClienteId, no el nombre del dueno.
+  // La ruta ya nos pasa la lista de clientes, asi que armamos aqui la
+  // busqueda Id -> NombreCompleto en vez de tocar el stored procedure.
+  const nombrePorClienteId = new Map(
+    (clientes || []).map(c => [String(c.Id), c.NombreCompleto])
+  );
+  const nombreDueno = clienteId =>
+    nombrePorClienteId.get(String(clienteId)) || 'Cliente no encontrado';
+%>
+
 <div class="page-header">
   <h1 class="page-title">Gestión de Mascotas</h1>
   <p class="page-subtitle">Administra el registro de mascotas</p>
@@ -47,7 +58,7 @@
             <div class="detail-item">
               <span class="detail-label">Dueño:</span>
               <span class="detail-value">
-                <%= m.Dueno || m.ClienteId %>
+                <%= m.Dueno || nombreDueno(m.ClienteId) %>
               </span>
             </div>
 
@@ -108,8 +119,13 @@
 
     <form method="POST" action="/mascota/crear">
       <div class="form-group">
-        <label class="form-label">Cliente ID</label>
-        <input name="ClienteId" type="number" class="form-control" placeholder="Id del cliente" required>
+        <label class="form-label">Dueño</label>
+        <select name="ClienteId" class="form-control" required>
+          <option value="">-- Selecciona el dueño --</option>
+          <% (clientes || []).forEach(c => { %>
+            <option value="<%= c.Id %>"><%= c.NombreCompleto %></option>
+          <% }) %>
+        </select>
       </div>
 
       <div class="two-cols">
@@ -187,8 +203,12 @@
       <input type="hidden" name="Id" id="edit_Id">
 
       <div class="form-group">
-        <label class="form-label">Cliente ID</label>
-        <input name="ClienteId" id="edit_ClienteId" type="number" class="form-control" required>
+        <label class="form-label">Dueño</label>
+        <select name="ClienteId" id="edit_ClienteId" class="form-control" required>
+          <% (clientes || []).forEach(c => { %>
+            <option value="<%= c.Id %>"><%= c.NombreCompleto %></option>
+          <% }) %>
+        </select>
       </div>
 
       <div class="two-cols">
