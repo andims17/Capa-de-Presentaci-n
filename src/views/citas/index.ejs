@@ -81,7 +81,7 @@
                                     <% if (c.TransporteNecesario === 1 || c.TransporteNecesario === true) { %>
                                         <span class="badge bg-info">Sí</span>
                                         <br>
-                                        <small><%= c.TipoTransporte || 'No especificado' %> - ₡<%= c.CostoTransporte || 0 %></small>
+                                        <small><%= c.TipoTransporte || 'No especificado' %> - ₡<%= (Number(c.CostoTransporte) || 0).toLocaleString('es-CR') %></small>
                                     <% } else { %>
                                         <span class="badge bg-secondary">No</span>
                                     <% } %>

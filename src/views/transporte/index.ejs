@@ -45,7 +45,7 @@
         <!-- Resumen rápido -->
         <div style="padding:.75rem 1.5rem; display:flex; gap:2rem; font-size:.85rem; color:#6B7280; border-bottom:1px solid #E5E7EB;">
             <span>Total visible: <strong id="contadorCitas"><%= citas.length %></strong></span>
-            <span>Total ingresos: <strong id="totalIngresos">₡<%= citas.reduce((s, c) => s + (c.CostoTransporte || 0), 0).toLocaleString('es-CR') %></strong></span>
+            <span>Total ingresos: <strong id="totalIngresos">₡<%= citas.reduce((s, c) => s + (Number(c.CostoTransporte) || 0), 0).toLocaleString('es-CR') %></strong></span>
         </div>
 
         <div class="card-body">
@@ -80,7 +80,7 @@
                                         <% } %>
                                     </td>
                                     <td><%= cita.DireccionCliente || 'No registrada' %></td>
-                                    <td>₡<%= (cita.CostoTransporte || 0).toLocaleString('es-CR') %></td>
+                                    <td>₡<%= (Number(cita.CostoTransporte) || 0).toLocaleString('es-CR') %></td>
                                 </tr>
                             <% }) %>
                         </tbody>
