@@ -112,9 +112,9 @@
                     <% movimientos.forEach(m => { %>
                         <tr>
                             <td style="white-space:nowrap;">
-                                <div><%= new Date(m.Fecha).toLocaleDateString('es-CR') %></div>
+                                <div><%= new Date(m.Fecha).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' }) %></div>
                                 <div style="font-size:0.8em; color:#6c757d;">
-                                    <%= new Date(m.Fecha).toLocaleTimeString('es-CR') %>
+                                    <%= new Date(m.Fecha).toLocaleTimeString('es-CR', { timeZone: 'America/Costa_Rica' }) %>
                                 </div>
                             </td>
                             <td>

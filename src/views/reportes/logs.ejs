@@ -15,6 +15,11 @@
         return seccion === 'reportes' ? 'Reportes' : 'Usuarios';
     }
 
+    // Las fechas se guardan en UTC y esta vista se renderiza en el servidor,
+    // que en Railway corre en UTC. Sin indicar la zona, toLocaleTimeString()
+    // mostraba la hora UTC (6 horas adelantada).
+    const ZONA_HORARIA = 'America/Costa_Rica';
+
     function esReciente(fecha) {
         const ahora = new Date();
         const evento = new Date(fecha);
@@ -310,8 +315,8 @@
                     <% eventos.forEach(e => { %>
                         <tr class="<%= esReciente(e.Fecha) ? 'bitacora-reciente' : '' %>">
                             <td class="bitacora-fecha">
-                                <div><%= new Date(e.Fecha).toLocaleDateString() %></div>
-                                <div class="bitacora-muted"><%= new Date(e.Fecha).toLocaleTimeString() %></div>
+                                <div><%= new Date(e.Fecha).toLocaleDateString('es-CR', { timeZone: ZONA_HORARIA }) %></div>
+                                <div class="bitacora-muted"><%= new Date(e.Fecha).toLocaleTimeString('es-CR', { timeZone: ZONA_HORARIA }) %></div>
                             </td>
                             <td>
                                 <span class="<%= obtenerClaseEvento(e.TipoCodigo) %>"><%= e.TipoEvento %></span>

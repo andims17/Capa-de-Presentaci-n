@@ -23,7 +23,7 @@
                     <div class="purchase-amount">
                         <div class="purchase-total">₡<%= c.Total %></div>
                         <div class="purchase-date">
-                            <%= new Date(c.Fecha).toLocaleDateString() %>
+                            <%= new Date(c.Fecha).toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' }) %>
                         </div>
                     </div>
                 </div>

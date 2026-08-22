@@ -50,8 +50,8 @@
 
     <% ventas.forEach(function(v) {
         const fecha = new Date(v.Fecha);
-        const fechaStr = fecha.toLocaleDateString('es-CR');
-        const horaStr  = fecha.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+        const fechaStr = fecha.toLocaleDateString('es-CR', { timeZone: 'America/Costa_Rica' });
+        const horaStr  = fecha.toLocaleTimeString('es-CR', { timeZone: 'America/Costa_Rica', hour: '2-digit', minute: '2-digit' });
     %>
     <div class="sale-details">
         <div class="sale-header">
