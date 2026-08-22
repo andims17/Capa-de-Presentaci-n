@@ -16,7 +16,7 @@
             <label class="form-label">Fecha Hasta</label>
             <input type="date" name="hasta" class="form-control" value="<%= filtros.hasta %>">
         </div>
-        <div class="form-group filters-row-actions">
+        <div class="form-group filters-row-actions"  style="gap:8px;">
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-filter"></i> Filtrar
             </button>
@@ -122,21 +122,25 @@
     </div>
 </div>
 
+<script id="ventas-data" type="application/json"><%- JSON.stringify(ventas).replace(/</g, '\u003c') %></script>
 <script>
 function exportarCSV() {
-    const ventas = <%- JSON.stringify(ventas) %>;
+    const ventas = JSON.parse(document.getElementById('ventas-data').textContent);
+    const campo = (valor) => `"${String(valor ?? '').replace(/"/g, '""')}"`;
     let csv = 'VentaId,Fecha,Cliente,Vendedor,Total,Producto,Cantidad,PrecioUnitario,Subtotal\n';
     ventas.forEach(v => {
         const fecha = new Date(v.Fecha).toLocaleString('es-CR');
+        const base  = `${v.VentaId},${campo(fecha)},${campo(v.ClienteNombre)},${campo(v.VendedorNombre)},${v.Total}`;
+
         if (v.Productos.length === 0) {
-            csv += `${v.VentaId},"${fecha}","${v.ClienteNombre}","${v.VendedorNombre}",${v.Total},Grooming,1,${v.Total},${v.Total}\n`;
+            csv += `${base},${campo('Grooming')},1,${v.Total},${v.Total}\n`;
         } else {
             v.Productos.forEach(p => {
-                csv += `${v.VentaId},"${fecha}","${v.ClienteNombre}","${v.VendedorNombre}",${v.Total},"${p.ProductoNombre}",${p.Cantidad},${p.PrecioUnitario},${p.Subtotal}\n`;
+                csv += `${base},${campo(p.ProductoNombre)},${p.Cantidad},${p.PrecioUnitario},${p.Subtotal}\n`;
             });
         }
     });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href = url;
