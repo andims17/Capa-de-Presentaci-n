@@ -225,11 +225,23 @@
             <h3 class="modal-title">Seleccionar Cliente</h3>
             <button class="close" onclick="closeModal('seleccionarClienteModal')">&times;</button>
         </div>
-        <div class="modal-body-scroll" id="clientOptionsContainer">
-            <div class="client-option" onclick="selectCustomer('Venta General', '', null)">
+                <div class="modal-body-scroll" id="clientOptionsContainer">
+            <div class="client-option" data-id="" data-nombre="Venta General" data-detalle="Sin cliente asignado"
+                 onclick="selectCustomer(this)">
                 <strong>Venta General</strong>
                 <span class="client-option-subtitle">Sin cliente asignado</span>
             </div>
+
+            <% (typeof clientes !== 'undefined' ? clientes : []).forEach(c => { %>
+                <div class="client-option"
+                     data-id="<%= c.Id %>"
+                     data-nombre="<%= c.NombreCompleto %>"
+                     data-detalle="<%= c.Telefono || '' %>"
+                     onclick="selectCustomer(this)">
+                    <strong><%= c.NombreCompleto %></strong>
+                    <span class="client-option-subtitle"><%= c.Telefono || 'Sin teléfono' %></span>
+                </div>
+            <% }) %>
         </div>
     </div>
 </div>
@@ -247,6 +259,22 @@
         document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
         element.classList.add('active');
         filterProducts();
+    }
+    
+    function selectCustomer(elemento) {
+        const id      = elemento.dataset.id || '';
+        const nombre  = elemento.dataset.nombre || 'Venta General';
+        const detalle = elemento.dataset.detalle || '';
+
+        currentCustomer = { id: id ? parseInt(id) : null, name: nombre, code: detalle };
+
+        document.getElementById('selectedCustomerId').value = id;
+        document.getElementById('displayCustomerName').textContent = 'Cliente: ' + nombre;
+        document.getElementById('displayCustomerCode').textContent = id
+            ? (detalle || 'Cliente registrado')
+            : 'Sin cliente asignado';
+
+        closeModal('seleccionarClienteModal');
     }
 
     function aplicarDescuento(id, porcentaje) {
