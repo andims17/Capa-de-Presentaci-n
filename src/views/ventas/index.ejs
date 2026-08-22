@@ -54,10 +54,10 @@
 
         <div class="categories">
             <button class="category-btn active" data-category="all" onclick="setCategory('all', this)">Todos</button>
-            <button class="category-btn" data-category="medicamento" onclick="setCategory('medicamento', this)">Medicamentos</button>
-            <button class="category-btn" data-category="alimento" onclick="setCategory('alimento', this)">Alimentos</button>
-            <button class="category-btn" data-category="accesorio" onclick="setCategory('accesorio', this)">Accesorios</button>
-            <button class="category-btn" data-category="higiene" onclick="setCategory('higiene', this)">Higiene</button>
+            <% (typeof categorias !== 'undefined' ? categorias : []).forEach(c => { %>
+                <button class="category-btn" data-category="<%= c.Nombre %>" onclick="setCategory('<%= c.Nombre %>', this)"><%= c.Nombre %></button>
+            <% }) %>
+            <button class="category-btn" data-category="servicio" onclick="setCategory('servicio', this)">Servicios</button>
         </div>
 
         <div class="products-grid" id="productsGrid"></div>
@@ -412,16 +412,27 @@
         cargarTodasLasMascotas();
         document.getElementById('modalGrooming').style.display = 'flex';
     }
-
+    function normalizarCategoria(valor) {
+        return String(valor || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim();
+    }
     async function filterProducts() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         try {
-            const response = await fetch(`/ventas/buscar?q=${searchTerm}&category=${currentCategory}`);
+            const response = await fetch(`/ventas/buscar?q=${encodeURIComponent(searchTerm)}`);
             const data = await response.json();
             const grid = document.getElementById('productsGrid');
             grid.innerHTML = '';
 
-            data.forEach(p => {
+            const categoriaActual = normalizarCategoria(currentCategory);
+            const productosFiltrados = (currentCategory === 'all')
+                ? data
+                : data.filter(p => normalizarCategoria(p.Categoria || p.categoria) === categoriaActual);
+
+            productosFiltrados.forEach(p => {
                 renderProductCard(p.Id || p.id, p.Nombre || p.nombre, parseFloat(p.Precio || p.precio), parseInt(p.Stock || p.stock), p.EsCritico || false, grid);
             });
 

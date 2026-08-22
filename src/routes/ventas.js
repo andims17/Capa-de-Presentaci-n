@@ -10,14 +10,17 @@ const {
 } = require('../models/ventaModel');
 const clientesModel = require('../models/clientesModel');
 const MascotasModel = require('../models/mascotasModel');
+const productosModel = require('../models/productosModel');
 
 router.get('/', async (req, res) => {
     try {
         const clientes = await listarClientesPOS();
+        const categorias = await productosModel.listarCategorias();
         res.render('ventas/index', { 
             title: 'Punto de Venta', 
             clientes,
-            user: req.session.user || {} 
+            categorias,
+            user: req.session.user || {}   
         });
     } catch (e) {
         console.error(e);
