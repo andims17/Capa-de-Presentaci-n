@@ -18,6 +18,14 @@ function formatFechaISO(fechaObj) {
   return new Date(fechaObj).toISOString().split('T')[0];
 }
 
+// mysql2 devuelve las columnas DECIMAL como string ("10000.00") para no
+// perder precision. Sin convertirlas, el "+" concatena en vez de sumar:
+// "10000.00" + "20000.00" -> "10000.0020000.00".
+function aNumero(valor) {
+  const n = Number(valor);
+  return Number.isFinite(n) ? n : 0;
+}
+
 const MENSAJES_ERROR = {
   'CONFLICTO_VETERINARIO':      'El horario seleccionado ya está ocupado. Hay otra cita dentro de los 60 minutos siguientes.',
   'CONFLICTO_TRANSPORTE':       'No se puede cambiar la cita a esta hora. El transportista ya tiene una asignación cercana.',
@@ -39,6 +47,8 @@ async function listarCitas(fecha = null, clienteId = null) {
   ]);
   return rows[0].map(cita => ({
     ...cita,
+    CostoGrooming:   aNumero(cita.CostoGrooming),
+    CostoTransporte: aNumero(cita.CostoTransporte),
     FechaISO: formatFechaISO(cita.Fecha),
     Hora:     formatHora(cita.Hora),
     Fecha:    formatFecha(cita.Fecha),
@@ -52,6 +62,8 @@ async function listarCitasPorRango(fechaInicio, fechaFin, clienteId = null) {
   ]);
   return rows[0].map(cita => ({
     ...cita,
+    CostoGrooming:   aNumero(cita.CostoGrooming),
+    CostoTransporte: aNumero(cita.CostoTransporte),
     FechaISO: formatFechaISO(cita.Fecha),
     Hora:     formatHora(cita.Hora),
     Fecha:    formatFecha(cita.Fecha),
@@ -63,6 +75,8 @@ async function obtenerCitaPorId(id) {
   const [rows] = await pool.execute('CALL sp_Citas_ObtenerPorId(?)', [id]);
   const cita = rows[0][0];
   if (cita) {
+    cita.CostoGrooming   = aNumero(cita.CostoGrooming);
+    cita.CostoTransporte = aNumero(cita.CostoTransporte);
     if (cita.Hora)  cita.Hora     = formatHora(cita.Hora);
     if (cita.Fecha) {
       cita.FechaISO = formatFechaISO(cita.Fecha);

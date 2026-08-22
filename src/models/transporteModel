@@ -13,11 +13,20 @@ function formatFecha(fechaObj) {
   return new Date(fechaObj).toLocaleDateString('es-CR', { timeZone: 'UTC' });
 }
 
+// mysql2 devuelve las columnas DECIMAL como string ("20000.00") para no
+// perder precision. Sin convertirlas, el "Total ingresos" de la vista
+// concatenaba los montos en vez de sumarlos: 0 + "20000.00" -> "020000.00".
+function aNumero(valor) {
+  const n = Number(valor);
+  return Number.isFinite(n) ? n : 0;
+}
+
 async function getTransportistaConCitas() {
   const [rows] = await pool.execute('CALL sp_Transporte_ListarConCitas()');
   const transportista = rows[0][0] || null;
   const citas = (rows[1] || []).map(cita => ({
     ...cita,
+    CostoTransporte: aNumero(cita.CostoTransporte),
     Hora:  formatHora(cita.Hora),
     Fecha: formatFecha(cita.Fecha)
   }));

@@ -755,11 +755,11 @@ function abrirCita(cita) {
     document.getElementById('cm-servicio').textContent = cita.Servicio || '—';
 
     const transp = cita.TransporteNecesario
-        ? `Sí – ${cita.TipoTransporte || ''} · ₡${(cita.CostoTransporte||0).toLocaleString('es-CR')}`
+        ? `Sí – ${cita.TipoTransporte || ''} · ₡${(Number(cita.CostoTransporte)||0).toLocaleString('es-CR')}`
         : 'No requiere';
     document.getElementById('cm-transporte').textContent = transp;
 
-    const total = ((cita.CostoGrooming||0) + (cita.CostoTransporte||0));
+    const total = (Number(cita.CostoGrooming)||0) + (Number(cita.CostoTransporte)||0);
     document.getElementById('cm-total').textContent = `₡${total.toLocaleString('es-CR')}`;
 
     document.getElementById('cm-estado-badge').innerHTML = estadoBadgeHTML(estado);
